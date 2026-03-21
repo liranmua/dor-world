@@ -1418,6 +1418,587 @@ function KingdomZone({ hero, save, onSave, onBack }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔤 LETTERS ZONE — ממלכת האותיות ומספרים
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LETTER_DATA = [
+  {letter:"א", word:"ארנב",   emoji:"🐰", sound:"א"},
+  {letter:"ב", word:"בית",    emoji:"🏠", sound:"ב"},
+  {letter:"ג", word:"גמל",    emoji:"🐪", sound:"ג"},
+  {letter:"ד", word:"דג",     emoji:"🐟", sound:"ד"},
+  {letter:"ה", word:"הר",     emoji:"⛰️",  sound:"ה"},
+  {letter:"ו", word:"ורד",    emoji:"🌹", sound:"ו"},
+  {letter:"ז", word:"זאב",    emoji:"🐺", sound:"ז"},
+  {letter:"ח", word:"חתול",   emoji:"🐱", sound:"ח"},
+  {letter:"ט", word:"טיל",    emoji:"🚀", sound:"ט"},
+  {letter:"י", word:"ים",     emoji:"🌊", sound:"י"},
+  {letter:"כ", word:"כלב",    emoji:"🐶", sound:"כ"},
+  {letter:"ל", word:"לב",     emoji:"❤️",  sound:"ל"},
+  {letter:"מ", word:"מכונית", emoji:"🚗", sound:"מ"},
+  {letter:"נ", word:"נחש",    emoji:"🐍", sound:"נ"},
+  {letter:"ס", word:"סוס",    emoji:"🐴", sound:"ס"},
+  {letter:"ע", word:"עץ",     emoji:"🌳", sound:"ע"},
+  {letter:"פ", word:"פרח",    emoji:"🌸", sound:"פ"},
+  {letter:"צ", word:"צב",     emoji:"🐢", sound:"צ"},
+  {letter:"ק", word:"קוף",    emoji:"🐒", sound:"ק"},
+  {letter:"ר", word:"רכבת",   emoji:"🚂", sound:"ר"},
+  {letter:"ש", word:"שמש",    emoji:"☀️",  sound:"ש"},
+  {letter:"ת", word:"תפוח",   emoji:"🍎", sound:"ת"},
+];
+
+const NUMBER_DATA = [
+  {number:1, emoji:"⭐",   word:"אחד",   items:["⭐"]},
+  {number:2, emoji:"🌙",   word:"שתיים",  items:["🌙","🌙"]},
+  {number:3, emoji:"🌟",   word:"שלוש",  items:["🌟","🌟","🌟"]},
+  {number:4, emoji:"🔥",   word:"ארבע",  items:["🔥","🔥","🔥","🔥"]},
+  {number:5, emoji:"⚡",   word:"חמש",   items:["⚡","⚡","⚡","⚡","⚡"]},
+  {number:6, emoji:"💎",   word:"שש",    items:["💎","💎","💎","💎","💎","💎"]},
+  {number:7, emoji:"🎈",   word:"שבע",   items:["🎈","🎈","🎈","🎈","🎈","🎈","🎈"]},
+  {number:8, emoji:"🌈",   word:"שמונה", items:["🌈","🌈","🌈","🌈","🌈","🌈","🌈","🌈"]},
+  {number:9, emoji:"🦋",   word:"תשע",   items:["🦋","🦋","🦋","🦋","🦋","🦋","🦋","🦋","🦋"]},
+  {number:10,emoji:"🏆",   word:"עשר",   items:["🏆","🏆","🏆","🏆","🏆","🏆","🏆","🏆","🏆","🏆"]},
+];
+
+const ZONE_COLOR = "#A78BFA";
+
+// shuffle helper
+function shuffleArr(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+// ── AnswerBtn — big tap target with correct/wrong animations ──
+function AnswerBtn({ label, sublabel, onClick, state, accentColor }) {
+  // state: "idle" | "correct" | "wrong"
+  const bg = state==="correct" ? "linear-gradient(135deg,#00AA44,#00CC66)"
+           : state==="wrong"   ? "linear-gradient(135deg,#CC2200,#FF4444)"
+           : `linear-gradient(135deg,${accentColor}22,${accentColor}11)`;
+  const border = state==="correct" ? "#00FF88"
+               : state==="wrong"   ? "#FF4444"
+               : accentColor+"55";
+  const shake = state==="wrong" ? "wrongShake 0.5s ease" : "none";
+  const scale = state==="correct" ? "correctPop 0.4s ease" : "none";
+
+  return (
+    <button onClick={onClick}
+      className="rounded-3xl flex flex-col items-center justify-center active:scale-90 transition-colors border-4 relative overflow-hidden"
+      style={{
+        background:bg, borderColor:border,
+        minHeight:90, padding:"12px 8px",
+        animation: state==="wrong" ? shake : state==="correct" ? scale : "none",
+        boxShadow: state==="correct" ? `0 0 24px #00FF8888`
+                 : state==="wrong"   ? `0 0 16px #FF444488`
+                 : `0 4px 16px ${accentColor}22`,
+      }}>
+      {/* sparkles on correct */}
+      {state==="correct" && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
+          style={{fontSize:28,animation:"sparkleOut 0.6s ease forwards"}}>✨</div>
+      )}
+      <span className="font-black text-white leading-none" style={{fontSize:42}}>{label}</span>
+      {sublabel && <span className="text-white font-bold mt-1 opacity-80" style={{fontSize:13}}>{sublabel}</span>}
+    </button>
+  );
+}
+
+// ── Game 1: שמע וגע — hear a letter/number and tap it ──
+function HearAndTapGame({ hero, narrator, onScore, onDone, mode }) {
+  const data = mode==="letters" ? LETTER_DATA : NUMBER_DATA;
+  const ROUNDS = 8;
+  const [round, setRound]     = useState(0);
+  const [score, setScore]     = useState(0);
+  const [options, setOptions] = useState([]);
+  const [target, setTarget]   = useState(null);
+  const [states, setStates]   = useState({});   // {idx: "correct"|"wrong"}
+  const [locked, setLocked]   = useState(false);
+  const [showBoom, setShowBoom] = useState(false);
+
+  const makeRound = (rnd) => {
+    const pool = shuffleArr(data).slice(0,4);
+    const tgt  = pool[Math.floor(Math.random()*4)];
+    setOptions(pool); setTarget(tgt); setStates({}); setLocked(false);
+    // announce
+    const txt = mode==="letters"
+      ? `מצא את האות ${tgt.letter}! ${tgt.letter} כמו ${tgt.word}`
+      : `מצא את המספר ${tgt.number}! ${tgt.word}`;
+    setTimeout(()=> narrator.say(txt,{priority:true}), 200);
+  };
+
+  useEffect(()=>{ makeRound(0); },[]); // eslint-disable-line
+
+  const choose = (idx, item) => {
+    if (locked) return;
+    const isLabel = mode==="letters" ? item.letter===target.letter : item.number===target.number;
+    // read it aloud
+    narrator.say(mode==="letters" ? item.letter : String(item.number), {priority:true});
+    if (isLabel) {
+      setStates({[idx]:"correct"});
+      setLocked(true);
+      setShowBoom(true);
+      setTimeout(()=>setShowBoom(false),1500);
+      const ns = score+1;
+      setScore(ns);
+      onScore(ns);
+      narrator.say(mode==="letters"
+        ? `כן! ${item.letter} כמו ${item.word}! מעולה!`
+        : `כן! ${item.number}! ${item.word}! מעולה!`, {priority:false});
+      setTimeout(()=>{
+        if (round+1>=ROUNDS) onDone(ns);
+        else { setRound(r=>r+1); makeRound(round+1); }
+      },1400);
+    } else {
+      setStates(s=>({...s,[idx]:"wrong"}));
+      narrator.say("לא זו! נסה שוב!", {priority:true});
+      setTimeout(()=> setStates(s=>{const n={...s};delete n[idx];return n;}), 700);
+    }
+  };
+
+  if (!target) return null;
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-4 pb-4">
+      {/* round progress */}
+      <div className="flex gap-1.5 justify-center mb-3">
+        {Array.from({length:ROUNDS}).map((_,i)=>(
+          <div key={i} className="rounded-full transition-all" style={{
+            width:i===round?14:10, height:i===round?14:10,
+            background:i<round?"#FFD700":i===round?ZONE_COLOR:"#333",
+            boxShadow:i===round?`0 0 8px ${ZONE_COLOR}`:"none",
+          }}/>
+        ))}
+      </div>
+
+      {/* big target display */}
+      <div className="w-full max-w-sm rounded-3xl p-5 mb-4 border-2 text-center relative overflow-hidden"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
+        {showBoom && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            style={{fontSize:60,animation:"sparkleOut 1s ease forwards"}}>🎉</div>
+        )}
+        <p className="text-gray-300 font-black text-sm mb-2">
+          {mode==="letters" ? "🎵 מצא את האות:" : "🎵 מצא את המספר:"}
+        </p>
+        {mode==="letters" ? (
+          <div className="font-black leading-none mb-1"
+            style={{fontSize:90,color:ZONE_COLOR,textShadow:`0 0 30px ${ZONE_COLOR}`}}>
+            {target.letter}
+          </div>
+        ) : (
+          <div className="font-black leading-none mb-1"
+            style={{fontSize:90,color:ZONE_COLOR,textShadow:`0 0 30px ${ZONE_COLOR}`}}>
+            {target.number}
+          </div>
+        )}
+        <div style={{fontSize:40}}>{mode==="letters" ? target.emoji : target.emoji}</div>
+        <button onClick={()=> narrator.say(
+          mode==="letters" ? `${target.letter} כמו ${target.word}` : `${target.number} ${target.word}`,
+          {priority:true})}
+          className="mt-2 rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR}}>
+          🔊 שמע שוב
+        </button>
+      </div>
+
+      {/* 4 answer buttons */}
+      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+        {options.map((item,idx)=>(
+          <AnswerBtn key={idx}
+            label={mode==="letters" ? item.letter : String(item.number)}
+            sublabel={mode==="letters" ? item.word : item.word}
+            onClick={()=>choose(idx,item)}
+            state={states[idx]||"idle"}
+            accentColor={ZONE_COLOR}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Game 2: התאם תמונה לאות ──
+function MatchPicGame({ hero, narrator, onScore, onDone, mode }) {
+  const data = mode==="letters" ? LETTER_DATA : NUMBER_DATA;
+  const ROUNDS = 8;
+  const [round, setRound]   = useState(0);
+  const [score, setScore]   = useState(0);
+  const [item, setItem]     = useState(null);
+  const [options, setOptions] = useState([]);
+  const [states, setStates] = useState({});
+  const [locked, setLocked] = useState(false);
+  const [showBoom, setShowBoom] = useState(false);
+
+  const makeRound = () => {
+    const pool = shuffleArr(data).slice(0,4);
+    const tgt  = pool[0];
+    setItem(tgt); setOptions(shuffleArr(pool)); setStates({}); setLocked(false);
+    const txt = mode==="letters"
+      ? `מה האות הראשונה של ${tgt.word}?`
+      : `כמה ${tgt.emoji} יש כאן? ספור!`;
+    setTimeout(()=> narrator.say(txt,{priority:true}), 200);
+  };
+
+  useEffect(()=>{ makeRound(); },[]); // eslint-disable-line
+
+  const choose = (idx, opt) => {
+    if (locked) return;
+    const correct = mode==="letters" ? opt.letter===item.letter : opt.number===item.number;
+    narrator.say(mode==="letters" ? opt.letter : String(opt.number), {priority:true});
+    if (correct) {
+      setStates({[idx]:"correct"}); setLocked(true);
+      setShowBoom(true); setTimeout(()=>setShowBoom(false),1500);
+      const ns=score+1; setScore(ns); onScore(ns);
+      narrator.say(mode==="letters"
+        ? `נכון! ${item.word} מתחיל ב${item.letter}! מעולה!`
+        : `נכון! ${item.number}! ${item.word}!`, {priority:false});
+      setTimeout(()=>{ if(round+1>=ROUNDS) onDone(ns); else{setRound(r=>r+1);makeRound();} },1400);
+    } else {
+      setStates(s=>({...s,[idx]:"wrong"}));
+      narrator.say("לא זו! נסה שוב!", {priority:true});
+      setTimeout(()=>setStates(s=>{const n={...s};delete n[idx];return n;}),700);
+    }
+  };
+
+  if (!item) return null;
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-4 pb-4">
+      <div className="flex gap-1.5 justify-center mb-3">
+        {Array.from({length:ROUNDS}).map((_,i)=>(
+          <div key={i} className="rounded-full transition-all" style={{
+            width:i===round?14:10,height:i===round?14:10,
+            background:i<round?"#FFD700":i===round?ZONE_COLOR:"#333",
+            boxShadow:i===round?`0 0 8px ${ZONE_COLOR}`:"none",
+          }}/>
+        ))}
+      </div>
+
+      {/* picture card */}
+      <div className="w-full max-w-sm rounded-3xl p-5 mb-4 border-2 text-center relative overflow-hidden"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
+        {showBoom&&<div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+          style={{fontSize:60,animation:"sparkleOut 1s ease forwards"}}>🎉</div>}
+        <p className="text-gray-300 font-black text-sm mb-2">
+          {mode==="letters" ? "🖼️ מה האות הראשונה?" : "🔢 כמה יש כאן?"}
+        </p>
+        {mode==="letters" ? (
+          <>
+            <div style={{fontSize:80}}>{item.emoji}</div>
+            <div className="text-white font-black text-2xl mt-1">{item.word}</div>
+          </>
+        ) : (
+          <div className="flex flex-wrap justify-center gap-1 my-2" style={{minHeight:60}}>
+            {item.items.map((e,i)=><span key={i} style={{fontSize:32}}>{e}</span>)}
+          </div>
+        )}
+        <button onClick={()=> narrator.say(
+          mode==="letters"?`${item.word} — מה האות הראשונה?`:`ספור: ${item.items.join(" ")}`,
+          {priority:true})}
+          className="mt-2 rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR}}>
+          🔊 שמע שוב
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+        {options.map((opt,idx)=>(
+          <AnswerBtn key={idx}
+            label={mode==="letters" ? opt.letter : String(opt.number)}
+            sublabel={mode==="letters" ? opt.word : opt.word}
+            onClick={()=>choose(idx,opt)}
+            state={states[idx]||"idle"}
+            accentColor={ZONE_COLOR}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Game 3: לחץ על האות — tap the letter the narrator calls ──
+function TapLetterGame({ hero, narrator, onScore, onDone, mode }) {
+  const data = mode==="letters" ? LETTER_DATA : NUMBER_DATA;
+  const ROUNDS = 10;
+  const GRID_SIZE = 9; // 3x3 grid of letters
+  const [round, setRound]   = useState(0);
+  const [score, setScore]   = useState(0);
+  const [grid, setGrid]     = useState([]);
+  const [target, setTarget] = useState(null);
+  const [states, setStates] = useState({});
+  const [locked, setLocked] = useState(false);
+  const [showBoom, setShowBoom] = useState(false);
+
+  const makeRound = () => {
+    const pool = shuffleArr(data).slice(0, GRID_SIZE);
+    const tgt  = pool[Math.floor(Math.random()*GRID_SIZE)];
+    setGrid(pool); setTarget(tgt); setStates({}); setLocked(false);
+    const txt = mode==="letters"
+      ? `לחץ על האות ${tgt.letter}!`
+      : `לחץ על המספר ${tgt.number}!`;
+    setTimeout(()=> narrator.say(txt,{priority:true}), 200);
+  };
+
+  useEffect(()=>{ makeRound(); },[]); // eslint-disable-line
+
+  const choose = (idx, item) => {
+    if (locked) return;
+    const correct = mode==="letters" ? item.letter===target.letter : item.number===target.number;
+    narrator.say(mode==="letters" ? item.letter : String(item.number), {priority:true});
+    if (correct) {
+      setStates({[idx]:"correct"}); setLocked(true);
+      setShowBoom(true); setTimeout(()=>setShowBoom(false),1200);
+      const ns=score+1; setScore(ns); onScore(ns);
+      narrator.say("יפה מאוד!", {priority:false});
+      setTimeout(()=>{ if(round+1>=ROUNDS) onDone(ns); else{setRound(r=>r+1);makeRound();} },1200);
+    } else {
+      setStates(s=>({...s,[idx]:"wrong"}));
+      narrator.say("לא זו! נסה שוב!", {priority:true});
+      setTimeout(()=>setStates(s=>{const n={...s};delete n[idx];return n;}),700);
+    }
+  };
+
+  if (!target) return null;
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-4 pb-4">
+      <div className="flex gap-1 justify-center mb-2">
+        {Array.from({length:ROUNDS}).map((_,i)=>(
+          <div key={i} className="rounded-full" style={{
+            width:i===round?12:8,height:i===round?12:8,
+            background:i<round?"#FFD700":i===round?ZONE_COLOR:"#333",
+          }}/>
+        ))}
+      </div>
+
+      {/* target */}
+      <div className="w-full max-w-sm rounded-2xl p-3 mb-3 border-2 text-center relative"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
+        {showBoom&&<div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+          style={{fontSize:50,animation:"sparkleOut 0.8s ease forwards"}}>⭐</div>}
+        <p className="text-gray-300 text-xs font-black mb-1">לחץ על:</p>
+        <div className="flex items-center justify-center gap-3">
+          <span className="font-black" style={{fontSize:64,color:ZONE_COLOR,textShadow:`0 0 20px ${ZONE_COLOR}`}}>
+            {mode==="letters" ? target.letter : target.number}
+          </span>
+          <span style={{fontSize:40}}>{target.emoji}</span>
+        </div>
+        <button onClick={()=> narrator.say(
+          mode==="letters"?`${target.letter}! ${target.letter} כמו ${target.word}`:`${target.number}!`,
+          {priority:true})}
+          className="mt-1 rounded-full px-3 py-1 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"55",color:ZONE_COLOR}}>
+          🔊 שמע שוב
+        </button>
+      </div>
+
+      {/* 3x3 grid */}
+      <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
+        {grid.map((item,idx)=>(
+          <button key={idx} onClick={()=>choose(idx,item)}
+            className="rounded-2xl flex flex-col items-center justify-center border-3 active:scale-90 transition-all relative overflow-hidden"
+            style={{
+              height:88,
+              background: states[idx]==="correct" ? "linear-gradient(135deg,#003300,#00CC44)"
+                        : states[idx]==="wrong"   ? "linear-gradient(135deg,#330000,#CC2200)"
+                        : `linear-gradient(135deg,${ZONE_COLOR}18,#050015)`,
+              borderColor: states[idx]==="correct" ? "#00FF88"
+                         : states[idx]==="wrong"   ? "#FF4444"
+                         : ZONE_COLOR+"44",
+              border:"3px solid",
+              boxShadow: states[idx]==="correct"?"0 0 20px #00FF8877"
+                        :states[idx]==="wrong"?"0 0 12px #FF444477":"none",
+              animation: states[idx]==="wrong"?"wrongShake 0.5s ease"
+                        :states[idx]==="correct"?"correctPop 0.4s ease":"none",
+            }}>
+            <span className="font-black text-white" style={{fontSize:38}}>
+              {mode==="letters" ? item.letter : item.number}
+            </span>
+            <span style={{fontSize:16}}>{item.emoji}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Summary screen ──
+function LettersSummary({ score, total, gameTitle, onReplay, onBack, hero }) {
+  const pct = Math.round((score/total)*100);
+  const stars = score>=total ? 5 : score>=(total*0.8) ? 4 : score>=(total*0.6) ? 3 : score>=(total*0.4) ? 2 : 1;
+  const msg = pct===100?"מושלם! אלוף האותיות! 👑"
+            : pct>=80?"מעולה מאוד! כמעט מושלם! 🌟"
+            : pct>=60?"יפה מאוד דור! 💪"
+            : "כל הכבוד שניסית! 🤗";
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4">
+      <div style={{fontSize:70,animation:"heroFloat 2s ease-in-out infinite"}}>
+        {pct===100?"🏆":pct>=80?"🌟":"💪"}
+      </div>
+      <div className="w-full max-w-sm rounded-3xl p-6 border-4 text-center"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,
+          borderColor:ZONE_COLOR,boxShadow:`0 0 28px ${ZONE_COLOR}44`}}>
+        <div className="text-white font-black text-xl mb-1">{gameTitle}</div>
+        <div className="font-black mb-2" style={{fontSize:56,color:ZONE_COLOR,textShadow:`0 0 20px ${ZONE_COLOR}`}}>
+          {score}/{total}
+        </div>
+        <Stars n={stars} max={5} size={24}/>
+        <div className="text-white font-bold text-lg mt-3">{msg}</div>
+      </div>
+      <div className="flex gap-3">
+        <button onClick={onReplay}
+          className="px-7 py-3 rounded-full font-black text-lg text-black active:scale-95"
+          style={{background:`linear-gradient(135deg,${ZONE_COLOR},#7C3AED)`}}>
+          🔄 שוב!
+        </button>
+        <button onClick={onBack}
+          className="px-7 py-3 rounded-full font-black text-lg border active:scale-95"
+          style={{background:"#ffffff08",borderColor:ZONE_COLOR,color:ZONE_COLOR}}>
+          🏠 בית
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main LettersZone ──
+function LettersZone({ hero, save, onSave, onBack }) {
+  const narrator = useNarrator();
+  const [screen, setScreen] = useState("menu"); // menu | playing | summary
+  const [gameType, setGameType] = useState(null);  // "hear"|"match"|"tap"
+  const [contentMode, setContentMode] = useState(null); // "letters"|"numbers"
+  const [currentScore, setCurrentScore] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [totalRounds, setTotalRounds] = useState(8);
+
+  const GAMES = [
+    {id:"hear",  emoji:"🎵", title:"שמע וגע",        sub:"הקריין אומר — אתה לוחץ!",   rounds:8,  color:"#FF6B6B"},
+    {id:"match", emoji:"🖼️", title:"התאם לתמונה",    sub:"מה האות הראשונה בתמונה?",  rounds:8,  color:"#FFD700"},
+    {id:"tap",   emoji:"👆", title:"לחץ על האות",    sub:"מצא מהר בגריד!",            rounds:10, color:"#00CC88"},
+  ];
+
+  const startGame = (gid, cmode) => {
+    setGameType(gid); setContentMode(cmode); setCurrentScore(0);
+    setTotalRounds(GAMES.find(g=>g.id===gid)?.rounds||8);
+    setScreen("playing");
+    narrator.say(cmode==="letters"?"משחק אותיות! בהצלחה דור!":"משחק מספרים! בהצלחה!", {priority:true});
+  };
+
+  const handleDone = (score) => {
+    setFinalScore(score);
+    setScreen("summary");
+    const newStars = Math.min(5,(save.zone_stars?.letters||0)+1);
+    const bonus = Math.round((score/totalRounds)*20);
+    onSave({...save, xp:(save.xp||0)+bonus,
+      zone_stars:{...save.zone_stars, letters:newStars}});
+    const msg = score>=totalRounds?"מושלם! אלוף האותיות!"
+              : score>=(totalRounds*0.7)?"מעולה דור! כל הכבוד!"
+              : "כל הכבוד שניסית! בוא נשחק שוב!";
+    setTimeout(()=> narrator.say(msg,{priority:true}),400);
+  };
+
+  const gameObj = GAMES.find(g=>g.id===gameType);
+
+  return (
+    <div className="min-h-screen flex flex-col" dir="rtl"
+      style={{background:"linear-gradient(180deg,#180030 0%,#050015 100%)"}}>
+
+      {/* header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
+        <button onClick={()=>{narrator.stop();screen==="menu"?onBack():setScreen("menu");}}
+          className="rounded-full px-4 py-2 text-sm font-black border active:scale-95"
+          style={{background:"#ffffff08",borderColor:ZONE_COLOR+"44",color:ZONE_COLOR}}>
+          {screen==="menu"?"🏠 בית":"◀ תפריט"}
+        </button>
+        <div className="text-center">
+          <div className="text-white font-black" style={{textShadow:`0 0 10px ${ZONE_COLOR}`}}>
+            🔤 ממלכת האותיות
+          </div>
+          <Stars n={save.zone_stars?.letters||0} max={5} size={12}/>
+        </div>
+        <SpeakerBtn narrator={narrator} accent={ZONE_COLOR}
+          onRepeat={()=>{ if(screen==="menu") narrator.say("בחר משחק!",{priority:true}); }}/>
+      </div>
+
+      {/* ── MENU ── */}
+      {screen==="menu" && (
+        <div className="flex-1 flex flex-col items-center px-4 pb-4">
+          <div className="text-center mb-4 mt-2">
+            <div className="text-5xl mb-2" style={{animation:"heroFloat 3s ease-in-out infinite"}}>
+              {hero.emoji}
+            </div>
+            <div className="relative bg-white rounded-2xl px-4 py-3 border-4 inline-block"
+              style={{borderColor:ZONE_COLOR}}>
+              <p className="text-gray-900 font-black text-base">דור, בחר משחק ושפה!</p>
+            </div>
+          </div>
+
+          {GAMES.map(g=>(
+            <div key={g.id} className="w-full max-w-sm mb-3 rounded-3xl border-2 overflow-hidden"
+              style={{borderColor:g.color+"55",background:"#ffffff06"}}>
+              <div className="px-4 pt-3 pb-2 flex items-center gap-3">
+                <span className="text-3xl">{g.emoji}</span>
+                <div>
+                  <div className="text-white font-black text-base">{g.title}</div>
+                  <div className="text-gray-400 text-xs">{g.sub}</div>
+                </div>
+              </div>
+              <div className="flex gap-2 px-4 pb-3">
+                <button onClick={()=>startGame(g.id,"letters")}
+                  className="flex-1 py-2.5 rounded-2xl font-black text-sm text-black active:scale-95"
+                  style={{background:`linear-gradient(135deg,${g.color},${g.color}88)`}}>
+                  🔤 אותיות
+                </button>
+                <button onClick={()=>startGame(g.id,"numbers")}
+                  className="flex-1 py-2.5 rounded-2xl font-black text-sm text-black active:scale-95"
+                  style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)"}}>
+                  🔢 מספרים
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── PLAYING ── */}
+      {screen==="playing" && (
+        <>
+          {/* score strip */}
+          <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+            <div className="rounded-full px-3 py-1 text-xs font-black"
+              style={{background:ZONE_COLOR+"22",color:ZONE_COLOR,border:`1px solid ${ZONE_COLOR}44`}}>
+              {gameObj?.emoji} {gameObj?.title} · {contentMode==="letters"?"אותיות":"מספרים"}
+            </div>
+            <div className="rounded-full px-3 py-1 text-xs font-black"
+              style={{background:"#FFD70022",color:"#FFD700",border:"1px solid #FFD70044"}}>
+              ⭐ {currentScore}/{totalRounds}
+            </div>
+          </div>
+
+          {gameType==="hear"  && <HearAndTapGame  hero={hero} narrator={narrator} onScore={setCurrentScore} onDone={handleDone} mode={contentMode}/>}
+          {gameType==="match" && <MatchPicGame     hero={hero} narrator={narrator} onScore={setCurrentScore} onDone={handleDone} mode={contentMode}/>}
+          {gameType==="tap"   && <TapLetterGame    hero={hero} narrator={narrator} onScore={setCurrentScore} onDone={handleDone} mode={contentMode}/>}
+        </>
+      )}
+
+      {/* ── SUMMARY ── */}
+      {screen==="summary" && (
+        <LettersSummary
+          score={finalScore} total={totalRounds}
+          gameTitle={`${gameObj?.emoji} ${gameObj?.title} — ${contentMode==="letters"?"אותיות":"מספרים"}`}
+          onReplay={()=>startGame(gameType,contentMode)}
+          onBack={()=>setScreen("menu")} hero={hero}/>
+      )}
+
+      <style>{`
+        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+        @keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+        @keyframes sparkleOut{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.8)}}
+        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+      `}</style>
+    </div>
+  );
+}
+
 // ─── PLACEHOLDER for remaining zones ─────────────────────────────────────────
 function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
   const earn = () => {
@@ -1451,13 +2032,14 @@ function App() {
 
   const persist = (data) => { setSave(data); writeSave(data); };
   const goHome = () => setScreen("home");
-
   const activeZone = ZONES.find(z => z.id === screen);
 
   if (screen === "hero-select") {
     return <HeroSelect savedXP={save.xp||0} onSelect={h=>{setHero(h);setScreen("home");}}/>;
   }
   if (!hero) return null;
+
+  const builtZones = ["wheel","kingdom","letters"];
 
   return (
     <>
@@ -1468,9 +2050,10 @@ function App() {
           onChangeHero={()=>setScreen("hero-select")}
           onParentOpen={()=>setShowParent(true)}/>
       )}
-      {screen==="wheel"   && <WheelZone    hero={hero} save={save} onSave={persist} onBack={goHome}/>}
-      {screen==="kingdom" && <KingdomZone  hero={hero} save={save} onSave={persist} onBack={goHome}/>}
-      {activeZone && !["wheel","kingdom"].includes(screen) && (
+      {screen==="wheel"   && <WheelZone   hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {screen==="kingdom" && <KingdomZone hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {screen==="letters" && <LettersZone hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {activeZone && !builtZones.includes(screen) && (
         <ZonePlaceholder zone={activeZone} hero={hero} save={save} onSave={persist} onBack={goHome}/>
       )}
     </>
