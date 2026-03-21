@@ -1044,14 +1044,385 @@ function WheelZone({ hero, save, onSave, onBack }) {
   );
 }
 
-// ─── PLACEHOLDER for other zones ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// 👑 KINGDOM ZONE — משחק הממלכה
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PROBLEM_CARDS = [
+  { id:1,  emoji:"🎮", text:"אחי לקח לי את השלט",        green:[1,3,5,7] },
+  { id:2,  emoji:"😢", text:"הפסדתי במשחק",               green:[1,2,4,7] },
+  { id:3,  emoji:"👥", text:"לא רוצים אותי במשחק",        green:[3,5,7,2] },
+  { id:4,  emoji:"😒", text:"משעמם לי",                    green:[2,7,8,3] },
+  { id:5,  emoji:"😠", text:"חבר אמר משהו שפגע בי",       green:[1,7,3,4] },
+  { id:6,  emoji:"🍭", text:"רוצה ממתק ואומרים לי לא",   green:[1,4,7,3] },
+  { id:7,  emoji:"🧸", text:"חטפו לי את הצעצוע",          green:[3,5,7,1] },
+  { id:8,  emoji:"😤", text:"אחי מציק לי",                 green:[6,3,7,2] },
+  { id:9,  emoji:"🎯", text:"לא מצליח בפעילות",            green:[1,3,4,7] },
+  { id:10, emoji:"🌙", text:"לא רוצה ללכת לישון",         green:[1,4,7,8] },
+  { id:11, emoji:"🤼", text:"רבתי עם חבר",                 green:[7,5,1,3] },
+  { id:12, emoji:"😭", text:"אמא לא נמצאת איתי",          green:[3,7,1,4] },
+];
+
+const KINGDOM_ROUNDS = 5;
+
+function KingdomWheelSVG({ hero, onSelect, spinning, spinDeg, compact=false }) {
+  const S=compact?240:300, cx=S/2, cy=S/2, r=compact?100:128, n=SOLUTIONS.length;
+  return (
+    <div className="relative flex items-center justify-center select-none" style={{width:S,height:S}}>
+      <div className="absolute inset-0 rounded-full"
+        style={{boxShadow:`0 0 30px ${hero.glow}44`}}/>
+      <svg width={S} height={S} style={{
+        transform:`rotate(${spinDeg}deg)`,
+        transition:spinning?"transform 2.4s cubic-bezier(0.25,0.1,0.1,1)":"none",
+        filter:`drop-shadow(0 0 8px ${hero.glow}44)`,
+      }}>
+        <circle cx={cx} cy={cy} r={r+3} fill="none" stroke={hero.accent} strokeWidth="2" opacity="0.4"/>
+        {SOLUTIONS.map((sol,i)=>{
+          const a=(2*Math.PI*i)/n-Math.PI/2, b=(2*Math.PI*(i+1))/n-Math.PI/2;
+          const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a);
+          const x2=cx+r*Math.cos(b),y2=cy+r*Math.sin(b);
+          const m=(a+b)/2;
+          const tx=cx+r*0.62*Math.cos(m),ty=cy+r*0.62*Math.sin(m);
+          return (
+            <g key={sol.id} onClick={()=>!spinning&&onSelect(i)} style={{cursor:spinning?"default":"pointer"}}>
+              <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
+                fill={sol.color} stroke="#050015" strokeWidth="2" opacity="0.93"/>
+              <text x={tx} y={ty-7} textAnchor="middle" fontSize={compact?16:18} dominantBaseline="middle">{sol.emoji}</text>
+              <text x={tx} y={ty+9} textAnchor="middle" fontSize={compact?7:8} fill="#1a0533" fontWeight="900"
+                dominantBaseline="middle">{sol.label}</text>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={compact?30:36} fill="#050015" stroke={hero.accent} strokeWidth="3"/>
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize={compact?18:22}
+          style={{filter:`drop-shadow(0 0 6px ${hero.glow})`}}>{hero.emoji}</text>
+      </svg>
+      <div className="absolute top-0 left-1/2 z-20 flex flex-col items-center"
+        style={{transform:"translateX(-50%) translateY(-2px)"}}>
+        <div style={{width:0,height:0,
+          borderLeft:"9px solid transparent",borderRight:"9px solid transparent",
+          borderTop:`18px solid ${hero.accent}`,
+          filter:`drop-shadow(0 0 4px ${hero.glow})`}}/>
+      </div>
+    </div>
+  );
+}
+
+function KingdomZone({ hero, save, onSave, onBack }) {
+  const narrator = useNarrator();
+  const [phase, setPhase] = useState("mode");   // mode | card | spin | result | summary
+  const [mode, setMode] = useState(null);        // "solo" | "parent"
+  const [card, setCard] = useState(null);
+  const [chosen, setChosen] = useState(null);
+  const [isGreen, setIsGreen] = useState(null);
+  const [score, setScore] = useState(0);
+  const [round, setRound] = useState(1);
+  const [spinning, setSpinning] = useState(false);
+  const [spinDeg, setSpinDeg] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [usedCards, setUsedCards] = useState([]);
+  const baseRot = useRef(0);
+
+  const pickCard = (used=[]) => {
+    const available = PROBLEM_CARDS.filter(c=>!used.includes(c.id));
+    const pool = available.length>0 ? available : PROBLEM_CARDS;
+    return pool[Math.floor(Math.random()*pool.length)];
+  };
+
+  const startGame = (m) => {
+    setMode(m);
+    const c = pickCard([]);
+    setCard(c);
+    setUsedCards([c.id]);
+    setPhase("card");
+    setTimeout(()=> narrator.say(`סיבוב 1. ${c.text}. מה הפתרון הירוק?`, {priority:true}), 300);
+  };
+
+  const doSpin = () => {
+    if (spinning) return;
+    setSpinning(true);
+    narrator.say("הגלגל מסתובב!", {priority:true});
+    const idx = Math.floor(Math.random()*SOLUTIONS.length);
+    const deg = (5+Math.floor(Math.random()*3))*360 + idx*(360/SOLUTIONS.length);
+    baseRot.current += deg;
+    setSpinDeg(baseRot.current);
+    setTimeout(()=>{ setSpinning(false); resolveChoice(SOLUTIONS[idx]); }, 2500);
+  };
+
+  const doSelectSlice = (idx) => {
+    if (spinning) return;
+    narrator.say(SOLUTIONS[idx].label, {priority:true});
+    const deg = 2*360 + idx*(360/SOLUTIONS.length);
+    baseRot.current += deg;
+    setSpinDeg(baseRot.current);
+    setTimeout(()=> resolveChoice(SOLUTIONS[idx]), 500);
+  };
+
+  const resolveChoice = (sol) => {
+    setChosen(sol);
+    const green = card.green.includes(sol.id);
+    setIsGreen(green);
+    setPhase("result");
+    if (green) {
+      setScore(s=>s+1);
+      setShowConfetti(true);
+      setTimeout(()=>setShowConfetti(false),2000);
+      narrator.say(`${sol.label} — פתרון ירוק! כל הכבוד דור!`, {priority:true});
+      // XP
+      const newStars = Math.min(5,(save.zone_stars?.kingdom||0)+1);
+      onSave({...save, xp:(save.xp||0)+12,
+        zone_stars:{...save.zone_stars,kingdom:newStars}});
+    } else {
+      narrator.say(`${sol.label}. בוא נחשוב — זה עוזר לכולם?`, {priority:true});
+    }
+  };
+
+  const nextRound = () => {
+    if (round >= KINGDOM_ROUNDS) { setPhase("summary"); narrator.say(summaryText(score+(isGreen?0:0)), {priority:true}); return; }
+    const newUsed = [...usedCards];
+    const c = pickCard(newUsed);
+    newUsed.push(c.id);
+    setUsedCards(newUsed);
+    setCard(c); setChosen(null); setIsGreen(null);
+    setRound(r=>r+1); setPhase("card");
+    const nr = round+1;
+    setTimeout(()=> narrator.say(`סיבוב ${nr}. ${c.text}. מה הפתרון הירוק?`, {priority:true}), 200);
+  };
+
+  const finalScore = score + (isGreen&&phase==="result"?0:0); // already counted in resolveChoice
+  const summaryText = (s) => {
+    if (s>=4) return `וואו! ${s} מתוך ${KINGDOM_ROUNDS} פתרונות ירוקים! אתה מלך הפתרונות!`;
+    if (s>=2) return `יפה מאוד! ${s} פתרונות ירוקים! כל הכבוד דור!`;
+    return `${s} פתרונות ירוקים. תרגול מעולה! בפעם הבאה תצליח יותר!`;
+  };
+
+  const restart = () => {
+    setScore(0); setRound(1); setChosen(null); setIsGreen(null);
+    setUsedCards([]); setPhase("mode"); setMode(null);
+    narrator.stop();
+  };
+
+  // ── ROUND DOTS ──
+  const RoundDots = () => (
+    <div className="flex gap-1.5 justify-center my-2">
+      {Array.from({length:KINGDOM_ROUNDS}).map((_,i)=>(
+        <div key={i} className="rounded-full transition-all duration-300" style={{
+          width:i===round-1?14:10, height:i===round-1?14:10,
+          background: i<round-1 ? "#FFD700" : i===round-1 ? hero.accent : "#333",
+          boxShadow: i===round-1 ? `0 0 8px ${hero.accent}` : "none",
+        }}/>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col" dir="rtl"
+      style={{background:"linear-gradient(180deg,#1a1200 0%,#050015 100%)"}}>
+      <Confetti active={showConfetti}/>
+
+      {/* header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <button onClick={()=>{narrator.stop();onBack();}}
+          className="rounded-full px-4 py-2 text-sm font-black border active:scale-95"
+          style={{background:"#ffffff08",borderColor:"#FFD70044",color:"#FFD700"}}>
+          🏠 בית
+        </button>
+        <div className="text-center">
+          <div className="text-white font-black" style={{textShadow:"0 0 10px #FFD700"}}>
+            👑 משחק הממלכה
+          </div>
+          <div className="flex items-center justify-center gap-1 mt-0.5">
+            <Stars n={save.zone_stars?.kingdom||0} max={5} size={12}/>
+          </div>
+        </div>
+        <SpeakerBtn narrator={narrator} accent="#FFD700"
+          onRepeat={()=>{
+            if (phase==="card"&&card) narrator.say(card.text,{priority:true});
+            else if (phase==="result"&&chosen) narrator.say(isGreen?`פתרון ירוק! ${chosen.label}`:`${chosen.label} — נסה שוב`,{priority:true});
+          }}/>
+      </div>
+
+      {/* ── MODE SELECT ── */}
+      {phase==="mode" && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-6">
+          <div className="text-7xl" style={{filter:"drop-shadow(0 0 20px #FFD700)",animation:"heroFloat 3s ease-in-out infinite"}}>👑</div>
+          <div className="relative bg-white rounded-2xl px-4 py-3 border-4 max-w-xs text-right"
+            style={{borderColor:"#FFD700"}}>
+            <p className="text-gray-900 font-black text-lg">דור! בחר איך תרצה לשחק את משחק הממלכה!</p>
+            <div className="absolute -bottom-4 right-6 w-0 h-0"
+              style={{borderLeft:"14px solid transparent",borderRight:"14px solid transparent",borderTop:"14px solid #FFD700"}}/>
+          </div>
+          <div className="flex flex-col gap-4 w-full max-w-sm mt-4">
+            {[
+              {id:"solo",   emoji:"🦸", title:"לבד",      sub:"סובב גלגל או בחר פתרון",  border:"#FFD700"},
+              {id:"parent", emoji:"👨‍👩‍👦", title:"עם הורה", sub:"שחקו ביחד ודברו",          border:"#A78BFA"},
+            ].map(m=>(
+              <button key={m.id} onClick={()=>startGame(m.id)}
+                className="rounded-3xl p-5 border-4 flex items-center gap-4 active:scale-95 transition-all"
+                style={{background:"#ffffff08",borderColor:m.border,boxShadow:`0 0 16px ${m.border}33`}}>
+                <span className="text-5xl">{m.emoji}</span>
+                <div className="text-right">
+                  <div className="text-white font-black text-xl">{m.title}</div>
+                  <div className="text-gray-400 text-sm">{m.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── CARD PHASE ── */}
+      {phase==="card" && card && (
+        <div className="flex-1 flex flex-col items-center px-3 pb-3">
+          <RoundDots/>
+          {/* problem card */}
+          <div className="w-full max-w-sm rounded-3xl p-5 border-4 mb-3 relative overflow-hidden"
+            style={{background:"linear-gradient(135deg,#2d2500,#1a1200)",
+              borderColor:"#FFD700",boxShadow:"0 0 28px rgba(255,215,0,0.35)"}}>
+            <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full opacity-15 blur-2xl" style={{background:"#FFD700"}}/>
+            <div className="relative text-center">
+              <div className="text-6xl mb-3">{card.emoji}</div>
+              <div className="bg-yellow-50 rounded-2xl px-4 py-3 mb-2">
+                <p className="text-gray-900 font-black text-xl leading-snug">{card.text}</p>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs font-black rounded-full px-3 py-1"
+                  style={{background:"#FFD70022",color:"#FFD700",border:"1px solid #FFD70044"}}>
+                  🃏 בעיה מהממלכה
+                </span>
+                {mode==="parent" && (
+                  <span className="text-xs font-black rounded-full px-3 py-1"
+                    style={{background:"#A78BFA22",color:"#A78BFA",border:"1px solid #A78BFA44"}}>
+                    👨‍👩‍👦 תחשבו ביחד
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <p className="text-gray-400 text-xs font-bold mb-2">בחר פתרון ירוק מהגלגל!</p>
+          <KingdomWheelSVG hero={hero} onSelect={doSelectSlice} spinning={spinning} spinDeg={spinDeg} compact={true}/>
+          <button onClick={doSpin} disabled={spinning}
+            className="mt-3 px-10 py-3.5 rounded-full font-black text-xl text-black active:scale-95 transition-all disabled:opacity-40"
+            style={{background:spinning?"#444":`linear-gradient(135deg,#FFD700,#FF8C00)`,
+              boxShadow:spinning?"none":"0 0 24px rgba(255,215,0,0.6)"}}>
+            {spinning?"⏳ מסתובב...":"🌀 סובב!"}
+          </button>
+        </div>
+      )}
+
+      {/* ── RESULT PHASE ── */}
+      {phase==="result" && chosen && card && (
+        <div className="flex-1 flex flex-col items-center px-4 pb-6 gap-4">
+          <RoundDots/>
+          {/* result card */}
+          <div className={`w-full max-w-sm rounded-3xl p-5 border-4 text-center relative overflow-hidden`}
+            style={{
+              background: isGreen?"linear-gradient(135deg,#003300,#001a00)":"linear-gradient(135deg,#2d1a00,#1a0f00)",
+              borderColor: isGreen?"#00CC66":"#FF8C00",
+              boxShadow: isGreen?"0 0 28px #00CC6644":"0 0 20px #FF8C0033",
+            }}>
+            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-20 blur-xl"
+              style={{background:isGreen?"#00CC66":"#FF8C00"}}/>
+            <div className="relative">
+              <div className="text-5xl mb-2">{isGreen?"✅":"🔄"}</div>
+              <div className="font-black text-2xl mb-1" style={{color:isGreen?"#00FF88":"#FFB347"}}>
+                {isGreen?"פתרון ירוק!":"ננסה שוב!"}
+              </div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">{chosen.emoji}</span>
+                <span className="text-white font-black text-xl">{chosen.label}</span>
+              </div>
+              {isGreen
+                ? <div className="rounded-2xl px-3 py-2 text-sm font-bold"
+                    style={{background:"#00CC6622",color:"#00FF88",border:"1px solid #00CC6644"}}>
+                    {chosen.desc} 💚 +12 ⚡
+                  </div>
+                : <div className="rounded-2xl px-3 py-2 text-sm font-bold"
+                    style={{background:"#FF8C0022",color:"#FFB347",border:"1px solid #FF8C0044"}}>
+                    פתרון ירוק עוזר לך ולאחרים 💛
+                  </div>
+              }
+            </div>
+          </div>
+
+          {/* hero speech */}
+          <div className="relative bg-white rounded-2xl px-4 py-3 border-4 max-w-xs text-right"
+            style={{borderColor:isGreen?"#00CC66":"#FFD700"}}>
+            <p className="text-gray-900 font-black text-base leading-snug">
+              {isGreen
+                ? `${chosen.label} — זה ${chosen.power}! אתה גיבור אמיתי! 🌟`
+                : `בוא נחשוב — האם ${chosen.label} עוזר לכולם? 🤔`}
+            </p>
+          </div>
+
+          {/* parent mode hint */}
+          {mode==="parent" && !isGreen && (
+            <div className="w-full max-w-sm rounded-2xl p-3 border text-right"
+              style={{background:"#A78BFA11",borderColor:"#A78BFA44"}}>
+              <p className="text-purple-300 font-black text-sm mb-1">💬 שאלה להורה ולדור:</p>
+              <p className="text-white text-sm font-bold">מה חשבת שיעזור? למה?</p>
+              <p className="text-gray-400 text-xs mt-1">
+                פתרונות ירוקים: {card.green.map(id=>SOLUTIONS.find(s=>s.id===id)?.emoji).join(" ")}
+              </p>
+            </div>
+          )}
+
+          <button onClick={nextRound}
+            className="px-10 py-4 rounded-full font-black text-xl text-black active:scale-95 transition-all"
+            style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",
+              boxShadow:"0 0 24px rgba(255,215,0,0.5)"}}>
+            {round>=KINGDOM_ROUNDS?"🏆 לסיכום!":`סיבוב ${round+1} ▶`}
+          </button>
+        </div>
+      )}
+
+      {/* ── SUMMARY ── */}
+      {phase==="summary" && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-5">
+          <div className="text-7xl" style={{animation:"heroFloat 2s ease-in-out infinite"}}>
+            {score>=4?"👑":score>=2?"🌟":"💪"}
+          </div>
+          <div className="w-full max-w-sm rounded-3xl p-6 border-4 text-center"
+            style={{background:"linear-gradient(135deg,#2d2500,#1a1200)",
+              borderColor:"#FFD700",boxShadow:"0 0 30px rgba(255,215,0,0.4)"}}>
+            <div className="text-white font-black text-2xl mb-2">סיכום משחק</div>
+            <div className="text-6xl font-black mb-2" style={{color:"#FFD700",textShadow:"0 0 20px #FFD700"}}>
+              {score}/{KINGDOM_ROUNDS}
+            </div>
+            <div className="text-white font-bold text-lg mb-3">
+              {score>=4?"מלך הפתרונות!":score>=2?"גיבור ירוק!":"כל הכבוד שניסית!"}
+            </div>
+            <Stars n={Math.round((score/KINGDOM_ROUNDS)*5)} max={5} size={22}/>
+            <div className="mt-3 text-gray-300 text-sm">{summaryText(score)}</div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={restart}
+              className="px-7 py-3 rounded-full font-black text-lg text-black active:scale-95"
+              style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)"}}>
+              🔄 שחק שוב
+            </button>
+            <button onClick={()=>{narrator.stop();onBack();}}
+              className="px-7 py-3 rounded-full font-black text-lg border active:scale-95"
+              style={{background:"#ffffff08",borderColor:"#FFD700",color:"#FFD700"}}>
+              🏠 בית
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+      `}</style>
+    </div>
+  );
+}
+
+// ─── PLACEHOLDER for remaining zones ─────────────────────────────────────────
 function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
   const earn = () => {
-    onSave({
-      ...save,
-      xp: (save.xp||0)+20,
-      zone_stars:{...save.zone_stars,[zone.id]:Math.min(5,(save.zone_stars?.[zone.id]||0)+1)},
-    });
+    onSave({...save,xp:(save.xp||0)+20,
+      zone_stars:{...save.zone_stars,[zone.id]:Math.min(5,(save.zone_stars?.[zone.id]||0)+1)}});
   };
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-right"
@@ -1059,9 +1430,9 @@ function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
       <button onClick={onBack}
         className="absolute top-6 right-6 text-white font-black text-sm px-4 py-2 rounded-full border active:scale-95"
         style={{borderColor:zone.color}}>🏠 חזור</button>
-      <div className="text-7xl mb-6" style={{filter:`drop-shadow(0 0 20px ${zone.color})`}}>{zone.emoji}</div>
+      <div className="text-7xl mb-4" style={{filter:`drop-shadow(0 0 20px ${zone.color})`}}>{zone.emoji}</div>
       <h1 className="text-3xl font-black text-white mb-2">{zone.label}</h1>
-      <p className="text-gray-400 mb-8">האזור הזה בבנייה... 🔧</p>
+      <p className="text-gray-400 mb-6">האזור הזה בבנייה... 🔧</p>
       <button onClick={earn}
         className="px-8 py-4 rounded-full font-black text-lg text-black active:scale-95"
         style={{background:`linear-gradient(135deg,${zone.color},${hero.accent})`}}>
@@ -1091,19 +1462,15 @@ function App() {
   return (
     <>
       {showParent && <ParentPanel save={save} hero={hero} onClose={()=>setShowParent(false)}/>}
-
       {screen==="home" && (
         <HomeScreen hero={hero} save={save}
           onZone={setScreen}
           onChangeHero={()=>setScreen("hero-select")}
           onParentOpen={()=>setShowParent(true)}/>
       )}
-
-      {screen==="wheel" && (
-        <WheelZone hero={hero} save={save} onSave={persist} onBack={goHome}/>
-      )}
-
-      {activeZone && screen!=="wheel" && (
+      {screen==="wheel"   && <WheelZone    hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {screen==="kingdom" && <KingdomZone  hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {activeZone && !["wheel","kingdom"].includes(screen) && (
         <ZonePlaceholder zone={activeZone} hero={hero} save={save} onSave={persist} onBack={goHome}/>
       )}
     </>
