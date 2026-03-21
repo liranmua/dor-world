@@ -1072,7 +1072,7 @@ function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
 }
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
-export default function App() {
+function App() {
   const [screen, setScreen] = useState("hero-select");
   const [hero, setHero] = useState(null);
   const [save, setSave] = useState(() => loadSave());
