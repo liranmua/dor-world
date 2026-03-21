@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>עולם דור 🌍</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;background:#050015;overscroll-behavior:none}
+    html{-webkit-overflow-scrolling:touch}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+// ─── persistence ─────────────────────────────────────────────────────────────
+const SAVE_KEY = "dor_world_v2";
+function loadSave() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; }
+}
+function writeSave(d) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(d)); } catch {}
+}
+
+// ─── constants ───────────────────────────────────────────────────────────────
+const HEROES = [
+  { id:"fire",    name:"גיבור האש",    emoji:"🔥", color:"#FF4500", accent:"#FF6B35", glow:"#FF4500", sky:"#1a0500" },
+  { id:"water",   name:"גיבור המים",   emoji:"🌊", color:"#00BFFF", accent:"#00E5FF", glow:"#00BFFF", sky:"#001830" },
+  { id:"wind",    name:"גיבור הרוח",   emoji:"🌪️", color:"#00FF7F", accent:"#00FF7F", glow:"#00CC66", sky:"#001a10" },
+  { id:"thunder", name:"גיבור הברק",   emoji:"⚡",  color:"#FFD700", accent:"#FFE44D", glow:"#FFD700", sky:"#111100" },
+];
+
+const ZONES = [
+  { id:"wheel",   label:"גלגל הפתרונות", emoji:"🎡", color:"#FF6B35", darkBg:"#2d0f00", desc:"פתרון בעיות" },
+  { id:"kingdom", label:"משחק הממלכה",   emoji:"👑", color:"#FFD700", darkBg:"#2d2500", desc:"כרטיסיות ירוק/אדום" },
+  { id:"letters", label:"ממלכת האותיות", emoji:"🔤", color:"#A78BFA", darkBg:"#180030", desc:"א ב ג ד" },
+  { id:"numbers", label:"עולם המספרים",  emoji:"🔢", color:"#34D399", darkBg:"#002820", desc:"ספירה וחשבון" },
+  { id:"puzzle",  label:"מגדל ההרכבה",   emoji:"🧩", color:"#60A5FA", darkBg:"#001830", desc:"פאזלים" },
+  { id:"hero",    label:"סדנת גיבורים",  emoji:"🦸", color:"#F472B6", darkBg:"#2d0020", desc:"בנה גיבור" },
+  { id:"art",     label:"סטודיו יצירה",  emoji:"🎨", color:"#FB923C", darkBg:"#2d1000", desc:"ציור חופשי" },
+];
+
+const XP_PER_LEVEL = 100;
+function getLevel(xp) { return Math.floor((xp||0) / XP_PER_LEVEL) + 1; }
+function getLevelXP(xp) { return (xp||0) % XP_PER_LEVEL; }
+
+// ─── tiny shared components ───────────────────────────────────────────────────
+function Stars({ n = 0, max = 5, size = 16 }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <span key={i} style={{ fontSize: size, opacity: i < n ? 1 : 0.2, filter: i < n ? "drop-shadow(0 0 3px #FFD700)" : "none" }}>⭐</span>
+      ))}
+    </div>
+  );
+}
+
+function XPBar({ xp, hero }) {
+  const lvl = getLevel(xp);
+  const cur = getLevelXP(xp);
+  const pct = (cur / XP_PER_LEVEL) * 100;
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-1.5">
+        <span className="font-black text-xs" style={{ color: hero.accent }}>רמה {lvl} · {xp || 0} ⚡</span>
+        <span className="text-gray-400 text-xs">{cur}/{XP_PER_LEVEL} לרמה הבאה</span>
+      </div>
+      <div className="relative h-5 rounded-full overflow-hidden border-2" style={{ borderColor: hero.accent + "88", background: "#111" }}>
+        <div className="h-full rounded-full transition-all duration-1000 relative overflow-hidden"
+          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${hero.color}, ${hero.accent})`, boxShadow: `0 0 12px ${hero.glow}` }}>
+          <div className="absolute inset-0 animate-pulse opacity-30"
+            style={{ background: "linear-gradient(90deg, transparent, white, transparent)", animationDuration: "2s" }} />
+        </div>
+        <span className="absolute inset-0 flex items-center justify-center text-white font-black text-xs"
+          style={{ textShadow: "0 1px 3px #000" }}>{Math.round(pct)}%</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── animated city skyline ─────────────────────────────────────────────────
+function CitySkyline({ hero }) {
+  const buildings = [
+    { x: 0,   w: 50,  h: 90,  windows: [[10,20],[10,40],[10,60],[30,20],[30,40],[30,60]] },
+    { x: 55,  w: 35,  h: 130, windows: [[8,15],[8,35],[8,55],[8,75],[8,95],[22,15],[22,35],[22,55],[22,75],[22,95]] },
+    { x: 95,  w: 60,  h: 75,  windows: [[10,15],[10,35],[10,55],[28,15],[28,35],[28,55],[44,15],[44,35],[44,55]] },
+    { x: 160, w: 40,  h: 110, windows: [[8,20],[8,40],[8,60],[8,80],[25,20],[25,40],[25,60],[25,80]] },
+    { x: 205, w: 30,  h: 85,  windows: [[7,15],[7,35],[7,55],[7,75],[18,15],[18,35],[18,55]] },
+    { x: 240, w: 55,  h: 120, windows: [[10,15],[10,35],[10,55],[10,75],[10,95],[28,15],[28,35],[28,55],[28,75],[28,95],[42,15],[42,35],[42,55]] },
+    { x: 300, w: 45,  h: 95,  windows: [[8,15],[8,35],[8,55],[8,75],[24,15],[24,35],[24,55],[24,75],[38,15],[38,35]] },
+    { x: 350, w: 35,  h: 140, windows: [[7,15],[7,35],[7,55],[7,75],[7,95],[7,115],[22,15],[22,35],[22,55],[22,75],[22,95],[22,115]] },
+  ];
+  return (
+    <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "auto", display: "block" }}>
+      {/* sky gradient */}
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={hero.sky} />
+          <stop offset="100%" stopColor="#050015" />
+        </linearGradient>
+        <linearGradient id="buildGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#1a1a2e" />
+          <stop offset="100%" stopColor="#16213e" />
+        </linearGradient>
+      </defs>
+      <rect width="400" height="160" fill="url(#skyGrad)" />
+      {/* stars */}
+      {[{cx:30,cy:15},{cx:80,cy:8},{cx:150,cy:20},{cx:220,cy:10},{cx:290,cy:18},{cx:360,cy:12},{cx:180,cy:5},{cx:60,cy:25}].map((s,i)=>(
+        <circle key={i} cx={s.cx} cy={s.cy} r="1.5" fill="white" opacity="0.7">
+          <animate attributeName="opacity" values="0.7;0.2;0.7" dur={`${1.5+i*0.3}s`} repeatCount="indefinite"/>
+        </circle>
+      ))}
+      {/* moon */}
+      <circle cx="370" cy="22" r="14" fill="#ffe8a0" opacity="0.9">
+        <animate attributeName="opacity" values="0.9;0.7;0.9" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="376" cy="18" r="10" fill={hero.sky} />
+      {/* hero glow in sky */}
+      <circle cx="200" cy="60" r="50" fill={hero.glow} opacity="0.06"/>
+      {/* buildings */}
+      {buildings.map((b, i) => (
+        <g key={i}>
+          <rect x={b.x} y={160 - b.h} width={b.w} height={b.h} fill="url(#buildGrad)" />
+          <rect x={b.x} y={160 - b.h} width={b.w} height="4" fill={hero.accent} opacity="0.6"/>
+          {b.windows.map(([wx, wy], j) => {
+            const lit = Math.random() > 0.35;
+            return (
+              <rect key={j} x={b.x + wx} y={160 - b.h + wy} width="7" height="5" rx="1"
+                fill={lit ? hero.accent : "#222"} opacity={lit ? 0.9 : 0.5}>
+                {lit && <animate attributeName="opacity" values="0.9;0.5;0.9" dur={`${2+j*0.4}s`} repeatCount="indefinite"/>}
+              </rect>
+            );
+          })}
+          {/* roof details */}
+          {i % 3 === 0 && <rect x={b.x + b.w/2 - 2} y={160 - b.h - 12} width="4" height="12" fill="#333"/>}
+          {i % 3 === 0 && <circle cx={b.x + b.w/2} cy={160 - b.h - 14} r="3" fill={hero.accent} opacity="0.8">
+            <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.2s" repeatCount="indefinite"/>
+          </circle>}
+        </g>
+      ))}
+      {/* ground */}
+      <rect y="155" width="400" height="5" fill="#0a0a1a"/>
+    </svg>
+  );
+}
+
+// ─── hero avatar with glow ───────────────────────────────────────────────────
+function HeroAvatar({ hero, size = 80 }) {
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <div className="absolute inset-0 rounded-full animate-pulse"
+        style={{ background: `radial-gradient(circle, ${hero.glow}66 0%, transparent 70%)`, animationDuration: "2s" }} />
+      <div className="relative rounded-full flex items-center justify-center border-4"
+        style={{ width: size, height: size, fontSize: size * 0.5, background: `radial-gradient(circle at 35% 35%, ${hero.color}44, ${hero.sky})`, borderColor: hero.accent, boxShadow: `0 0 20px ${hero.glow}88, inset 0 0 20px ${hero.glow}22` }}>
+        {hero.emoji}
+      </div>
+    </div>
+  );
+}
+
+// ─── zone card ───────────────────────────────────────────────────────────────
+function ZoneCard({ zone, stars, onClick, index }) {
+  const s = stars || 0;
+  return (
+    <button onClick={onClick}
+      className="relative rounded-3xl p-4 border-2 text-right active:scale-95 transition-all overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${zone.darkBg} 0%, #050015 100%)`,
+        borderColor: zone.color + "66",
+        boxShadow: `0 4px 20px ${zone.color}22`,
+        animationDelay: `${index * 0.08}s`,
+      }}>
+      {/* glow blob */}
+      <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full opacity-20 blur-xl"
+        style={{ background: zone.color }} />
+      {/* content */}
+      <div className="relative z-10 flex items-start gap-3">
+        <div className="flex-shrink-0 rounded-2xl flex items-center justify-center text-3xl"
+          style={{ width: 52, height: 52, background: zone.color + "22", border: `2px solid ${zone.color}44` }}>
+          {zone.emoji}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-white font-black text-sm leading-tight">{zone.label}</div>
+          <div className="text-gray-400 text-xs mt-0.5">{zone.desc}</div>
+          <div className="mt-1.5"><Stars n={s} max={5} size={12} /></div>
+        </div>
+        {s === 5 && (
+          <div className="flex-shrink-0 text-lg" style={{ filter: "drop-shadow(0 0 6px #FFD700)" }}>👑</div>
+        )}
+      </div>
+      {/* progress bar */}
+      {s > 0 && (
+        <div className="relative mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: "#ffffff11" }}>
+          <div className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${(s / 5) * 100}%`, background: `linear-gradient(90deg, ${zone.color}88, ${zone.color})` }} />
+        </div>
+      )}
+    </button>
+  );
+}
+
+// ─── parent panel ────────────────────────────────────────────────────────────
+function ParentPanel({ save, hero, onClose }) {
+  const xp = save.xp || 0;
+  const history = save.history || [];
+  const zoneStars = save.zone_stars || {};
+  const counts = {};
+  history.forEach(h => { counts[h.label] = (counts[h.label] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.85)" }} dir="rtl">
+      <div className="w-full max-w-md rounded-t-3xl overflow-y-auto p-6 border-t-4"
+        style={{ background: "linear-gradient(180deg, #0d0d2b 0%, #050015 100%)", borderColor: hero.accent, maxHeight: "88vh" }}>
+        <div className="flex justify-between items-center mb-5">
+          <button onClick={onClose} className="text-gray-400 text-2xl active:scale-95">✕</button>
+          <h2 className="text-white font-black text-xl">🔒 מצב הורה</h2>
+          <div style={{ width: 28 }} />
+        </div>
+
+        {/* summary */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {[
+            { label: "רמה", value: getLevel(xp), icon: "🏅" },
+            { label: "סה״כ XP", value: xp, icon: "⚡" },
+            { label: "פעילויות", value: history.length, icon: "🎯" },
+          ].map(s => (
+            <div key={s.label} className="rounded-2xl p-3 text-center border" style={{ background: "#ffffff08", borderColor: hero.accent + "33" }}>
+              <div className="text-2xl">{s.icon}</div>
+              <div className="text-white font-black text-lg">{s.value}</div>
+              <div className="text-gray-400 text-xs">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* zones */}
+        <h3 className="text-sm font-black mb-3" style={{ color: hero.accent }}>כוכבים לפי אזור</h3>
+        <div className="space-y-2 mb-5">
+          {ZONES.map(z => (
+            <div key={z.id} className="flex items-center justify-between rounded-xl px-3 py-2" style={{ background: "#ffffff06" }}>
+              <Stars n={zoneStars[z.id] || 0} max={5} size={13} />
+              <span className="text-white text-sm font-bold">{z.emoji} {z.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* top solutions */}
+        {sorted.length > 0 && <>
+          <h3 className="text-sm font-black mb-3" style={{ color: hero.accent }}>פתרונות פופולריים</h3>
+          <div className="space-y-2 mb-5">
+            {sorted.slice(0, 5).map(([label, count]) => (
+              <div key={label} className="flex items-center gap-3 rounded-xl px-3 py-2" style={{ background: "#ffffff06" }}>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "#222" }}>
+                  <div className="h-full rounded-full" style={{ width: `${(count / history.length) * 100}%`, background: hero.accent }} />
+                </div>
+                <span className="text-white text-xs font-bold w-24 text-right">{label} ({count})</span>
+              </div>
+            ))}
+          </div>
+        </>}
+
+        {/* feelings */}
+        <h3 className="text-sm font-black mb-3" style={{ color: hero.accent }}>תחושות אחרי פתרון</h3>
+        <div className="flex gap-3 mb-6">
+          {["😊", "😐", "😢"].map(e => {
+            const c = history.filter(h => h.feelAfter === e).length;
+            return (
+              <div key={e} className="flex-1 rounded-2xl p-3 text-center border" style={{ background: "#ffffff06", borderColor: "#ffffff11" }}>
+                <div className="text-2xl">{e}</div>
+                <div className="text-white font-black">{c}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <button onClick={() => { if (window.confirm("למחוק את כל ההתקדמות של דור?")) { writeSave({}); onClose(); } }}
+          className="w-full py-3 rounded-2xl font-black text-sm active:scale-95 border"
+          style={{ background: "#2d0000", borderColor: "#FF4500", color: "#FF6B35" }}>
+          🗑️ אפס את כל ההתקדמות
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── hero select ──────────────────────────────────────────────────────────────
+function HeroSelect({ savedXP, onSelect }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-right"
+      style={{ background: "radial-gradient(ellipse at 50% 0%, #0d1b4b 0%, #050015 70%)" }} dir="rtl">
+      {/* stars bg */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <div key={i} className="absolute rounded-full bg-white"
+            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 60}%`, width: 2, height: 2, opacity: Math.random() * 0.7 + 0.2, animationDelay: `${Math.random() * 3}s` }} />
+        ))}
+      </div>
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-3" style={{ filter: "drop-shadow(0 0 20px #FFD700)" }}>🌍</div>
+          <h1 className="text-4xl font-black text-white" style={{ textShadow: "0 0 30px #FFD700" }}>עולם דור</h1>
+          <p className="text-yellow-300 font-bold mt-1">בחר את הגיבור שלך!</p>
+          {savedXP > 0 && (
+            <div className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-black"
+              style={{ background: "#FFD70022", color: "#FFD700", border: "1px solid #FFD70044" }}>
+              ⚡ {savedXP} XP שמורים
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {HEROES.map(h => (
+            <button key={h.id} onClick={() => onSelect(h)}
+              className="rounded-3xl p-5 border-4 text-center active:scale-95 transition-all relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, ${h.sky} 0%, #050015 100%)`, borderColor: h.accent, boxShadow: `0 0 24px ${h.glow}44` }}>
+              <div className="absolute inset-0 opacity-10" style={{ background: `radial-gradient(circle at 50% 50%, ${h.color}, transparent)` }} />
+              <div className="relative">
+                <div className="text-5xl mb-2" style={{ filter: `drop-shadow(0 0 12px ${h.glow})` }}>{h.emoji}</div>
+                <div className="text-white font-black text-sm">{h.name}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── HOME SCREEN ─────────────────────────────────────────────────────────────
+function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
+  const xp = save.xp || 0;
+  const level = getLevel(xp);
+  const zoneStars = save.zone_stars || {};
+  const [greeting] = useState(() => {
+    const greetings = [
+      `שלום דור! מוכן להרפתקה? 💪`,
+      `היי דור! הגיבור חזר! 🦸`,
+      `דור! העיר מחכה לך! 🌆`,
+      `יאללה דור, נתחיל! ⚡`,
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  });
+
+  const totalStars = Object.values(zoneStars).reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="min-h-screen flex flex-col" dir="rtl"
+      style={{ background: "linear-gradient(180deg, #050015 0%, #050015 100%)" }}>
+
+      {/* city skyline */}
+      <div className="relative w-full overflow-hidden" style={{ marginBottom: -2 }}>
+        <CitySkyline hero={hero} />
+        {/* hero floating over city */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center"
+          style={{ filter: `drop-shadow(0 0 16px ${hero.glow})` }}>
+          <div className="text-5xl" style={{ animation: "heroFloat 3s ease-in-out infinite" }}>{hero.emoji}</div>
+        </div>
+      </div>
+
+      {/* main content */}
+      <div className="flex-1 px-4 pb-6" style={{ background: "linear-gradient(180deg, #050015 0%, #080020 100%)" }}>
+
+        {/* top bar */}
+        <div className="flex items-center justify-between py-3 mb-2">
+          <button onClick={onParentOpen}
+            className="rounded-full px-3 py-1.5 text-xs font-black border active:scale-95 transition-all"
+            style={{ background: "#ffffff08", borderColor: "#ffffff22", color: "#888" }}>
+            🔒 הורה
+          </button>
+          <div className="text-center">
+            <div className="text-white font-black text-base" style={{ textShadow: `0 0 10px ${hero.accent}` }}>
+              עולם דור 🌍
+            </div>
+          </div>
+          <button onClick={onChangeHero}
+            className="rounded-full px-3 py-1.5 text-xs font-black border active:scale-95 transition-all"
+            style={{ background: hero.color + "22", borderColor: hero.accent + "66", color: hero.accent }}>
+            {hero.emoji} שנה
+          </button>
+        </div>
+
+        {/* hero card */}
+        <div className="rounded-3xl p-4 mb-4 border relative overflow-hidden"
+          style={{ background: `linear-gradient(135deg, ${hero.sky}dd 0%, #0a0020 100%)`, borderColor: hero.accent + "44", boxShadow: `0 0 30px ${hero.glow}22` }}>
+          <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-15 blur-2xl" style={{ background: hero.color }} />
+          <div className="relative flex items-center gap-4">
+            <HeroAvatar hero={hero} size={72} />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-white font-black text-xl">דור</span>
+                <span className="rounded-full px-2 py-0.5 text-xs font-black" style={{ background: hero.accent + "33", color: hero.accent }}>
+                  רמה {level}
+                </span>
+              </div>
+              <div className="text-gray-300 text-sm mb-2">{greeting}</div>
+              <XPBar xp={xp} hero={hero} />
+            </div>
+          </div>
+          {/* total stars */}
+          <div className="mt-3 flex items-center justify-between rounded-2xl px-3 py-2" style={{ background: "#ffffff08" }}>
+            <Stars n={Math.min(5, Math.floor(totalStars / 5))} max={5} size={14} />
+            <span className="text-gray-300 text-xs font-bold">סה״כ {totalStars} ⭐ נצברו</span>
+          </div>
+        </div>
+
+        {/* zone grid */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-400 text-xs font-bold">{ZONES.length} אזורים</span>
+            <span className="text-white font-black text-sm">🗺️ המפה שלך</span>
+          </div>
+
+          {/* featured zones — full width */}
+          <div className="flex flex-col gap-3 mb-3">
+            {ZONES.slice(0, 2).map((z, i) => (
+              <ZoneCard key={z.id} zone={z} stars={zoneStars[z.id] || 0} onClick={() => onZone(z.id)} index={i} />
+            ))}
+          </div>
+
+          {/* smaller zones — 2 col grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {ZONES.slice(2).map((z, i) => (
+              <ZoneCard key={z.id} zone={z} stars={zoneStars[z.id] || 0} onClick={() => onZone(z.id)} index={i + 2} />
+            ))}
+          </div>
+        </div>
+
+        {/* footer tip */}
+        <div className="text-center mt-2">
+          <span className="text-gray-600 text-xs">⚡ ההתקדמות נשמרת אוטומטית</span>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎡 WHEEL ZONE — גלגל הפתרונות
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SOLUTIONS = [
+  { id:1, emoji:"🫁", label:"לנשום",      letter:"ל", color:"#FF6B6B", desc:"נשום עמוק 3 פעמים",      power:"כוח הנשימה",   xp:15 },
+  { id:2, emoji:"🚶", label:"להתקרר",    letter:"ה", color:"#4ECDC4", desc:"לך לפינה שקטה רגע",      power:"כוח הקירור",    xp:15 },
+  { id:3, emoji:"🗣️", label:"לבקש עזרה", letter:"ב", color:"#FFE66D", desc:"בקש מגדול לעזור לך",     power:"כוח הבקשה",     xp:15 },
+  { id:4, emoji:"⏳", label:"לחכות",      letter:"ח", color:"#A8E6CF", desc:"ספור לאט עד 10",          power:"כוח הסבלנות",   xp:15 },
+  { id:5, emoji:"🤝", label:"להתפשר",    letter:"פ", color:"#FFB347", desc:"מצא פתרון ביחד",           power:"כוח השיתוף",    xp:15 },
+  { id:6, emoji:"🙈", label:"להתעלם",    letter:"ת", color:"#DDA0DD", desc:"תתעלם והמשך הלאה",         power:"כוח ההתעלמות",  xp:15 },
+  { id:7, emoji:"💬", label:"לדבר",       letter:"ד", color:"#87CEEB", desc:"ספר למישהו איך אתה מרגיש", power:"כוח הדיבור",    xp:15 },
+  { id:8, emoji:"😂", label:"לצחוק",      letter:"צ", color:"#98FB98", desc:"נסה לצחוק קצת",             power:"כוח השמחה",     xp:15 },
+];
+
+const EMOTIONS_BEFORE = [
+  { emoji:"😡", label:"כועס",     color:"#FF4444" },
+  { emoji:"😢", label:"עצוב",     color:"#4488FF" },
+  { emoji:"😤", label:"מתוסכל",   color:"#FF8C00" },
+  { emoji:"😰", label:"לחוץ",     color:"#AA44FF" },
+];
+const EMOTIONS_AFTER = [
+  { emoji:"😊", label:"טוב יותר", color:"#00CC66" },
+  { emoji:"😐", label:"בסדר",     color:"#AAAAAA" },
+  { emoji:"😢", label:"עדיין קשה",color:"#4488FF" },
+];
+
+// spinning wheel SVG
+function WheelSVG({ hero, onSelect, spinning, spinDeg }) {
+  const S=310, cx=155, cy=155, r=138, n=SOLUTIONS.length;
+  return (
+    <div className="relative flex items-center justify-center select-none" style={{width:S,height:S}}>
+      {/* outer glow ring */}
+      <div className="absolute inset-0 rounded-full"
+        style={{boxShadow:`0 0 40px ${hero.glow}55, 0 0 80px ${hero.glow}22`}}/>
+      <svg width={S} height={S} style={{
+        transform:`rotate(${spinDeg}deg)`,
+        transition: spinning ? "transform 2.6s cubic-bezier(0.25,0.1,0.1,1)" : "none",
+        filter:`drop-shadow(0 0 12px ${hero.glow}66)`,
+      }}>
+        {/* outer ring */}
+        <circle cx={cx} cy={cy} r={r+4} fill="none" stroke={hero.accent} strokeWidth="3" opacity="0.5"/>
+        {SOLUTIONS.map((sol,i)=>{
+          const a=(2*Math.PI*i)/n - Math.PI/2;
+          const b=(2*Math.PI*(i+1))/n - Math.PI/2;
+          const x1=cx+r*Math.cos(a), y1=cy+r*Math.sin(a);
+          const x2=cx+r*Math.cos(b), y2=cy+r*Math.sin(b);
+          const m=(a+b)/2;
+          const tx=cx+r*0.62*Math.cos(m), ty=cy+r*0.62*Math.sin(m);
+          const lx=cx+r*0.87*Math.cos(m), ly=cy+r*0.87*Math.sin(m);
+          return (
+            <g key={sol.id} onClick={()=>!spinning&&onSelect(i)} style={{cursor:spinning?"default":"pointer"}}>
+              <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
+                fill={sol.color} stroke="#050015" strokeWidth="2.5" opacity="0.92"/>
+              {/* divider lines */}
+              <line x1={cx} y1={cy} x2={x1} y2={y1} stroke="#050015" strokeWidth="1.5" opacity="0.6"/>
+              <text x={tx} y={ty-9} textAnchor="middle" fontSize="20" dominantBaseline="middle">{sol.emoji}</text>
+              <text x={tx} y={ty+10} textAnchor="middle" fontSize="8" fill="#1a0533" fontWeight="900"
+                dominantBaseline="middle" style={{letterSpacing:0.3}}>{sol.label}</text>
+              <text x={lx} y={ly} textAnchor="middle" fontSize="10" fill="white" fontWeight="900"
+                dominantBaseline="middle" style={{textShadow:"0 0 4px #000"}}>{sol.id}</text>
+            </g>
+          );
+        })}
+        {/* center hub */}
+        <circle cx={cx} cy={cy} r={40} fill="#050015" stroke={hero.accent} strokeWidth="4"/>
+        <circle cx={cx} cy={cy} r={34} fill={hero.sky} opacity="0.8"/>
+        <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize="26"
+          style={{filter:`drop-shadow(0 0 8px ${hero.glow})`}}>{hero.emoji}</text>
+      </svg>
+      {/* pointer arrow */}
+      <div className="absolute top-0 left-1/2 z-20 flex flex-col items-center"
+        style={{transform:"translateX(-50%) translateY(-2px)"}}>
+        <div style={{
+          width:0, height:0,
+          borderLeft:"11px solid transparent", borderRight:"11px solid transparent",
+          borderTop:`22px solid ${hero.accent}`,
+          filter:`drop-shadow(0 0 6px ${hero.glow})`,
+        }}/>
+      </div>
+    </div>
+  );
+}
+
+// emotion button
+function EmotionBtn({ emotion, onClick, size="lg" }) {
+  const big = size==="lg";
+  return (
+    <button onClick={onClick}
+      className="flex flex-col items-center rounded-3xl active:scale-90 transition-all border-2"
+      style={{
+        padding: big?"18px 14px":"12px 10px",
+        background: emotion.color+"18",
+        borderColor: emotion.color+"55",
+        boxShadow: `0 4px 16px ${emotion.color}22`,
+        minWidth: big?72:56,
+      }}>
+      <span style={{fontSize: big?44:32}}>{emotion.emoji}</span>
+      <span className="text-white font-black mt-1" style={{fontSize: big?13:11}}>{emotion.label}</span>
+    </button>
+  );
+}
+
+// confetti burst
+function Confetti({ active }) {
+  const [items]=useState(()=>Array.from({length:22},(_,i)=>({
+    id:i, x:30+Math.random()*40,
+    color:["#FFD700","#FF6B6B","#4ECDC4","#A8E6CF","#FF69B4","#98FB98"][i%6],
+    delay:Math.random()*0.4, size:Math.random()*8+6,
+  })));
+  if(!active) return null;
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {items.map(c=>(
+        <div key={c.id} className="absolute rounded-full"
+          style={{
+            left:`${c.x}%`, top:"-10px",
+            width:c.size, height:c.size,
+            background:c.color,
+            animation:`confettiFall 1.8s ease-in forwards`,
+            animationDelay:`${c.delay}s`,
+          }}/>
+      ))}
+    </div>
+  );
+}
+
+// xp toast
+function XPToast({ xp, accent }) {
+  return (
+    <div className="fixed top-24 left-1/2 z-50 pointer-events-none"
+      style={{transform:"translateX(-50%)", animation:"xpPop 1.8s ease-out forwards"}}>
+      <div className="rounded-full px-5 py-2 font-black text-lg text-black"
+        style={{background:`linear-gradient(135deg,${accent},#FFD700)`,
+          boxShadow:`0 0 20px ${accent}88`}}>
+        +{xp} ⚡
+      </div>
+    </div>
+  );
+}
+
+// breathing animation
+function BreathingGuide({ active, color }) {
+  if(!active) return null;
+  return (
+    <div className="flex flex-col items-center gap-2 my-2">
+      <div className="rounded-full flex items-center justify-center text-3xl"
+        style={{
+          width:80, height:80,
+          background:`${color}22`,
+          border:`3px solid ${color}`,
+          animation:"breathe 4s ease-in-out infinite",
+          boxShadow:`0 0 20px ${color}44`,
+        }}>🫁</div>
+      <span className="text-white font-black text-sm" style={{color}}>נשום איתי... 🌬️</span>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎙️ NARRATOR ENGINE — Web Speech API (Hebrew)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function useNarrator() {
+  const speaking = useRef(false);
+  const queue = useRef([]);
+  const enabled = useRef(true);
+
+  // find best Hebrew voice
+  const getVoice = () => {
+    const voices = window.speechSynthesis?.getVoices() || [];
+    return (
+      voices.find(v => v.lang === "he-IL") ||
+      voices.find(v => v.lang?.startsWith("he")) ||
+      voices.find(v => v.lang?.startsWith("ar")) || // fallback — Semitic rhythm
+      null
+    );
+  };
+
+  const processQueue = () => {
+    if (!enabled.current || speaking.current || queue.current.length === 0) return;
+    const text = queue.current.shift();
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "he-IL";
+    utt.rate = 0.88;   // slightly slow — clear for kids
+    utt.pitch = 0.95;  // calm adult voice
+    utt.volume = 1;
+    const v = getVoice();
+    if (v) utt.voice = v;
+    utt.onstart = () => { speaking.current = true; };
+    utt.onend = () => { speaking.current = false; setTimeout(processQueue, 120); };
+    utt.onerror = () => { speaking.current = false; setTimeout(processQueue, 120); };
+    window.speechSynthesis.speak(utt);
+  };
+
+  const say = (text, { priority = false } = {}) => {
+    if (!text || !enabled.current) return;
+    if (priority) {
+      window.speechSynthesis?.cancel();
+      speaking.current = false;
+      queue.current = [text];
+    } else {
+      queue.current.push(text);
+    }
+    processQueue();
+  };
+
+  const stop = () => {
+    window.speechSynthesis?.cancel();
+    speaking.current = false;
+    queue.current = [];
+  };
+
+  const toggle = () => {
+    enabled.current = !enabled.current;
+    if (!enabled.current) stop();
+    return enabled.current;
+  };
+
+  // preload voices (Chrome lazy-loads them)
+  useEffect(() => {
+    const load = () => window.speechSynthesis?.getVoices();
+    load();
+    window.speechSynthesis?.addEventListener("voiceschanged", load);
+    return () => {
+      window.speechSynthesis?.removeEventListener("voiceschanged", load);
+      stop();
+    };
+  }, []);
+
+  return { say, stop, toggle, isEnabled: () => enabled.current };
+}
+
+// speaker button shown in header
+function SpeakerBtn({ narrator, onRepeat, accent }) {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="flex gap-2">
+      <button onClick={onRepeat}
+        className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90 transition-all"
+        style={{background:accent+"22",borderColor:accent+"55",fontSize:18}}
+        title="שמע שוב">
+        🔁
+      </button>
+      <button onClick={()=>{ const v=narrator.toggle(); setOn(v); }}
+        className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90 transition-all"
+        style={{background:on?"#00880022":"#55000022", borderColor:on?"#00CC66":"#FF4444", fontSize:18}}
+        title={on?"השתק קריין":"הפעל קריין"}>
+        {on?"🔊":"🔇"}
+      </button>
+    </div>
+  );
+}
+
+// ─── main WheelZone component ─────────────────────────────────────────────────
+function WheelZone({ hero, save, onSave, onBack }) {
+  const [phase, setPhase] = useState("emotion"); // emotion | spin | result | reflect
+  const [emotionBefore, setEmotionBefore] = useState(null);
+  const [sol, setSol] = useState(null);
+  const [feelAfter, setFeelAfter] = useState(null);
+  const [spinning, setSpinning] = useState(false);
+  const [spinDeg, setSpinDeg] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showXP, setShowXP] = useState(false);
+  const [showBreathing, setShowBreathing] = useState(false);
+  const [streakMsg, setStreakMsg] = useState(null);
+  const baseRot = useRef(0);
+  const narrator = useNarrator();
+
+  // ── narrator texts (clean, no emoji) ──
+  const BUBBLE_TEXTS = {
+    emotion:  "היי דור! איך אתה מרגיש עכשיו?",
+    spinReady:(emo) => `דור, אתה מרגיש ${emo}? בוא נמצא פתרון!`,
+    spinning: "הגלגל מסתובב... נחכה לפתרון",
+    result:   (s)  => `הפתרון הוא: ${s.label}. ${s.desc}`,
+    askAfter: "איך הרגשת אחרי?",
+    good:     (s)  => `כל הכבוד דור! השתמשת ב${s.power}! אתה גיבור אמיתי!`,
+    ok:       "ניסית וזה מה שחשוב! כל הכבוד דור!",
+    hard:     "לא נורא דור, יש עוד פתרונות. נסה שוב!",
+    streak:   "שלושה פתרונות ברצף! אלוף!",
+    breathe:  "בוא ננשום ביחד. שאפו לאט... עצרו... ונשפו. שוב.",
+  };
+
+  // bubble display text (with emoji for screen)
+  const bubbleText = () => {
+    if (phase==="emotion") return "היי דור! איך אתה מרגיש עכשיו?";
+    if (phase==="spin" && !spinning) return `דור, ${emotionBefore?.label}? בוא נמצא פתרון! 💪`;
+    if (phase==="spin" && spinning) return "הגלגל מחפש פתרון... 🌀";
+    if (phase==="result") return `הפתרון: ${sol?.label}! ${sol?.desc} 💥`;
+    if (phase==="reflect") {
+      if (feelAfter==="😊") return `כל הכבוד דור! השתמשת ב${sol?.power}! גיבור אמיתי! 🌟`;
+      if (feelAfter==="😐") return "ניסית וזה מה שחשוב! 💪 פעם הבאה ננסה שוב!";
+      return "לא נורא דור, יש עוד פתרונות! 🤗 נסה שוב?";
+    }
+    return "";
+  };
+
+  // auto-narrate when phase or sol changes
+  useEffect(() => {
+    if (phase==="emotion") narrator.say(BUBBLE_TEXTS.emotion, {priority:true});
+    if (phase==="spin" && !spinning && emotionBefore)
+      narrator.say(BUBBLE_TEXTS.spinReady(emotionBefore.label), {priority:true});
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase==="result" && sol) {
+      narrator.say(BUBBLE_TEXTS.result(sol), {priority:true});
+      setTimeout(()=> narrator.say(BUBBLE_TEXTS.askAfter), 2800);
+      if (sol.id===1) setTimeout(()=> narrator.say(BUBBLE_TEXTS.breathe), 5000);
+    }
+  }, [sol]);
+
+  const doSpin = () => {
+    if (spinning) return;
+    setSpinning(true); setSol(null);
+    narrator.say(BUBBLE_TEXTS.spinning, {priority:true});
+    const idx = Math.floor(Math.random()*SOLUTIONS.length);
+    const extraSpins = 5 + Math.floor(Math.random()*3);
+    const targetAngle = extraSpins*360 + idx*(360/SOLUTIONS.length);
+    baseRot.current += targetAngle;
+    setSpinDeg(baseRot.current);
+    setTimeout(()=>{
+      setSpinning(false);
+      setSol(SOLUTIONS[idx]);
+      setPhase("result");
+      boom();
+    }, 2700);
+  };
+
+  const doSelectSlice = (idx) => {
+    if (spinning) return;
+    // narrate the label immediately on tap
+    narrator.say(SOLUTIONS[idx].label, {priority:true});
+    const extraSpins = 2;
+    const targetAngle = extraSpins*360 + idx*(360/SOLUTIONS.length);
+    baseRot.current += targetAngle;
+    setSpinDeg(baseRot.current);
+    setTimeout(()=>{
+      setSol(SOLUTIONS[idx]);
+      setPhase("result");
+      boom();
+    }, 500);
+  };
+
+  const boom = () => {
+    setShowConfetti(true);
+    setTimeout(()=>setShowConfetti(false), 2000);
+  };
+
+  const doFeelAfter = (e) => {
+    setFeelAfter(e.emoji);
+    setPhase("reflect");
+    // narrate feeling + response
+    narrator.say(e.label, {priority:true});
+    if (sol?.id===1) setShowBreathing(true);
+    // earn XP
+    const earned = e.emoji==="😊" ? sol.xp+5 : sol.xp;
+    const newXP = (save.xp||0) + earned;
+    const newHistory = [...(save.history||[]), {
+      ...sol, feelAfter:e.emoji,
+      emotion:emotionBefore?.label,
+      time:new Date().toLocaleTimeString("he-IL"),
+    }];
+    const streak = (save.wheel_streak||0)+1;
+    if (streak===3) {
+      setStreakMsg("🔥 3 פתרונות ברצף! +10 XP בונוס!");
+      setTimeout(()=> narrator.say(BUBBLE_TEXTS.streak), 1200);
+    }
+    const bonusXP = streak===3 ? 10 : 0;
+    const newStars = Math.min(5,(save.zone_stars?.wheel||0)+1);
+    onSave({
+      ...save, xp: newXP+bonusXP,
+      history: newHistory,
+      wheel_streak: streak,
+      zone_stars: {...save.zone_stars, wheel:newStars},
+    });
+    setShowXP(true);
+    setTimeout(()=>setShowXP(false), 1800);
+    // delayed praise
+    setTimeout(()=>{
+      if (e.emoji==="😊") narrator.say(BUBBLE_TEXTS.good(sol));
+      else if (e.emoji==="😐") narrator.say(BUBBLE_TEXTS.ok);
+      else narrator.say(BUBBLE_TEXTS.hard);
+    }, 900);
+  };
+
+  const reset = () => {
+    narrator.stop();
+    setSol(null); setFeelAfter(null); setPhase("emotion");
+    setEmotionBefore(null); setShowBreathing(false); setStreakMsg(null);
+  };
+
+  const wheelStars = save.zone_stars?.wheel||0;
+  const streak = save.wheel_streak||0;
+
+  return (
+    <div className="min-h-screen flex flex-col" dir="rtl"
+      style={{background:"linear-gradient(180deg,#0a0015 0%,#050010 100%)"}}>
+      <Confetti active={showConfetti}/>
+      {showXP && <XPToast xp={sol?.xp||15} accent={hero.accent}/>}
+
+      {/* header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <button onClick={()=>{ narrator.stop(); onBack(); }}
+          className="rounded-full px-4 py-2 text-sm font-black border active:scale-95 transition-all"
+          style={{background:"#ffffff08",borderColor:hero.accent+"44",color:hero.accent}}>
+          🏠 בית
+        </button>
+        <div className="text-center">
+          <div className="text-white font-black" style={{textShadow:`0 0 10px ${hero.accent}`}}>
+            🎡 גלגל הפתרונות
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-0.5">
+            <Stars n={wheelStars} max={5} size={12}/>
+            {streak>0 && <span className="text-xs font-black" style={{color:hero.accent}}>🔥{streak}</span>}
+          </div>
+        </div>
+        <SpeakerBtn narrator={narrator} accent={hero.accent}
+          onRepeat={()=> narrator.say(bubbleText().replace(/[🎡💪🌀💥🌟💪🤗🔄🏠⭐🔥⚡💡]/gu,""), {priority:true})}/>
+      </div>
+
+      {/* speech bubble */}
+      <div className="px-4 mb-3">
+        <div className="relative rounded-2xl px-4 py-3 border-2 text-right"
+          style={{background:"#ffffff0d",borderColor:hero.accent+"44",
+            boxShadow:`0 2px 16px ${hero.glow}22`}}>
+          <p className="text-white font-black text-base leading-snug">{bubbleText()}</p>
+          <div style={{
+            position:"absolute",bottom:-10,right:20,width:0,height:0,
+            borderLeft:"10px solid transparent",borderRight:"10px solid transparent",
+            borderTop:`10px solid ${hero.accent}44`,
+          }}/>
+        </div>
+      </div>
+
+      {/* ── PHASE: emotion ── */}
+      {phase==="emotion" && (
+        <div className="flex-1 flex flex-col items-center px-4">
+          <div className="text-5xl mb-5 mt-1"
+            style={{filter:`drop-shadow(0 0 16px ${hero.glow})`,animation:"heroFloat 3s ease-in-out infinite"}}>
+            {hero.emoji}
+          </div>
+          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+            {EMOTIONS_BEFORE.map(e=>(
+              <EmotionBtn key={e.emoji} emotion={e} size="lg"
+                onClick={()=>{
+                  narrator.say(e.label, {priority:true});
+                  setEmotionBefore(e);
+                  setPhase("spin");
+                  setTimeout(()=> narrator.say(BUBBLE_TEXTS.spinReady(e.label)), 700);
+                }}/>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── PHASE: spin ── */}
+      {phase==="spin" && (
+        <div className="flex-1 flex flex-col items-center px-2 pb-4">
+          {/* emotion reminder chip */}
+          <div className="mb-3 rounded-full px-4 py-1.5 flex items-center gap-2 border"
+            style={{background:emotionBefore?.color+"18",borderColor:emotionBefore?.color+"44"}}>
+            <span className="text-lg">{emotionBefore?.emoji}</span>
+            <span className="text-white font-black text-sm">{emotionBefore?.label}</span>
+          </div>
+
+          <WheelSVG hero={hero} onSelect={doSelectSlice} spinning={spinning} spinDeg={spinDeg}/>
+
+          <button onClick={doSpin} disabled={spinning}
+            className="mt-5 px-12 py-4 rounded-full font-black text-2xl text-black active:scale-95 transition-all disabled:opacity-40"
+            style={{
+              background: spinning?"#444":`linear-gradient(135deg,${hero.accent},${hero.color})`,
+              boxShadow: spinning?"none":`0 0 32px ${hero.glow}88`,
+              letterSpacing:1,
+            }}>
+            {spinning ? "⏳ מסתובב..." : "🌀 סובב!"}
+          </button>
+          <p className="text-gray-500 text-xs mt-2 font-bold">או לחץ ישירות על הגלגל</p>
+        </div>
+      )}
+
+      {/* ── PHASE: result ── */}
+      {phase==="result" && sol && (
+        <div className="flex-1 flex flex-col items-center px-4 pb-6">
+          {/* big solution card */}
+          <div className="w-full max-w-sm rounded-3xl p-5 border-2 mb-5 relative overflow-hidden"
+            style={{background:`linear-gradient(135deg,${sol.color}22,#050015)`,
+              borderColor:sol.color+"66",boxShadow:`0 0 30px ${sol.color}44`}}>
+            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-20 blur-xl" style={{background:sol.color}}/>
+            <div className="relative flex items-center gap-4">
+              <div className="rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{width:72,height:72,background:sol.color+"33",border:`3px solid ${sol.color}`,fontSize:38}}>
+                {sol.emoji}
+              </div>
+              <div className="text-right">
+                {/* big first letter */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-black text-4xl" style={{color:sol.color,textShadow:`0 0 16px ${sol.color}`}}>{sol.letter}</span>
+                  <span className="text-white font-black text-2xl">{sol.label}</span>
+                </div>
+                <div className="text-gray-300 text-sm">{sol.desc}</div>
+                <div className="mt-1 rounded-full px-2 py-0.5 inline-block text-xs font-black"
+                  style={{background:sol.color+"22",color:sol.color}}>
+                  {sol.power}
+                </div>
+              </div>
+            </div>
+            <div className="relative mt-3 text-center rounded-2xl py-2"
+              style={{background:sol.color+"11",border:`1px solid ${sol.color}33`}}>
+              <span className="text-white font-bold text-sm">💡 נסה עכשיו: {sol.desc}</span>
+            </div>
+          </div>
+
+          {/* breathing guide for solution 1 */}
+          {sol.id===1 && <BreathingGuide active={true} color={sol.color}/>}
+
+          <p className="text-white font-black text-center text-base mb-4">איך הרגשת אחרי?</p>
+          <div className="flex gap-3 justify-center">
+            {EMOTIONS_AFTER.map(e=>(
+              <EmotionBtn key={e.emoji} emotion={e} size="sm" onClick={()=>doFeelAfter(e)}/>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── PHASE: reflect ── */}
+      {phase==="reflect" && sol && (
+        <div className="flex-1 flex flex-col items-center px-4 pb-8 gap-4">
+          {/* result banner */}
+          <div className="w-full max-w-sm rounded-3xl p-4 border-2 text-center"
+            style={{
+              background: feelAfter==="😊" ? "#00660022" : "#33330022",
+              borderColor: feelAfter==="😊" ? "#00CC66" : "#888",
+              boxShadow: feelAfter==="😊" ? "0 0 24px #00CC6644" : "none",
+            }}>
+            <div className="text-4xl mb-1">{feelAfter==="😊"?"🌟":feelAfter==="😐"?"💪":"🤗"}</div>
+            <div className="text-white font-black text-lg">
+              {feelAfter==="😊" ? "פתרון מוצלח!" : feelAfter==="😐" ? "ניסיון טוב!" : "הצלחת לנסות!"}
+            </div>
+            <div className="text-gray-300 text-sm mt-1">
+              {sol.emoji} {sol.label} · +{feelAfter==="😊"?sol.xp+5:sol.xp} ⚡
+            </div>
+          </div>
+
+          {/* breathing for solution 1 */}
+          {sol.id===1 && showBreathing && <BreathingGuide active={true} color={sol.color}/>}
+
+          {/* streak bonus message */}
+          {streakMsg && (
+            <div className="rounded-2xl px-4 py-2 text-center border"
+              style={{background:"#FF450022",borderColor:"#FF4500",color:"#FF6B35"}}>
+              <span className="font-black text-sm">{streakMsg}</span>
+            </div>
+          )}
+
+          {/* hero */}
+          <div className="text-5xl" style={{filter:`drop-shadow(0 0 16px ${hero.glow})`}}>{hero.emoji}</div>
+
+          {/* history chip */}
+          {(save.history||[]).length>0 && (
+            <div className="w-full max-w-sm rounded-2xl p-3 border" style={{background:"#ffffff06",borderColor:"#ffffff11"}}>
+              <div className="text-gray-400 text-xs font-bold text-right mb-2">הפתרונות האחרונים שלך:</div>
+              <div className="flex flex-wrap gap-2 justify-end">
+                {(save.history||[]).slice(-4).map((h,i)=>(
+                  <span key={i} className="rounded-full px-2 py-0.5 text-xs font-black text-black"
+                    style={{background:SOLUTIONS.find(s=>s.id===h.id)?.color||"#FFD700"}}>
+                    {h.emoji} {h.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button onClick={reset}
+            className="px-10 py-4 rounded-full font-black text-xl text-black active:scale-95 transition-all"
+            style={{background:`linear-gradient(135deg,${hero.accent},${hero.color})`,
+              boxShadow:`0 0 28px ${hero.glow}88`}}
+            onTouchStart={()=> narrator.say("פתרון חדש", {priority:true})}>
+            🔄 פתרון חדש
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes heroFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes confettiFall { to{transform:translateY(110vh) rotate(360deg);opacity:0} }
+        @keyframes xpPop { 0%{opacity:0;transform:translateX(-50%) translateY(0)} 20%{opacity:1;transform:translateX(-50%) translateY(-10px)} 80%{opacity:1;transform:translateX(-50%) translateY(-20px)} 100%{opacity:0;transform:translateX(-50%) translateY(-30px)} }
+        @keyframes breathe { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.35);opacity:1} }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── PLACEHOLDER for other zones ─────────────────────────────────────────────
+function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
+  const earn = () => {
+    onSave({
+      ...save,
+      xp: (save.xp||0)+20,
+      zone_stars:{...save.zone_stars,[zone.id]:Math.min(5,(save.zone_stars?.[zone.id]||0)+1)},
+    });
+  };
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-right"
+      style={{background:`linear-gradient(135deg,${zone.darkBg} 0%,#050015 100%)`}} dir="rtl">
+      <button onClick={onBack}
+        className="absolute top-6 right-6 text-white font-black text-sm px-4 py-2 rounded-full border active:scale-95"
+        style={{borderColor:zone.color}}>🏠 חזור</button>
+      <div className="text-7xl mb-6" style={{filter:`drop-shadow(0 0 20px ${zone.color})`}}>{zone.emoji}</div>
+      <h1 className="text-3xl font-black text-white mb-2">{zone.label}</h1>
+      <p className="text-gray-400 mb-8">האזור הזה בבנייה... 🔧</p>
+      <button onClick={earn}
+        className="px-8 py-4 rounded-full font-black text-lg text-black active:scale-95"
+        style={{background:`linear-gradient(135deg,${zone.color},${hero.accent})`}}>
+        🧪 בדוק (+20 XP)
+      </button>
+    </div>
+  );
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [screen, setScreen] = useState("hero-select");
+  const [hero, setHero] = useState(null);
+  const [save, setSave] = useState(() => loadSave());
+  const [showParent, setShowParent] = useState(false);
+
+  const persist = (data) => { setSave(data); writeSave(data); };
+  const goHome = () => setScreen("home");
+
+  const activeZone = ZONES.find(z => z.id === screen);
+
+  if (screen === "hero-select") {
+    return <HeroSelect savedXP={save.xp||0} onSelect={h=>{setHero(h);setScreen("home");}}/>;
+  }
+  if (!hero) return null;
+
+  return (
+    <>
+      {showParent && <ParentPanel save={save} hero={hero} onClose={()=>setShowParent(false)}/>}
+
+      {screen==="home" && (
+        <HomeScreen hero={hero} save={save}
+          onZone={setScreen}
+          onChangeHero={()=>setScreen("hero-select")}
+          onParentOpen={()=>setShowParent(true)}/>
+      )}
+
+      {screen==="wheel" && (
+        <WheelZone hero={hero} save={save} onSave={persist} onBack={goHome}/>
+      )}
+
+      {activeZone && screen!=="wheel" && (
+        <ZonePlaceholder zone={activeZone} hero={hero} save={save} onSave={persist} onBack={goHome}/>
+      )}
+    </>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
