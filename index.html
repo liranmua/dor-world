@@ -490,19 +490,19 @@ const EMOTIONS_AFTER = [
 
 // spinning wheel SVG
 function WheelSVG({ hero, onSelect, spinning, spinDeg }) {
-  const S=310, cx=155, cy=155, r=138, n=SOLUTIONS.length;
+  const VB=320, cx=160, cy=160, r=148, n=SOLUTIONS.length;
   return (
-    <div className="relative flex items-center justify-center select-none" style={{width:S,height:S}}>
+    <div className="relative flex items-center justify-center select-none w-full" style={{maxWidth:460}}>
       {/* outer glow ring */}
       <div className="absolute inset-0 rounded-full"
-        style={{boxShadow:`0 0 40px ${hero.glow}55, 0 0 80px ${hero.glow}22`}}/>
-      <svg width={S} height={S} style={{
+        style={{boxShadow:`0 0 50px ${hero.glow}55, 0 0 100px ${hero.glow}22`}}/>
+      <svg viewBox={`0 0 ${VB} ${VB}`} width="100%" style={{
         transform:`rotate(${spinDeg}deg)`,
         transition: spinning ? "transform 2.6s cubic-bezier(0.25,0.1,0.1,1)" : "none",
-        filter:`drop-shadow(0 0 12px ${hero.glow}66)`,
+        filter:`drop-shadow(0 0 14px ${hero.glow}77)`,
       }}>
         {/* outer ring */}
-        <circle cx={cx} cy={cy} r={r+4} fill="none" stroke={hero.accent} strokeWidth="3" opacity="0.5"/>
+        <circle cx={cx} cy={cy} r={r+5} fill="none" stroke={hero.accent} strokeWidth="3.5" opacity="0.6"/>
         {SOLUTIONS.map((sol,i)=>{
           const a=(2*Math.PI*i)/n - Math.PI/2;
           const b=(2*Math.PI*(i+1))/n - Math.PI/2;
@@ -510,35 +510,34 @@ function WheelSVG({ hero, onSelect, spinning, spinDeg }) {
           const x2=cx+r*Math.cos(b), y2=cy+r*Math.sin(b);
           const m=(a+b)/2;
           const tx=cx+r*0.62*Math.cos(m), ty=cy+r*0.62*Math.sin(m);
-          const lx=cx+r*0.87*Math.cos(m), ly=cy+r*0.87*Math.sin(m);
+          const lx=cx+r*0.88*Math.cos(m), ly=cy+r*0.88*Math.sin(m);
           return (
             <g key={sol.id} onClick={()=>!spinning&&onSelect(i)} style={{cursor:spinning?"default":"pointer"}}>
               <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
-                fill={sol.color} stroke="#050015" strokeWidth="2.5" opacity="0.92"/>
-              {/* divider lines */}
-              <line x1={cx} y1={cy} x2={x1} y2={y1} stroke="#050015" strokeWidth="1.5" opacity="0.6"/>
-              <text x={tx} y={ty-9} textAnchor="middle" fontSize="20" dominantBaseline="middle">{sol.emoji}</text>
-              <text x={tx} y={ty+10} textAnchor="middle" fontSize="8" fill="#1a0533" fontWeight="900"
-                dominantBaseline="middle" style={{letterSpacing:0.3}}>{sol.label}</text>
-              <text x={lx} y={ly} textAnchor="middle" fontSize="10" fill="white" fontWeight="900"
-                dominantBaseline="middle" style={{textShadow:"0 0 4px #000"}}>{sol.id}</text>
+                fill={sol.color} stroke="#050015" strokeWidth="2.5" opacity="0.93"/>
+              <line x1={cx} y1={cy} x2={x1} y2={y1} stroke="#050015" strokeWidth="1.5" opacity="0.5"/>
+              <text x={tx} y={ty-11} textAnchor="middle" fontSize="26" dominantBaseline="middle">{sol.emoji}</text>
+              <text x={tx} y={ty+13} textAnchor="middle" fontSize="11" fill="#1a0533" fontWeight="900"
+                dominantBaseline="middle">{sol.label}</text>
+              <text x={lx} y={ly} textAnchor="middle" fontSize="12" fill="white" fontWeight="900"
+                dominantBaseline="middle">{sol.id}</text>
             </g>
           );
         })}
         {/* center hub */}
-        <circle cx={cx} cy={cy} r={40} fill="#050015" stroke={hero.accent} strokeWidth="4"/>
-        <circle cx={cx} cy={cy} r={34} fill={hero.sky} opacity="0.8"/>
+        <circle cx={cx} cy={cy} r={44} fill="#050015" stroke={hero.accent} strokeWidth="5"/>
+        <circle cx={cx} cy={cy} r={37} fill={hero.sky} opacity="0.9"/>
         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize="26"
           style={{filter:`drop-shadow(0 0 8px ${hero.glow})`}}>{hero.emoji}</text>
       </svg>
       {/* pointer arrow */}
       <div className="absolute top-0 left-1/2 z-20 flex flex-col items-center"
-        style={{transform:"translateX(-50%) translateY(-2px)"}}>
+        style={{transform:"translateX(-50%) translateY(-3px)"}}>
         <div style={{
           width:0, height:0,
-          borderLeft:"11px solid transparent", borderRight:"11px solid transparent",
-          borderTop:`22px solid ${hero.accent}`,
-          filter:`drop-shadow(0 0 6px ${hero.glow})`,
+          borderLeft:"14px solid transparent", borderRight:"14px solid transparent",
+          borderTop:`28px solid ${hero.accent}`,
+          filter:`drop-shadow(0 0 8px ${hero.glow})`,
         }}/>
       </div>
     </div>
@@ -1046,18 +1045,21 @@ function WheelZone({ hero, save, onSave, onBack }) {
 
       {/* ── PHASE: spin ── */}
       {phase==="spin" && (
-        <div className="flex-1 flex flex-col items-center px-2 pb-4">
+        <div className="flex-1 flex flex-col items-center px-1 pb-3">
           {/* emotion reminder chip */}
-          <div className="mb-3 rounded-full px-4 py-1.5 flex items-center gap-2 border"
+          <div className="mb-2 rounded-full px-4 py-1.5 flex items-center gap-2 border"
             style={{background:emotionBefore?.color+"18",borderColor:emotionBefore?.color+"44"}}>
             <span className="text-lg">{emotionBefore?.emoji}</span>
             <span className="text-white font-black text-sm">{emotionBefore?.label}</span>
           </div>
 
-          <WheelSVG hero={hero} onSelect={doSelectSlice} spinning={spinning} spinDeg={spinDeg}/>
+          {/* full-width wheel — fills ~half screen */}
+          <div className="w-full px-2" style={{maxWidth:480}}>
+            <WheelSVG hero={hero} onSelect={doSelectSlice} spinning={spinning} spinDeg={spinDeg}/>
+          </div>
 
           <button onClick={doSpin} disabled={spinning}
-            className="mt-5 px-12 py-4 rounded-full font-black text-2xl text-black active:scale-95 transition-all disabled:opacity-40"
+            className="mt-3 px-14 py-4 rounded-full font-black text-2xl text-black active:scale-95 transition-all disabled:opacity-40"
             style={{
               background: spinning?"#444":`linear-gradient(135deg,${hero.accent},${hero.color})`,
               boxShadow: spinning?"none":`0 0 32px ${hero.glow}88`,
@@ -1065,7 +1067,7 @@ function WheelZone({ hero, save, onSave, onBack }) {
             }}>
             {spinning ? "⏳ מסתובב..." : "🌀 סובב!"}
           </button>
-          <p className="text-gray-500 text-xs mt-2 font-bold">או לחץ ישירות על הגלגל</p>
+          <p className="text-gray-500 text-xs mt-1 font-bold">או לחץ ישירות על הגלגל</p>
         </div>
       )}
 
@@ -3533,87 +3535,385 @@ const PALETTE = [
 
 const COLORING_PAGES = [
   {
-    id:"superhero", label:"גיבור על", emoji:"🦸",
+    id:"spider", label:"גיבור העכביש", emoji:"🕷️", bg:"#e8f0ff",
+    vb:"0 0 300 340",
     paths:[
-      // body
-      {d:"M 120 180 Q 100 160 105 130 Q 110 100 150 95 Q 190 100 195 130 Q 200 160 180 180 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // body torso
+      {d:"M 150 145 Q 120 150 115 185 Q 112 215 130 230 Q 150 238 170 230 Q 188 215 185 185 Q 180 150 150 145 Z", fill:"white", stroke:"#111", sw:2.5},
       // head
-      {d:"M 135 95 Q 130 70 150 60 Q 170 70 165 95 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // cape
-      {d:"M 105 130 Q 70 160 75 210 Q 150 200 225 210 Q 230 160 195 130 Z", fill:"#ddd", stroke:"#333", sw:2},
+      {d:"M 130 110 Q 128 88 150 82 Q 172 88 170 110 Q 168 132 150 135 Q 132 132 130 110 Z", fill:"white", stroke:"#111", sw:2.5},
+      // mask eyes
+      {d:"M 137 105 Q 143 100 150 105 Q 143 112 137 105 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 163 105 Q 157 100 150 105 Q 157 112 163 105 Z", fill:"white", stroke:"#111", sw:1.5},
       // left arm
-      {d:"M 105 130 Q 80 145 75 170 Q 80 180 90 175 Q 100 155 108 140 Z", fill:"#ddd", stroke:"#333", sw:2},
+      {d:"M 115 160 Q 90 148 72 138 Q 60 150 68 162 Q 85 168 108 175 Z", fill:"white", stroke:"#111", sw:2.5},
       // right arm
-      {d:"M 195 130 Q 220 145 225 170 Q 220 180 210 175 Q 200 155 192 140 Z", fill:"#ddd", stroke:"#333", sw:2},
+      {d:"M 185 160 Q 210 148 228 138 Q 240 150 232 162 Q 215 168 192 175 Z", fill:"white", stroke:"#111", sw:2.5},
+      // web lines on torso
+      {d:"M 150 145 L 150 230 M 120 155 Q 150 175 180 155 M 116 175 Q 150 200 184 175 M 118 200 Q 150 218 182 200", fill:"none", stroke:"#aaa", sw:1},
       // left leg
-      {d:"M 125 180 Q 115 200 112 230 Q 118 235 128 230 Q 132 205 138 182 Z", fill:"#ddd", stroke:"#333", sw:2},
+      {d:"M 128 228 Q 118 252 108 275 Q 100 295 110 302 Q 122 298 125 278 Q 133 255 138 232 Z", fill:"white", stroke:"#111", sw:2.5},
       // right leg
-      {d:"M 175 180 Q 185 200 188 230 Q 182 235 172 230 Q 168 205 162 182 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // mask
-      {d:"M 138 72 Q 140 65 150 63 Q 160 65 162 72 Q 158 80 150 82 Q 142 80 138 72 Z", fill:"#ddd", stroke:"#333", sw:1.5},
-      // chest symbol star
-      {d:"M 150 130 L 153 140 L 163 140 L 155 146 L 158 156 L 150 150 L 142 156 L 145 146 L 137 140 L 147 140 Z", fill:"#ddd", stroke:"#555", sw:1},
+      {d:"M 172 228 Q 182 252 192 275 Q 200 295 190 302 Q 178 298 175 278 Q 167 255 162 232 Z", fill:"white", stroke:"#111", sw:2.5},
+      // chest spider symbol
+      {d:"M 150 165 L 154 175 L 165 175 L 156 182 L 159 192 L 150 186 L 141 192 L 144 182 L 135 175 L 146 175 Z", fill:"white", stroke:"#111", sw:1.5},
+      // web above
+      {d:"M 110 82 Q 130 60 150 55 Q 170 60 190 82", fill:"none", stroke:"#111", sw:1.5},
+      {d:"M 150 55 L 150 30 M 150 30 Q 180 20 195 10 M 150 30 Q 120 20 105 10", fill:"none", stroke:"#aaa", sw:1},
     ]
   },
   {
-    id:"rocket", label:"רקטה", emoji:"🚀",
+    id:"flyman", label:"גיבור המעוף", emoji:"🦸", bg:"#fff5e0",
+    vb:"0 0 300 340",
     paths:[
+      // cape
+      {d:"M 108 145 Q 60 180 55 250 Q 90 240 150 235 Q 210 240 245 250 Q 240 180 192 145 Z", fill:"white", stroke:"#111", sw:2.5},
+      // torso
+      {d:"M 150 140 Q 122 145 118 180 Q 116 210 130 222 Q 150 230 170 222 Q 184 210 182 180 Q 178 145 150 140 Z", fill:"white", stroke:"#111", sw:2.5},
+      // head
+      {d:"M 132 108 Q 130 86 150 80 Q 170 86 168 108 Q 166 128 150 132 Q 134 128 132 108 Z", fill:"white", stroke:"#111", sw:2.5},
+      // hair
+      {d:"M 132 100 Q 138 78 150 75 Q 162 78 168 100", fill:"white", stroke:"#111", sw:2},
+      // eyes
+      {d:"M 139 108 Q 144 104 149 108 Q 144 114 139 108 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 161 108 Q 156 104 151 108 Q 156 114 161 108 Z", fill:"white", stroke:"#111", sw:1.5},
+      // left arm — flying pose
+      {d:"M 118 158 Q 88 138 62 122 Q 52 132 58 144 Q 82 154 112 172 Z", fill:"white", stroke:"#111", sw:2.5},
+      // right arm — fist forward
+      {d:"M 182 155 Q 212 140 238 128 Q 248 138 242 150 Q 218 158 188 168 Z", fill:"white", stroke:"#111", sw:2.5},
+      // fist
+      {d:"M 238 128 Q 248 122 256 128 Q 256 140 248 144 Q 240 142 238 128 Z", fill:"white", stroke:"#111", sw:2},
+      // left leg
+      {d:"M 132 222 Q 124 248 116 272 Q 108 292 118 298 Q 130 294 134 272 Q 140 248 142 224 Z", fill:"white", stroke:"#111", sw:2.5},
+      // right leg
+      {d:"M 168 222 Q 176 248 184 272 Q 192 292 182 298 Q 170 294 166 272 Q 160 248 158 224 Z", fill:"white", stroke:"#111", sw:2.5},
+      // chest S symbol
+      {d:"M 160 165 Q 160 158 152 158 Q 144 158 144 165 Q 144 172 152 172 Q 160 172 160 179 Q 160 186 152 186 Q 144 186 144 179", fill:"none", stroke:"#111", sw:2.5},
+    ]
+  },
+  {
+    id:"rescue", label:"חייל החילוץ", emoji:"🪖", bg:"#f0fff0",
+    vb:"0 0 300 340",
+    paths:[
+      // helmet
+      {d:"M 118 108 Q 116 80 150 72 Q 184 80 182 108 Q 185 118 175 124 Q 150 130 125 124 Q 115 118 118 108 Z", fill:"white", stroke:"#111", sw:2.5},
+      // helmet brim
+      {d:"M 110 116 Q 150 128 190 116 Q 192 122 188 126 Q 150 135 112 126 Q 108 122 110 116 Z", fill:"white", stroke:"#111", sw:2},
+      // face
+      {d:"M 130 124 Q 128 144 138 152 Q 150 158 162 152 Q 172 144 170 124 Z", fill:"white", stroke:"#111", sw:2},
+      // goggles
+      {d:"M 132 134 Q 142 128 150 134 Q 142 142 132 134 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 168 134 Q 158 128 150 134 Q 158 142 168 134 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 142 134 L 158 134", fill:"none", stroke:"#111", sw:1.5},
+      // body/vest
+      {d:"M 130 155 Q 105 162 100 195 Q 98 225 115 238 Q 150 248 185 238 Q 202 225 200 195 Q 195 162 170 155 Z", fill:"white", stroke:"#111", sw:2.5},
+      // vest pockets
+      {d:"M 118 175 L 118 195 L 140 195 L 140 175 Z M 160 175 L 160 195 L 182 195 L 182 175 Z", fill:"white", stroke:"#111", sw:1.5},
+      // belt
+      {d:"M 100 225 L 200 225 L 200 235 L 100 235 Z", fill:"white", stroke:"#111", sw:1.5},
+      // left arm
+      {d:"M 100 175 Q 78 182 65 192 Q 60 205 68 212 Q 80 210 95 200 Q 102 188 105 178 Z", fill:"white", stroke:"#111", sw:2.5},
+      // right arm with walkie talkie
+      {d:"M 200 175 Q 222 182 235 192 Q 240 205 232 212 Q 220 210 205 200 Q 198 188 195 178 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 230 185 L 230 210 L 244 210 L 244 185 Z", fill:"white", stroke:"#111", sw:1.5},
+      // legs
+      {d:"M 128 238 Q 120 265 116 292 Q 108 310 120 314 Q 132 310 136 288 Q 140 262 143 240 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 172 238 Q 180 265 184 292 Q 192 310 180 314 Q 168 310 164 288 Q 160 262 157 240 Z", fill:"white", stroke:"#111", sw:2.5},
+      // boots
+      {d:"M 108 310 Q 100 316 98 326 Q 108 332 128 330 Q 136 320 120 314 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 192 310 Q 200 316 202 326 Q 192 332 172 330 Q 164 320 180 314 Z", fill:"white", stroke:"#111", sw:2},
+    ]
+  },
+  {
+    id:"lion", label:"אריה מלכותי", emoji:"🦁", bg:"#fff8e0",
+    vb:"0 0 300 280",
+    paths:[
+      // mane outer
+      {d:"M 150 60 Q 90 55 70 90 Q 55 115 68 145 Q 80 170 110 178 Q 150 185 190 178 Q 220 170 232 145 Q 245 115 230 90 Q 210 55 150 60 Z", fill:"white", stroke:"#111", sw:2.5},
+      // mane details
+      {d:"M 80 80 Q 75 100 78 118 M 72 100 Q 65 120 70 138 M 220 80 Q 225 100 222 118 M 228 100 Q 235 120 230 138", fill:"none", stroke:"#ccc", sw:1.5},
+      // face
+      {d:"M 118 95 Q 116 128 130 148 Q 150 162 170 148 Q 184 128 182 95 Q 170 72 150 70 Q 130 72 118 95 Z", fill:"white", stroke:"#111", sw:2.5},
+      // ears
+      {d:"M 120 88 Q 112 70 122 62 Q 134 68 130 84 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 180 88 Q 188 70 178 62 Q 166 68 170 84 Z", fill:"white", stroke:"#111", sw:2},
+      // eyes
+      {d:"M 132 112 Q 140 106 148 112 Q 140 120 132 112 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 168 112 Q 160 106 152 112 Q 160 120 168 112 Z", fill:"white", stroke:"#111", sw:1.5},
+      // nose
+      {d:"M 144 128 Q 150 122 156 128 Q 150 134 144 128 Z", fill:"white", stroke:"#111", sw:1.5},
+      // mouth
+      {d:"M 144 134 Q 150 142 156 134 M 138 134 Q 144 134 138 128 M 162 134 Q 156 134 162 128", fill:"none", stroke:"#111", sw:1.5},
+      // whiskers
+      {d:"M 132 132 L 108 128 M 132 136 L 106 136 M 168 132 L 192 128 M 168 136 L 194 136", fill:"none", stroke:"#111", sw:1.5},
       // body
-      {d:"M 150 60 Q 130 80 125 130 L 125 200 L 175 200 L 175 130 Q 170 80 150 60 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // window
-      {d:"M 150 110 m -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0", fill:"#ddd", stroke:"#333", sw:2},
-      // left fin
-      {d:"M 125 175 Q 100 185 95 210 Q 110 205 125 200 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // right fin
-      {d:"M 175 175 Q 200 185 205 210 Q 190 205 175 200 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // flame 1
-      {d:"M 135 200 Q 140 230 150 245 Q 160 230 165 200 Z", fill:"#ddd", stroke:"#FF6B35", sw:1.5},
-      // stars
-      {d:"M 80 90 L 83 98 L 91 98 L 85 103 L 87 111 L 80 106 L 73 111 L 75 103 L 69 98 L 77 98 Z", fill:"#ddd", stroke:"#FFD700", sw:1},
-      {d:"M 220 130 L 222 136 L 228 136 L 223 140 L 225 146 L 220 142 L 215 146 L 217 140 L 212 136 L 218 136 Z", fill:"#ddd", stroke:"#FFD700", sw:1},
+      {d:"M 108 170 Q 85 185 80 220 Q 78 250 100 258 Q 150 265 200 258 Q 222 250 220 220 Q 215 185 192 170 Z", fill:"white", stroke:"#111", sw:2.5},
+      // front paws
+      {d:"M 92 242 Q 82 252 80 265 Q 90 270 108 268 Q 115 255 108 244 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 208 242 Q 218 252 220 265 Q 210 270 192 268 Q 185 255 192 244 Z", fill:"white", stroke:"#111", sw:2},
+      // tail
+      {d:"M 208 200 Q 235 210 245 230 Q 248 250 238 255 Q 228 248 230 235 Q 225 218 208 208 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 238 255 Q 248 260 250 270 Q 242 275 232 268 Q 230 258 238 255 Z", fill:"white", stroke:"#111", sw:1.5},
     ]
   },
   {
-    id:"house", label:"בית", emoji:"🏠",
+    id:"adventure", label:"ילד ההרפתקות", emoji:"🧒", bg:"#f0f8ff",
+    vb:"0 0 300 340",
     paths:[
-      // walls
-      {d:"M 90 160 L 90 240 L 210 240 L 210 160 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // roof
-      {d:"M 75 165 L 150 90 L 225 165 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // door
-      {d:"M 133 200 L 133 240 L 167 240 L 167 200 Q 150 190 133 200 Z", fill:"#ddd", stroke:"#333", sw:1.5},
-      // left window
-      {d:"M 98 175 L 98 200 L 123 200 L 123 175 Z", fill:"#ddd", stroke:"#333", sw:1.5},
-      {d:"M 110 175 L 110 200 M 98 187 L 123 187", fill:"none", stroke:"#333", sw:1},
-      // right window
-      {d:"M 177 175 L 177 200 L 202 200 L 202 175 Z", fill:"#ddd", stroke:"#333", sw:1.5},
-      {d:"M 189 175 L 189 200 M 177 187 L 202 187", fill:"none", stroke:"#333", sw:1},
-      // chimney
-      {d:"M 170 100 L 170 130 L 190 130 L 190 115 Z", fill:"#ddd", stroke:"#333", sw:1.5},
-    ]
-  },
-  {
-    id:"butterfly", label:"פרפר", emoji:"🦋",
-    paths:[
-      // top left wing
-      {d:"M 150 150 Q 100 100 80 130 Q 70 160 110 170 Q 130 175 150 155 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // top right wing
-      {d:"M 150 150 Q 200 100 220 130 Q 230 160 190 170 Q 170 175 150 155 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // bottom left wing
-      {d:"M 150 155 Q 110 175 95 200 Q 100 220 130 210 Q 148 195 150 170 Z", fill:"#ddd", stroke:"#333", sw:2},
-      // bottom right wing
-      {d:"M 150 155 Q 190 175 205 200 Q 200 220 170 210 Q 152 195 150 170 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // backpack
+      {d:"M 168 155 Q 188 160 195 195 Q 198 225 188 238 Q 175 245 168 228 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 172 165 L 172 200 L 188 200 L 188 165 Z M 175 180 L 185 180", fill:"white", stroke:"#111", sw:1.5},
       // body
-      {d:"M 147 140 Q 145 155 147 175 Q 150 180 153 175 Q 155 155 153 140 Q 150 135 147 140 Z", fill:"#555", stroke:"#333", sw:1},
-      // antennae
-      {d:"M 148 140 Q 135 120 130 110", fill:"none", stroke:"#333", sw:1.5},
-      {d:"M 152 140 Q 165 120 170 110", fill:"none", stroke:"#333", sw:1.5},
-      // antenna tips
-      {d:"M 130 110 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0", fill:"#333", stroke:"none", sw:0},
-      {d:"M 170 110 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0", fill:"#333", stroke:"none", sw:0},
+      {d:"M 130 148 Q 108 155 105 188 Q 103 215 118 228 Q 150 238 182 228 Q 197 215 195 188 Q 192 155 170 148 Z", fill:"white", stroke:"#111", sw:2.5},
+      // head
+      {d:"M 130 112 Q 128 88 150 82 Q 172 88 170 112 Q 168 134 150 138 Q 132 134 130 112 Z", fill:"white", stroke:"#111", sw:2.5},
+      // adventurer hat
+      {d:"M 118 105 Q 150 95 182 105 Q 180 98 150 92 Q 120 98 118 105 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 110 108 Q 150 100 190 108", fill:"none", stroke:"#111", sw:2},
+      // eyes
+      {d:"M 138 112 Q 143 107 148 112 Q 143 118 138 112 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 162 112 Q 157 107 152 112 Q 157 118 162 112 Z", fill:"white", stroke:"#111", sw:1.5},
+      // smile
+      {d:"M 140 124 Q 150 132 160 124", fill:"none", stroke:"#111", sw:2},
+      // left arm with map
+      {d:"M 105 168 Q 80 175 65 182 Q 60 195 68 202 Q 80 200 98 192 Q 106 180 108 170 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 50 192 L 50 215 L 68 215 L 68 192 Z M 53 200 L 65 200 M 53 207 L 65 207", fill:"white", stroke:"#111", sw:1.5},
+      // right arm
+      {d:"M 195 168 Q 220 175 232 185 Q 238 198 230 205 Q 218 202 205 192 Q 196 180 194 170 Z", fill:"white", stroke:"#111", sw:2.5},
+      // legs
+      {d:"M 128 228 Q 118 255 112 280 Q 105 300 116 305 Q 128 302 133 278 Q 138 254 141 230 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 172 228 Q 182 255 188 280 Q 195 300 184 305 Q 172 302 167 278 Q 162 254 159 230 Z", fill:"white", stroke:"#111", sw:2.5},
+      // boots
+      {d:"M 104 300 Q 95 308 94 318 Q 105 325 126 322 Q 133 312 116 305 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 196 300 Q 205 308 206 318 Q 195 325 174 322 Q 167 312 184 305 Z", fill:"white", stroke:"#111", sw:2},
+    ]
+  },
+  {
+    id:"robot", label:"רובוט העתיד", emoji:"🤖", bg:"#f0f0ff",
+    vb:"0 0 300 340",
+    paths:[
+      // head box
+      {d:"M 108 68 L 108 128 L 192 128 L 192 68 Z", fill:"white", stroke:"#111", sw:2.5},
+      // antenna
+      {d:"M 150 68 L 150 48 M 150 48 m -8 0 a 8 8 0 1 0 16 0 a 8 8 0 1 0 -16 0", fill:"white", stroke:"#111", sw:2},
+      // eyes (square)
+      {d:"M 120 88 L 120 112 L 144 112 L 144 88 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 156 88 L 156 112 L 180 112 L 180 88 Z", fill:"white", stroke:"#111", sw:2},
+      // mouth panel
+      {d:"M 118 118 L 118 125 L 182 125 L 182 118 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 128 118 L 128 125 M 138 118 L 138 125 M 148 118 L 148 125 M 158 118 L 158 125 M 168 118 L 168 125 M 178 118 L 178 125", fill:"none", stroke:"#ccc", sw:1},
+      // neck
+      {d:"M 135 128 L 135 145 L 165 145 L 165 128 Z", fill:"white", stroke:"#111", sw:2},
+      // body box
+      {d:"M 95 145 L 95 235 L 205 235 L 205 145 Z", fill:"white", stroke:"#111", sw:2.5},
+      // chest panel
+      {d:"M 110 158 L 110 220 L 190 220 L 190 158 Z", fill:"white", stroke:"#111", sw:1.5},
+      // chest details — circles and buttons
+      {d:"M 138 175 m -14 0 a 14 14 0 1 0 28 0 a 14 14 0 1 0 -28 0", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 168 168 L 168 180 L 182 180 L 182 168 Z M 168 186 L 168 198 L 182 198 L 182 186 Z", fill:"white", stroke:"#111", sw:1.5},
+      // left arm (boxy)
+      {d:"M 72 150 L 72 215 L 95 215 L 95 150 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 60 210 L 60 235 L 78 235 L 78 210 Z", fill:"white", stroke:"#111", sw:2},
+      // right arm
+      {d:"M 205 150 L 205 215 L 228 215 L 228 150 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 222 210 L 222 235 L 240 235 L 240 210 Z", fill:"white", stroke:"#111", sw:2},
+      // legs
+      {d:"M 112 235 L 112 298 L 140 298 L 140 235 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 160 235 L 160 298 L 188 298 L 188 235 Z", fill:"white", stroke:"#111", sw:2.5},
+      // feet
+      {d:"M 100 295 L 100 315 L 145 315 L 145 295 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 155 295 L 155 315 L 200 315 L 200 295 Z", fill:"white", stroke:"#111", sw:2},
+    ]
+  },
+  {
+    id:"dragon", label:"דרקון המרחב", emoji:"🐲", bg:"#f8fff0",
+    vb:"0 0 320 300",
+    paths:[
+      // wings left
+      {d:"M 100 120 Q 50 80 30 110 Q 20 140 50 158 Q 75 168 108 155 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 65 110 Q 55 130 58 148 M 45 125 Q 38 145 42 158", fill:"none", stroke:"#ccc", sw:1.5},
+      // wings right
+      {d:"M 200 120 Q 250 80 270 110 Q 280 140 250 158 Q 225 168 192 155 Z", fill:"white", stroke:"#111", sw:2.5},
+      {d:"M 235 110 Q 245 130 242 148 M 255 125 Q 262 145 258 158", fill:"none", stroke:"#ccc", sw:1.5},
+      // body
+      {d:"M 115 145 Q 95 162 95 195 Q 95 228 118 242 Q 160 255 202 242 Q 225 228 225 195 Q 225 162 205 145 Q 180 132 160 130 Q 140 132 115 145 Z", fill:"white", stroke:"#111", sw:2.5},
+      // neck
+      {d:"M 135 130 Q 128 108 135 92 Q 150 80 165 92 Q 172 108 165 130 Z", fill:"white", stroke:"#111", sw:2.5},
+      // head
+      {d:"M 125 92 Q 120 68 150 60 Q 180 68 175 92 Q 170 112 150 118 Q 130 112 125 92 Z", fill:"white", stroke:"#111", sw:2.5},
+      // horns
+      {d:"M 135 72 Q 128 52 135 42 Q 142 52 138 70 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 165 72 Q 172 52 165 42 Q 158 52 162 70 Z", fill:"white", stroke:"#111", sw:2},
+      // eyes
+      {d:"M 136 88 Q 143 82 150 88 Q 143 96 136 88 Z", fill:"white", stroke:"#111", sw:1.5},
+      {d:"M 164 88 Q 157 82 150 88 Q 157 96 164 88 Z", fill:"white", stroke:"#111", sw:1.5},
+      // nostrils + fire
+      {d:"M 143 104 Q 150 100 157 104", fill:"none", stroke:"#111", sw:1.5},
+      {d:"M 148 112 Q 152 125 145 135 Q 155 128 160 138 Q 162 125 158 112", fill:"white", stroke:"#FF6B35", sw:1.5},
+      // belly scales
+      {d:"M 130 175 Q 150 168 170 175 M 125 192 Q 150 183 175 192 M 122 210 Q 150 200 178 210 M 124 228 Q 150 218 176 228", fill:"none", stroke:"#ccc", sw:1.5},
+      // tail
+      {d:"M 210 215 Q 240 225 252 245 Q 258 262 248 268 Q 236 260 236 245 Q 228 230 212 222 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 248 268 Q 260 272 262 285 Q 250 288 240 278 Q 240 268 248 268 Z", fill:"white", stroke:"#111", sw:1.5},
+      // claws
+      {d:"M 102 238 Q 88 245 82 258 Q 92 265 108 260 Q 114 248 106 240 Z", fill:"white", stroke:"#111", sw:2},
+      {d:"M 218 238 Q 232 245 238 258 Q 228 265 212 260 Q 206 248 214 240 Z", fill:"white", stroke:"#111", sw:2},
     ]
   },
 ];
+
+// ── Improved ColoringPage — full screen canvas ──
+function ColoringPage({narrator}) {
+  const canvasRef  = useRef(null);
+  const [pageIdx,  setPageIdx]  = useState(0);
+  const [color,    setColor]    = useState("#FF4444");
+  const [brushSize,setBrushSize]= useState(2);
+  const drawing    = useRef(false);
+  const lastPos    = useRef(null);
+  const page       = COLORING_PAGES[pageIdx];
+
+  const getPos = (e, canvas) => {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - r.left) * (canvas.width  / r.width),
+      y: (src.clientY - r.top)  * (canvas.height / r.height),
+    };
+  };
+
+  // parse viewBox to get natural dimensions
+  const [vbX, vbY, vbW, vbH] = page.vb.split(" ").map(Number);
+
+  const redrawBase = (ctx, cw, ch) => {
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = page.bg || "white";
+    ctx.fillRect(0, 0, cw, ch);
+    const scaleX = cw / vbW, scaleY = ch / vbH;
+    ctx.save();
+    ctx.scale(scaleX, scaleY);
+    page.paths.forEach(p => {
+      ctx.beginPath();
+      const path = new Path2D(p.d);
+      ctx.fillStyle   = p.fill || "white";
+      ctx.strokeStyle = p.stroke || "#111";
+      ctx.lineWidth   = (p.sw || 2) / Math.min(scaleX, scaleY);
+      ctx.fill(path);
+      if ((p.sw || 0) > 0) ctx.stroke(path);
+    });
+    ctx.restore();
+  };
+
+  const initCanvas = () => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    redrawBase(ctx, canvas.width, canvas.height);
+  };
+
+  useEffect(() => { setTimeout(initCanvas, 50); }, [pageIdx]);
+
+  const startPaint = (e) => {
+    drawing.current = true;
+    const canvas = canvasRef.current; if (!canvas) return;
+    const pos = getPos(e, canvas);
+    lastPos.current = pos;
+    const ctx = canvas.getContext("2d");
+    const sz = BRUSH_SIZES[brushSize];
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, sz/2, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  };
+
+  const paint = (e) => {
+    if (!drawing.current) return;
+    e.preventDefault();
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    const sz  = BRUSH_SIZES[brushSize];
+    ctx.lineWidth   = sz;
+    ctx.lineCap     = "round";
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastPos.current = pos;
+  };
+
+  const endPaint = () => { drawing.current = false; lastPos.current = null; };
+
+  const clearPage = () => { initCanvas(); narrator.say("נמחק! צבע שוב!", {priority:true}); };
+
+  const changePage = (dir) => {
+    const next = (pageIdx + dir + COLORING_PAGES.length) % COLORING_PAGES.length;
+    setPageIdx(next);
+    narrator.say(COLORING_PAGES[next].label, {priority:true});
+  };
+
+  return (
+    <div className="flex-1 flex flex-col px-2 pb-2" style={{minHeight:0}}>
+      {/* page nav bar */}
+      <div className="flex items-center justify-between mb-1.5 px-1">
+        <button onClick={()=>changePage(-1)}
+          className="rounded-full w-9 h-9 flex items-center justify-center border-2 active:scale-90 text-lg font-black"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"66",color:ART_COLOR}}>◀</button>
+        <div className="flex items-center gap-1.5 overflow-x-auto px-1" style={{maxWidth:"60vw"}}>
+          {COLORING_PAGES.map((p,i)=>(
+            <button key={p.id} onClick={()=>{setPageIdx(i);narrator.say(p.label,{priority:true});}}
+              className="rounded-xl px-2 py-1 text-xs font-black border flex-shrink-0 active:scale-90"
+              style={{background:i===pageIdx?ART_COLOR+"44":"#ffffff10",
+                borderColor:i===pageIdx?ART_COLOR:"#ffffff22",color:"white"}}>
+              {p.emoji}
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>changePage(1)}
+          className="rounded-full w-9 h-9 flex items-center justify-center border-2 active:scale-90 text-lg font-black"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"66",color:ART_COLOR}}>▶</button>
+      </div>
+
+      {/* full-width canvas */}
+      <canvas ref={canvasRef} width={720} height={660}
+        className="rounded-2xl border-2 touch-none"
+        style={{
+          width:"100%", flex:1, minHeight:0,
+          borderColor:ART_COLOR+"44",
+          touchAction:"none",
+          boxShadow:`0 0 20px ${ART_COLOR}22`,
+        }}
+        onMouseDown={startPaint} onMouseMove={paint} onMouseUp={endPaint} onMouseLeave={endPaint}
+        onTouchStart={startPaint} onTouchMove={paint} onTouchEnd={endPaint}/>
+
+      {/* palette + tools — compact bottom bar */}
+      <div className="mt-1.5">
+        <div className="flex flex-wrap gap-1 justify-center mb-1">
+          {PALETTE.map(col=>(
+            <button key={col} onClick={()=>setColor(col)}
+              className="rounded-full active:scale-90 transition-all flex-shrink-0"
+              style={{width:26,height:26,background:col,
+                border:`3px solid ${col===color?"white":"transparent"}`,
+                boxShadow:col===color?"0 0 6px white":"none"}}/>
+          ))}
+        </div>
+        <div className="flex gap-2 justify-center items-center">
+          {BRUSH_SIZES.map((sz,i)=>(
+            <ToolBtn key={i} active={brushSize===i} onClick={()=>setBrushSize(i)}>
+              <div className="rounded-full" style={{
+                width:Math.min(sz/1.5+2,20),height:Math.min(sz/1.5+2,20),
+                background:color, maxWidth:20, maxHeight:20,
+              }}/>
+            </ToolBtn>
+          ))}
+          <ToolBtn active={false} onClick={clearPage} style={{background:"#FF444411",borderColor:"#FF444444"}}>
+            <span style={{fontSize:16}}>🗑️</span>
+          </ToolBtn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ── Tool button ──
 function ToolBtn({active, onClick, children, style={}}) {
@@ -3756,127 +4056,6 @@ function DrawingCanvas({narrator}) {
 // ══════════════════════════════
 // TOOL 2: Coloring Page
 // ══════════════════════════════
-function ColoringPage({narrator}) {
-  const canvasRef = useRef(null);
-  const [pageIdx, setPageIdx]   = useState(0);
-  const [color,   setColor]     = useState("#FF4444");
-  const [fills,   setFills]     = useState({});
-  const [brushSize, setBrushSize] = useState(1);
-  const drawing   = useRef(false);
-  const lastPos   = useRef(null);
-
-  const page = COLORING_PAGES[pageIdx];
-
-  const getPos = (e, canvas) => {
-    const r = canvas.getBoundingClientRect();
-    const src = e.touches ? e.touches[0] : e;
-    return {
-      x: (src.clientX - r.left) * (canvas.width / r.width),
-      y: (src.clientY - r.top)  * (canvas.height / r.height),
-    };
-  };
-
-  const redraw = (currentFills) => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // white bg
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // draw paths
-    page.paths.forEach((path, i) => {
-      ctx.beginPath();
-      const p = new Path2D(path.d);
-      ctx.fillStyle   = currentFills[i] || path.fill;
-      ctx.strokeStyle = path.stroke;
-      ctx.lineWidth   = path.sw;
-      ctx.fill(p);
-      if (path.sw > 0) ctx.stroke(p);
-    });
-  };
-
-  useEffect(() => { redraw(fills); }, [pageIdx]);
-
-  const paint = (e) => {
-    e.preventDefault();
-    if (!drawing.current) return;
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const pos = getPos(e, canvas);
-    // paint brush
-    const sz = BRUSH_SIZES[brushSize];
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, sz/2, 0, Math.PI*2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    if (lastPos.current) {
-      ctx.lineWidth   = sz;
-      ctx.lineCap     = "round";
-      ctx.strokeStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(lastPos.current.x, lastPos.current.y);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-    }
-    lastPos.current = pos;
-  };
-
-  const startPaint = (e) => { drawing.current = true; paint(e); };
-  const endPaint   = () => { drawing.current = false; lastPos.current = null; };
-
-  const clearPage = () => { setFills({}); redraw({}); narrator.say("נמחק! צבע שוב!", {priority:true}); };
-
-  const changePage = (dir) => {
-    const next = (pageIdx + dir + COLORING_PAGES.length) % COLORING_PAGES.length;
-    setPageIdx(next); setFills({});
-    narrator.say(COLORING_PAGES[next].label, {priority:true});
-  };
-
-  return (
-    <div className="flex-1 flex flex-col items-center px-2 pb-2">
-      {/* page selector */}
-      <div className="flex items-center gap-3 mb-2">
-        <button onClick={()=>changePage(-1)}
-          className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90"
-          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>◀</button>
-        <span className="text-white font-black text-sm">{page.emoji} {page.label}</span>
-        <button onClick={()=>changePage(1)}
-          className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90"
-          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>▶</button>
-      </div>
-
-      {/* canvas */}
-      <canvas ref={canvasRef} width={300} height={280}
-        className="rounded-2xl border-2 touch-none mb-2"
-        style={{borderColor:ART_COLOR+"44",maxWidth:"100%",background:"white"}}
-        onMouseDown={startPaint} onMouseMove={paint} onMouseUp={endPaint} onMouseLeave={endPaint}
-        onTouchStart={startPaint} onTouchMove={paint} onTouchEnd={endPaint}/>
-
-      {/* palette */}
-      <div className="flex flex-wrap gap-1.5 justify-center mb-2 max-w-sm">
-        {PALETTE.map(col => (
-          <button key={col} onClick={()=>setColor(col)}
-            className="rounded-full active:scale-90"
-            style={{width:28,height:28,background:col,
-              border:`3px solid ${col===color?"white":"transparent"}`}}/>
-        ))}
-      </div>
-
-      {/* brush sizes + clear */}
-      <div className="flex gap-2 items-center">
-        {BRUSH_SIZES.map((sz,i) => (
-          <ToolBtn key={i} active={brushSize===i} onClick={()=>setBrushSize(i)}>
-            <div className="rounded-full bg-current" style={{width:sz/2+2,height:sz/2+2,maxWidth:18,maxHeight:18,background:color}}/>
-          </ToolBtn>
-        ))}
-        <ToolBtn active={false} onClick={clearPage} style={{background:"#FF444411",borderColor:"#FF444444"}}>
-          <span style={{fontSize:18}}>🗑️</span>
-        </ToolBtn>
-      </div>
-    </div>
-  );
-}
-
 // ══════════════════════════════
 // TOOL 3: Letter/Number Writing
 // ══════════════════════════════
