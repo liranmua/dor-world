@@ -468,6 +468,19 @@ const EMOTIONS_BEFORE = [
   { emoji:"😢", label:"עצוב",     color:"#4488FF" },
   { emoji:"😤", label:"מתוסכל",   color:"#FF8C00" },
   { emoji:"😰", label:"לחוץ",     color:"#AA44FF" },
+  { emoji:"😊", label:"שמח",      color:"#FFD700", happy:true },
+];
+
+// Activities wheel for happy mood
+const HAPPY_ACTIVITIES = [
+  { id:1, emoji:"🧩", label:"פאזל",     color:"#60A5FA" },
+  { id:2, emoji:"🎲", label:"משחק קופסה",color:"#FFD700" },
+  { id:3, emoji:"🧲", label:"מגנטים",   color:"#FF6B6B" },
+  { id:4, emoji:"🏗️", label:"לגו",       color:"#FFB347" },
+  { id:5, emoji:"🎨", label:"יצירה",     color:"#F472B6" },
+  { id:6, emoji:"🚗", label:"מכוניות",   color:"#4ECDC4" },
+  { id:7, emoji:"📚", label:"ספר",       color:"#A78BFA" },
+  { id:8, emoji:"⚽", label:"כדור",      color:"#34D399" },
 ];
 const EMOTIONS_AFTER = [
   { emoji:"😊", label:"טוב יותר", color:"#00CC66" },
@@ -616,13 +629,16 @@ function useNarrator() {
   const queue = useRef([]);
   const enabled = useRef(true);
 
-  // find best Hebrew voice
+  // find best Hebrew voice — prefer Carmit (iOS) for natural sound
   const getVoice = () => {
     const voices = window.speechSynthesis?.getVoices() || [];
+    // iOS: Carmit is the best Hebrew voice — natural and clear
     return (
+      voices.find(v => v.name === "Carmit") ||
+      voices.find(v => v.name?.includes("Carmit")) ||
+      voices.find(v => v.lang === "he-IL" && v.localService) ||
       voices.find(v => v.lang === "he-IL") ||
       voices.find(v => v.lang?.startsWith("he")) ||
-      voices.find(v => v.lang?.startsWith("ar")) || // fallback — Semitic rhythm
       null
     );
   };
@@ -634,8 +650,8 @@ function useNarrator() {
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = "he-IL";
-    utt.rate = 0.88;   // slightly slow — clear for kids
-    utt.pitch = 0.95;  // calm adult voice
+    utt.rate = 0.82;   // slow and clear for kids
+    utt.pitch = 1.0;   // natural pitch
     utt.volume = 1;
     const v = getVoice();
     if (v) utt.voice = v;
@@ -706,17 +722,21 @@ function SpeakerBtn({ narrator, onRepeat, accent }) {
 
 // ─── main WheelZone component ─────────────────────────────────────────────────
 function WheelZone({ hero, save, onSave, onBack }) {
-  const [phase, setPhase] = useState("emotion"); // emotion | spin | result | reflect
+  const [phase, setPhase] = useState("emotion"); // emotion | happy | spin | result | reflect
   const [emotionBefore, setEmotionBefore] = useState(null);
   const [sol, setSol] = useState(null);
   const [feelAfter, setFeelAfter] = useState(null);
   const [spinning, setSpinning] = useState(false);
   const [spinDeg, setSpinDeg] = useState(0);
+  const [actSpinDeg, setActSpinDeg] = useState(0);
+  const [actSpinning, setActSpinning] = useState(false);
+  const [chosenActivity, setChosenActivity] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showXP, setShowXP] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
   const [streakMsg, setStreakMsg] = useState(null);
   const baseRot = useRef(0);
+  const actBaseRot = useRef(0);
   const narrator = useNarrator();
 
   // ── narrator texts (clean, no emoji) ──
@@ -736,6 +756,8 @@ function WheelZone({ hero, save, onSave, onBack }) {
   // bubble display text (with emoji for screen)
   const bubbleText = () => {
     if (phase==="emotion") return "היי דור! איך אתה מרגיש עכשיו?";
+    if (phase==="happy" && !chosenActivity) return "דור שמח! 😊 בוא נבחר פעילות כיפית! 🎉";
+    if (phase==="happy" && chosenActivity) return `בחרת ${chosenActivity.label}! כיף! 🎉 תהנה!`;
     if (phase==="spin" && !spinning) return `דור, ${emotionBefore?.label}? בוא נמצא פתרון! 💪`;
     if (phase==="spin" && spinning) return "הגלגל מחפש פתרון... 🌀";
     if (phase==="result") return `הפתרון: ${sol?.label}! ${sol?.desc} 💥`;
@@ -840,6 +862,38 @@ function WheelZone({ hero, save, onSave, onBack }) {
     narrator.stop();
     setSol(null); setFeelAfter(null); setPhase("emotion");
     setEmotionBefore(null); setShowBreathing(false); setStreakMsg(null);
+    setChosenActivity(null); setActSpinning(false); setActSpinDeg(0);
+  };
+
+  // Activity wheel spin
+  const doActSpin = () => {
+    if (actSpinning) return;
+    setActSpinning(true);
+    const idx = Math.floor(Math.random()*HAPPY_ACTIVITIES.length);
+    const deg = (5+Math.floor(Math.random()*3))*360 + idx*(360/HAPPY_ACTIVITIES.length);
+    actBaseRot.current += deg;
+    setActSpinDeg(actBaseRot.current);
+    narrator.say("הגלגל מסתובב!", {priority:true});
+    setTimeout(()=>{
+      setActSpinning(false);
+      setChosenActivity(HAPPY_ACTIVITIES[idx]);
+      boom();
+      narrator.say(`${HAPPY_ACTIVITIES[idx].label}! כיף! תהנה!`, {priority:true});
+    }, 2400);
+  };
+
+  const doActSelect = (idx) => {
+    if (actSpinning) return;
+    const act = HAPPY_ACTIVITIES[idx];
+    narrator.say(act.label, {priority:true});
+    const deg = 2*360 + idx*(360/HAPPY_ACTIVITIES.length);
+    actBaseRot.current += deg;
+    setActSpinDeg(actBaseRot.current);
+    setTimeout(()=>{
+      setChosenActivity(act);
+      boom();
+      narrator.say(`${act.label}! כיף! תהנה!`, {priority:true});
+    }, 500);
   };
 
   const wheelStars = save.zone_stars?.wheel||0;
@@ -898,10 +952,94 @@ function WheelZone({ hero, save, onSave, onBack }) {
                 onClick={()=>{
                   narrator.say(e.label, {priority:true});
                   setEmotionBefore(e);
-                  setPhase("spin");
-                  setTimeout(()=> narrator.say(BUBBLE_TEXTS.spinReady(e.label)), 700);
+                  if (e.happy) {
+                    setPhase("happy");
+                    setTimeout(()=> narrator.say("דור שמח! בוא נבחר פעילות כיפית!", {priority:true}), 600);
+                  } else {
+                    setPhase("spin");
+                    setTimeout(()=> narrator.say(BUBBLE_TEXTS.spinReady(e.label)), 700);
+                  }
                 }}/>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── PHASE: happy — activity wheel ── */}
+      {phase==="happy" && !chosenActivity && (
+        <div className="flex-1 flex flex-col items-center px-2 pb-4">
+          <div className="mb-2 text-center">
+            <span className="text-5xl" style={{animation:"heroFloat 2s ease-in-out infinite"}}>😊</span>
+          </div>
+          {/* activity wheel SVG */}
+          <div className="relative flex items-center justify-center select-none" style={{width:300,height:300}}>
+            <div className="absolute inset-0 rounded-full"
+              style={{boxShadow:"0 0 40px #FFD70055"}}/>
+            <svg width={300} height={300} style={{
+              transform:`rotate(${actSpinDeg}deg)`,
+              transition:actSpinning?"transform 2.4s cubic-bezier(0.25,0.1,0.1,1)":"none",
+              filter:"drop-shadow(0 0 10px #FFD70066)",
+            }}>
+              {HAPPY_ACTIVITIES.map((act,i)=>{
+                const n=HAPPY_ACTIVITIES.length, cx=150, cy=150, r=128;
+                const a=(2*Math.PI*i)/n-Math.PI/2, b=(2*Math.PI*(i+1))/n-Math.PI/2;
+                const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a);
+                const x2=cx+r*Math.cos(b),y2=cy+r*Math.sin(b);
+                const m=(a+b)/2;
+                const tx=cx+r*0.62*Math.cos(m),ty=cy+r*0.62*Math.sin(m);
+                return (
+                  <g key={act.id} onClick={()=>!actSpinning&&doActSelect(i)} style={{cursor:actSpinning?"default":"pointer"}}>
+                    <path d={`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
+                      fill={act.color} stroke="#050015" strokeWidth="2.5" opacity="0.93"/>
+                    <text x={tx} y={ty-8} textAnchor="middle" fontSize="22" dominantBaseline="middle">{act.emoji}</text>
+                    <text x={tx} y={ty+11} textAnchor="middle" fontSize="8" fill="#1a0533" fontWeight="900"
+                      dominantBaseline="middle">{act.label}</text>
+                  </g>
+                );
+              })}
+              <circle cx={150} cy={150} r={38} fill="#050015" stroke="#FFD700" strokeWidth="4"/>
+              <text x={150} y={150} textAnchor="middle" dominantBaseline="middle" fontSize="22">😊</text>
+            </svg>
+            <div className="absolute top-0 left-1/2 z-20"
+              style={{transform:"translateX(-50%) translateY(-2px)"}}>
+              <div style={{width:0,height:0,borderLeft:"11px solid transparent",
+                borderRight:"11px solid transparent",borderTop:"22px solid #FFD700",
+                filter:"drop-shadow(0 0 6px #FFD700)"}}/>
+            </div>
+          </div>
+          <button onClick={doActSpin} disabled={actSpinning}
+            className="mt-5 px-12 py-4 rounded-full font-black text-2xl text-black active:scale-95 transition-all disabled:opacity-40"
+            style={{background:actSpinning?"#444":"linear-gradient(135deg,#FFD700,#FF8C00)",
+              boxShadow:actSpinning?"none":"0 0 32px #FFD70088"}}>
+            {actSpinning?"⏳ מסתובב...":"🌀 סובב!"}
+          </button>
+          <p className="text-gray-500 text-xs mt-2 font-bold">או לחץ ישירות על הגלגל</p>
+        </div>
+      )}
+
+      {phase==="happy" && chosenActivity && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 gap-5">
+          <div className="text-8xl" style={{animation:"heroFloat 2s ease-in-out infinite",
+            filter:`drop-shadow(0 0 20px ${chosenActivity.color})`}}>
+            {chosenActivity.emoji}
+          </div>
+          <div className="w-full max-w-sm rounded-3xl p-6 border-4 text-center"
+            style={{background:`linear-gradient(135deg,${chosenActivity.color}22,#050015)`,
+              borderColor:chosenActivity.color,boxShadow:`0 0 30px ${chosenActivity.color}55`}}>
+            <div className="text-white font-black text-3xl mb-2">{chosenActivity.label}</div>
+            <div className="text-gray-300 text-base">כיף גדול! תהנה דור! 🎉</div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={()=>{setChosenActivity(null);}}
+              className="px-6 py-3 rounded-full font-black text-base border active:scale-95"
+              style={{background:"#ffffff08",borderColor:"#FFD700",color:"#FFD700"}}>
+              🌀 פעילות אחרת
+            </button>
+            <button onClick={reset}
+              className="px-6 py-3 rounded-full font-black text-base text-black active:scale-95"
+              style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)"}}>
+              🏠 חזור
+            </button>
           </div>
         </div>
       )}
@@ -3361,6 +3499,646 @@ function HeroZone({hero, save, onSave, onBack}){
   );
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎨 ART STUDIO ZONE — סטודיו יצירה
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ART_COLOR = "#FB923C";
+
+// Hebrew letter stroke guides (simplified paths for tracing)
+const HEBREW_LETTERS_WRITE = [
+  { letter:"א", hint:"שתי קווים אלכסוניים עם ו באמצע" },
+  { letter:"ב", hint:"קו למעלה ימינה ולמטה" },
+  { letter:"ג", hint:"כמו ל קטנה" },
+  { letter:"ד", hint:"גג שטוח עם רגל" },
+  { letter:"ה", hint:"ג עם מכסה" },
+  { letter:"ו", hint:"קו ישר למטה" },
+  { letter:"ז", hint:"ז — זז למעלה" },
+  { letter:"ח", hint:"שתי רגליים עם גג" },
+  { letter:"ט", hint:"עיגול פתוח" },
+  { letter:"י", hint:"נקודה קטנה" },
+];
+
+const NUMBERS_WRITE = [1,2,3,4,5,6,7,8,9,10];
+
+const BRUSH_SIZES  = [6, 14, 26, 40];
+const BRUSH_SHAPES = ["round","square"];
+
+const PALETTE = [
+  "#FF4444","#FF8C00","#FFD700","#00CC44","#00AAFF",
+  "#AA44FF","#FF44AA","#FFFFFF","#000000","#A0522D",
+  "#FF6B6B","#4ECDC4","#95E1D3","#F38181","#3D5A80",
+];
+
+const COLORING_PAGES = [
+  {
+    id:"superhero", label:"גיבור על", emoji:"🦸",
+    paths:[
+      // body
+      {d:"M 120 180 Q 100 160 105 130 Q 110 100 150 95 Q 190 100 195 130 Q 200 160 180 180 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // head
+      {d:"M 135 95 Q 130 70 150 60 Q 170 70 165 95 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // cape
+      {d:"M 105 130 Q 70 160 75 210 Q 150 200 225 210 Q 230 160 195 130 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // left arm
+      {d:"M 105 130 Q 80 145 75 170 Q 80 180 90 175 Q 100 155 108 140 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // right arm
+      {d:"M 195 130 Q 220 145 225 170 Q 220 180 210 175 Q 200 155 192 140 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // left leg
+      {d:"M 125 180 Q 115 200 112 230 Q 118 235 128 230 Q 132 205 138 182 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // right leg
+      {d:"M 175 180 Q 185 200 188 230 Q 182 235 172 230 Q 168 205 162 182 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // mask
+      {d:"M 138 72 Q 140 65 150 63 Q 160 65 162 72 Q 158 80 150 82 Q 142 80 138 72 Z", fill:"#ddd", stroke:"#333", sw:1.5},
+      // chest symbol star
+      {d:"M 150 130 L 153 140 L 163 140 L 155 146 L 158 156 L 150 150 L 142 156 L 145 146 L 137 140 L 147 140 Z", fill:"#ddd", stroke:"#555", sw:1},
+    ]
+  },
+  {
+    id:"rocket", label:"רקטה", emoji:"🚀",
+    paths:[
+      // body
+      {d:"M 150 60 Q 130 80 125 130 L 125 200 L 175 200 L 175 130 Q 170 80 150 60 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // window
+      {d:"M 150 110 m -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0", fill:"#ddd", stroke:"#333", sw:2},
+      // left fin
+      {d:"M 125 175 Q 100 185 95 210 Q 110 205 125 200 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // right fin
+      {d:"M 175 175 Q 200 185 205 210 Q 190 205 175 200 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // flame 1
+      {d:"M 135 200 Q 140 230 150 245 Q 160 230 165 200 Z", fill:"#ddd", stroke:"#FF6B35", sw:1.5},
+      // stars
+      {d:"M 80 90 L 83 98 L 91 98 L 85 103 L 87 111 L 80 106 L 73 111 L 75 103 L 69 98 L 77 98 Z", fill:"#ddd", stroke:"#FFD700", sw:1},
+      {d:"M 220 130 L 222 136 L 228 136 L 223 140 L 225 146 L 220 142 L 215 146 L 217 140 L 212 136 L 218 136 Z", fill:"#ddd", stroke:"#FFD700", sw:1},
+    ]
+  },
+  {
+    id:"house", label:"בית", emoji:"🏠",
+    paths:[
+      // walls
+      {d:"M 90 160 L 90 240 L 210 240 L 210 160 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // roof
+      {d:"M 75 165 L 150 90 L 225 165 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // door
+      {d:"M 133 200 L 133 240 L 167 240 L 167 200 Q 150 190 133 200 Z", fill:"#ddd", stroke:"#333", sw:1.5},
+      // left window
+      {d:"M 98 175 L 98 200 L 123 200 L 123 175 Z", fill:"#ddd", stroke:"#333", sw:1.5},
+      {d:"M 110 175 L 110 200 M 98 187 L 123 187", fill:"none", stroke:"#333", sw:1},
+      // right window
+      {d:"M 177 175 L 177 200 L 202 200 L 202 175 Z", fill:"#ddd", stroke:"#333", sw:1.5},
+      {d:"M 189 175 L 189 200 M 177 187 L 202 187", fill:"none", stroke:"#333", sw:1},
+      // chimney
+      {d:"M 170 100 L 170 130 L 190 130 L 190 115 Z", fill:"#ddd", stroke:"#333", sw:1.5},
+    ]
+  },
+  {
+    id:"butterfly", label:"פרפר", emoji:"🦋",
+    paths:[
+      // top left wing
+      {d:"M 150 150 Q 100 100 80 130 Q 70 160 110 170 Q 130 175 150 155 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // top right wing
+      {d:"M 150 150 Q 200 100 220 130 Q 230 160 190 170 Q 170 175 150 155 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // bottom left wing
+      {d:"M 150 155 Q 110 175 95 200 Q 100 220 130 210 Q 148 195 150 170 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // bottom right wing
+      {d:"M 150 155 Q 190 175 205 200 Q 200 220 170 210 Q 152 195 150 170 Z", fill:"#ddd", stroke:"#333", sw:2},
+      // body
+      {d:"M 147 140 Q 145 155 147 175 Q 150 180 153 175 Q 155 155 153 140 Q 150 135 147 140 Z", fill:"#555", stroke:"#333", sw:1},
+      // antennae
+      {d:"M 148 140 Q 135 120 130 110", fill:"none", stroke:"#333", sw:1.5},
+      {d:"M 152 140 Q 165 120 170 110", fill:"none", stroke:"#333", sw:1.5},
+      // antenna tips
+      {d:"M 130 110 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0", fill:"#333", stroke:"none", sw:0},
+      {d:"M 170 110 m -4 0 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0", fill:"#333", stroke:"none", sw:0},
+    ]
+  },
+];
+
+// ── Tool button ──
+function ToolBtn({active, onClick, children, style={}}) {
+  return (
+    <button onClick={onClick}
+      className="rounded-xl flex items-center justify-center active:scale-90 transition-all border-2"
+      style={{
+        width:44, height:44,
+        background: active ? ART_COLOR+"44" : "#ffffff10",
+        borderColor: active ? ART_COLOR : "#ffffff22",
+        boxShadow: active ? `0 0 10px ${ART_COLOR}66` : "none",
+        ...style
+      }}>
+      {children}
+    </button>
+  );
+}
+
+// ══════════════════════════════
+// TOOL 1: Free Drawing Canvas
+// ══════════════════════════════
+function DrawingCanvas({narrator}) {
+  const canvasRef   = useRef(null);
+  const drawing     = useRef(false);
+  const lastPos     = useRef(null);
+  const [color,     setColor]     = useState("#FF4444");
+  const [brushSize, setBrushSize] = useState(1); // index into BRUSH_SIZES
+  const [shape,     setShape]     = useState("round");
+  const [tool,      setTool]      = useState("pen"); // pen | eraser
+  const [savedMsg,  setSavedMsg]  = useState(false);
+
+  const getPos = (e, canvas) => {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - r.left) * (canvas.width / r.width),
+      y: (src.clientY - r.top)  * (canvas.height / r.height),
+    };
+  };
+
+  const startDraw = (e) => {
+    drawing.current = true;
+    const canvas = canvasRef.current; if (!canvas) return;
+    const pos = getPos(e, canvas);
+    lastPos.current = pos;
+    // dot on tap
+    const ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    const sz = BRUSH_SIZES[brushSize];
+    if (shape === "round") {
+      ctx.arc(pos.x, pos.y, sz/2, 0, Math.PI*2);
+    } else {
+      ctx.rect(pos.x - sz/2, pos.y - sz/2, sz, sz);
+    }
+    ctx.fillStyle = tool === "eraser" ? "#111827" : color;
+    ctx.fill();
+  };
+
+  const draw = (e) => {
+    if (!drawing.current) return;
+    e.preventDefault();
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    const sz = BRUSH_SIZES[brushSize];
+    ctx.lineWidth = sz;
+    ctx.lineCap   = shape === "round" ? "round" : "square";
+    ctx.lineJoin  = "round";
+    ctx.strokeStyle = tool === "eraser" ? "#111827" : color;
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastPos.current = pos;
+  };
+
+  const endDraw = () => { drawing.current = false; lastPos.current = null; };
+
+  const clear = () => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    narrator.say("הציור נמחק", {priority:true});
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-2 pb-2">
+      {/* canvas */}
+      <canvas ref={canvasRef} width={340} height={280}
+        className="rounded-2xl border-2 touch-none mb-2"
+        style={{borderColor: ART_COLOR+"44", maxWidth:"100%", cursor:"crosshair",
+          boxShadow:`0 0 20px ${ART_COLOR}22`}}
+        onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
+        onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}/>
+
+      {/* color palette */}
+      <div className="flex flex-wrap gap-1.5 justify-center mb-2 max-w-sm">
+        {PALETTE.map(col => (
+          <button key={col} onClick={()=>{setColor(col);setTool("pen");}}
+            className="rounded-full active:scale-90 transition-all"
+            style={{width:30,height:30,background:col,
+              border:`3px solid ${col===color&&tool==="pen"?"white":"transparent"}`,
+              boxShadow:col===color&&tool==="pen"?"0 0 8px white":"none"}}/>
+        ))}
+      </div>
+
+      {/* tools row */}
+      <div className="flex items-center gap-2 flex-wrap justify-center">
+        {/* brush sizes */}
+        {BRUSH_SIZES.map((sz,i) => (
+          <ToolBtn key={i} active={brushSize===i&&tool==="pen"} onClick={()=>{setBrushSize(i);setTool("pen");}}>
+            <div className="rounded-full bg-white" style={{width:sz/2+2,height:sz/2+2,maxWidth:20,maxHeight:20}}/>
+          </ToolBtn>
+        ))}
+        {/* shape toggle */}
+        <ToolBtn active={shape==="square"} onClick={()=>setShape(s=>s==="round"?"square":"round")}>
+          <span style={{fontSize:18}}>{shape==="round"?"⬤":"■"}</span>
+        </ToolBtn>
+        {/* eraser */}
+        <ToolBtn active={tool==="eraser"} onClick={()=>setTool("eraser")}>
+          <span style={{fontSize:18}}>🧹</span>
+        </ToolBtn>
+        {/* clear */}
+        <ToolBtn active={false} onClick={clear} style={{background:"#FF444411",borderColor:"#FF444444"}}>
+          <span style={{fontSize:18}}>🗑️</span>
+        </ToolBtn>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════
+// TOOL 2: Coloring Page
+// ══════════════════════════════
+function ColoringPage({narrator}) {
+  const canvasRef = useRef(null);
+  const [pageIdx, setPageIdx]   = useState(0);
+  const [color,   setColor]     = useState("#FF4444");
+  const [fills,   setFills]     = useState({});
+  const [brushSize, setBrushSize] = useState(1);
+  const drawing   = useRef(false);
+  const lastPos   = useRef(null);
+
+  const page = COLORING_PAGES[pageIdx];
+
+  const getPos = (e, canvas) => {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - r.left) * (canvas.width / r.width),
+      y: (src.clientY - r.top)  * (canvas.height / r.height),
+    };
+  };
+
+  const redraw = (currentFills) => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // white bg
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // draw paths
+    page.paths.forEach((path, i) => {
+      ctx.beginPath();
+      const p = new Path2D(path.d);
+      ctx.fillStyle   = currentFills[i] || path.fill;
+      ctx.strokeStyle = path.stroke;
+      ctx.lineWidth   = path.sw;
+      ctx.fill(p);
+      if (path.sw > 0) ctx.stroke(p);
+    });
+  };
+
+  useEffect(() => { redraw(fills); }, [pageIdx]);
+
+  const paint = (e) => {
+    e.preventDefault();
+    if (!drawing.current) return;
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    // paint brush
+    const sz = BRUSH_SIZES[brushSize];
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, sz/2, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    if (lastPos.current) {
+      ctx.lineWidth   = sz;
+      ctx.lineCap     = "round";
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(lastPos.current.x, lastPos.current.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+    lastPos.current = pos;
+  };
+
+  const startPaint = (e) => { drawing.current = true; paint(e); };
+  const endPaint   = () => { drawing.current = false; lastPos.current = null; };
+
+  const clearPage = () => { setFills({}); redraw({}); narrator.say("נמחק! צבע שוב!", {priority:true}); };
+
+  const changePage = (dir) => {
+    const next = (pageIdx + dir + COLORING_PAGES.length) % COLORING_PAGES.length;
+    setPageIdx(next); setFills({});
+    narrator.say(COLORING_PAGES[next].label, {priority:true});
+  };
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-2 pb-2">
+      {/* page selector */}
+      <div className="flex items-center gap-3 mb-2">
+        <button onClick={()=>changePage(-1)}
+          className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>◀</button>
+        <span className="text-white font-black text-sm">{page.emoji} {page.label}</span>
+        <button onClick={()=>changePage(1)}
+          className="rounded-full w-9 h-9 flex items-center justify-center border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>▶</button>
+      </div>
+
+      {/* canvas */}
+      <canvas ref={canvasRef} width={300} height={280}
+        className="rounded-2xl border-2 touch-none mb-2"
+        style={{borderColor:ART_COLOR+"44",maxWidth:"100%",background:"white"}}
+        onMouseDown={startPaint} onMouseMove={paint} onMouseUp={endPaint} onMouseLeave={endPaint}
+        onTouchStart={startPaint} onTouchMove={paint} onTouchEnd={endPaint}/>
+
+      {/* palette */}
+      <div className="flex flex-wrap gap-1.5 justify-center mb-2 max-w-sm">
+        {PALETTE.map(col => (
+          <button key={col} onClick={()=>setColor(col)}
+            className="rounded-full active:scale-90"
+            style={{width:28,height:28,background:col,
+              border:`3px solid ${col===color?"white":"transparent"}`}}/>
+        ))}
+      </div>
+
+      {/* brush sizes + clear */}
+      <div className="flex gap-2 items-center">
+        {BRUSH_SIZES.map((sz,i) => (
+          <ToolBtn key={i} active={brushSize===i} onClick={()=>setBrushSize(i)}>
+            <div className="rounded-full bg-current" style={{width:sz/2+2,height:sz/2+2,maxWidth:18,maxHeight:18,background:color}}/>
+          </ToolBtn>
+        ))}
+        <ToolBtn active={false} onClick={clearPage} style={{background:"#FF444411",borderColor:"#FF444444"}}>
+          <span style={{fontSize:18}}>🗑️</span>
+        </ToolBtn>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════
+// TOOL 3: Letter/Number Writing
+// ══════════════════════════════
+function WritingPad({narrator}) {
+  const canvasRef  = useRef(null);
+  const guideRef   = useRef(null);
+  const drawing    = useRef(false);
+  const lastPos    = useRef(null);
+  const [mode,     setMode]     = useState("letters"); // letters | numbers
+  const [idx,      setIdx]      = useState(0);
+  const [strokes,  setStrokes]  = useState([]);
+  const [showGuide,setShowGuide]= useState(true);
+  const [praised,  setPraised]  = useState(false);
+
+  const current = mode==="letters" ? HEBREW_LETTERS_WRITE[idx] : {letter:String(NUMBERS_WRITE[idx])};
+
+  const getPos = (e, canvas) => {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - r.left) * (canvas.width / r.width),
+      y: (src.clientY - r.top)  * (canvas.height / r.height),
+    };
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // guide letter faint
+    if (showGuide) {
+      ctx.globalAlpha = 0.08;
+      ctx.font        = "bold 200px Arial";
+      ctx.fillStyle   = "#A78BFA";
+      ctx.textAlign   = "center";
+      ctx.textBaseline= "middle";
+      ctx.fillText(current.letter, 150, 155);
+      ctx.globalAlpha = 1;
+    }
+    setStrokes([]); setPraised(false);
+  };
+
+  useEffect(() => { clearCanvas(); }, [idx, mode, showGuide]);
+
+  useEffect(() => {
+    narrator.say(
+      mode==="letters"
+        ? `${current.letter}! עכשיו כתוב את האות ${current.letter}`
+        : `${current.letter}! עכשיו כתוב את המספר ${current.letter}`,
+      {priority:true}
+    );
+  }, [idx, mode]);
+
+  const startStroke = (e) => {
+    drawing.current = true;
+    const canvas = canvasRef.current; if (!canvas) return;
+    const pos = getPos(e, canvas);
+    lastPos.current = pos;
+    const ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 8, 0, Math.PI*2);
+    ctx.fillStyle = "#FF6B6B";
+    ctx.fill();
+  };
+
+  const stroke = (e) => {
+    if (!drawing.current) return;
+    e.preventDefault();
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    ctx.lineWidth   = 16;
+    ctx.lineCap     = "round";
+    ctx.lineJoin    = "round";
+    ctx.strokeStyle = "#FF6B6B";
+    ctx.shadowColor = "#FF6B6B88";
+    ctx.shadowBlur  = 6;
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    lastPos.current = pos;
+  };
+
+  const endStroke = () => {
+    drawing.current = false;
+    lastPos.current = null;
+    const newStrokes = strokes.length + 1;
+    setStrokes(s=>[...s, Date.now()]);
+    // praise after 1st stroke
+    if (!praised && newStrokes===1) {
+      setPraised(true);
+      narrator.say("יפה! המשך!", {priority:false});
+    }
+    if (newStrokes>=2) {
+      narrator.say("כל הכבוד! כתבת!",{priority:true});
+    }
+  };
+
+  const nextItem = () => {
+    const arr = mode==="letters"?HEBREW_LETTERS_WRITE:NUMBERS_WRITE;
+    setIdx(i=>(i+1)%arr.length);
+  };
+  const prevItem = () => {
+    const arr = mode==="letters"?HEBREW_LETTERS_WRITE:NUMBERS_WRITE;
+    setIdx(i=>(i-1+arr.length)%arr.length);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col items-center px-2 pb-2">
+      {/* mode + nav */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap justify-center">
+        <button onClick={()=>{setMode("letters");setIdx(0);}}
+          className="rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:mode==="letters"?ART_COLOR+"44":"#ffffff10",
+            borderColor:mode==="letters"?ART_COLOR:"#ffffff22",color:"white"}}>
+          🔤 אותיות
+        </button>
+        <button onClick={()=>{setMode("numbers");setIdx(0);}}
+          className="rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:mode==="numbers"?"#FFD70044":"#ffffff10",
+            borderColor:mode==="numbers"?"#FFD700":"#ffffff22",color:"white"}}>
+          🔢 מספרים
+        </button>
+      </div>
+
+      {/* letter nav */}
+      <div className="flex items-center gap-4 mb-2">
+        <button onClick={prevItem}
+          className="rounded-full w-10 h-10 flex items-center justify-center border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>◀</button>
+        <div className="text-center">
+          <div className="font-black" style={{fontSize:52,color:ART_COLOR,textShadow:`0 0 16px ${ART_COLOR}`,lineHeight:1}}>
+            {current.letter}
+          </div>
+          {current.hint && <div className="text-gray-400 text-xs mt-0.5">{current.hint}</div>}
+        </div>
+        <button onClick={nextItem}
+          className="rounded-full w-10 h-10 flex items-center justify-center border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR,fontSize:20}}>▶</button>
+      </div>
+
+      {/* toggle guide */}
+      <button onClick={()=>setShowGuide(g=>!g)}
+        className="rounded-full px-3 py-1 text-xs font-black border mb-2 active:scale-90"
+        style={{background:showGuide?ART_COLOR+"22":"#ffffff08",
+          borderColor:showGuide?ART_COLOR:"#ffffff22",color:showGuide?ART_COLOR:"#888"}}>
+        {showGuide?"👁️ הסתר מדריך":"👁️ הצג מדריך"}
+      </button>
+
+      {/* canvas */}
+      <canvas ref={canvasRef} width={300} height={300}
+        className="rounded-3xl border-4 touch-none"
+        style={{borderColor:ART_COLOR,background:"#111827",maxWidth:"100%",
+          boxShadow:`0 0 24px ${ART_COLOR}44`}}
+        onMouseDown={startStroke} onMouseMove={stroke} onMouseUp={endStroke} onMouseLeave={endStroke}
+        onTouchStart={startStroke} onTouchMove={stroke} onTouchEnd={endStroke}/>
+
+      {/* controls */}
+      <div className="flex gap-3 mt-2">
+        <button onClick={clearCanvas}
+          className="rounded-full px-5 py-2 font-black text-sm border active:scale-90"
+          style={{background:"#FF444411",borderColor:"#FF444444",color:"#FF6B6B"}}>
+          🗑️ נקה
+        </button>
+        <button onClick={()=>narrator.say(
+          mode==="letters"?`האות ${current.letter}`:`המספר ${current.letter}`,{priority:true})}
+          className="rounded-full px-5 py-2 font-black text-sm border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR}}>
+          🔊 שמע
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main ArtZone ──
+function ArtZone({hero, save, onSave, onBack}) {
+  const narrator = useNarrator();
+  const [tool, setTool] = useState(null); // null=menu | draw | color | write
+
+  const TOOLS = [
+    {id:"draw",  emoji:"✏️", title:"ציור חופשי",    sub:"צייר כל מה שרוצה!", color:"#FF6B6B"},
+    {id:"color", emoji:"🖌️", title:"דפי צביעה",     sub:"צבע דמויות מגניבות!", color:"#FFD700"},
+    {id:"write", emoji:"✍️", title:"כתיבת אותיות",  sub:"תרגל אותיות ומספרים!", color:"#A78BFA"},
+  ];
+
+  const handleBack = () => {
+    if (tool) { setTool(null); narrator.say("חזרה לתפריט", {priority:true}); }
+    else { narrator.stop(); onBack(); }
+  };
+
+  const selectTool = (t) => {
+    setTool(t.id);
+    narrator.say(t.title, {priority:true});
+    // award XP first time
+    if (!save.zone_stars?.art) {
+      onSave({...save, xp:(save.xp||0)+15,
+        zone_stars:{...save.zone_stars, art:1}});
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col" dir="rtl"
+      style={{background:"linear-gradient(180deg,#1a0500 0%,#050015 100%)"}}>
+
+      {/* header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
+        <button onClick={handleBack}
+          className="rounded-full px-4 py-2 text-sm font-black border active:scale-95"
+          style={{background:"#ffffff08",borderColor:ART_COLOR+"44",color:ART_COLOR}}>
+          {tool?"◀ תפריט":"🏠 בית"}
+        </button>
+        <div className="text-center">
+          <div className="text-white font-black" style={{textShadow:`0 0 10px ${ART_COLOR}`}}>
+            🎨 סטודיו יצירה
+          </div>
+          <Stars n={save.zone_stars?.art||0} max={5} size={12}/>
+        </div>
+        <SpeakerBtn narrator={narrator} accent={ART_COLOR}
+          onRepeat={()=>narrator.say(tool?TOOLS.find(t=>t.id===tool)?.title||"":"בחר כלי יצירה!",{priority:true})}/>
+      </div>
+
+      {/* ── MENU ── */}
+      {!tool && (
+        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-5">
+          <div className="text-center flex flex-col items-center gap-3">
+            <div className="text-6xl" style={{animation:"heroFloat 3s ease-in-out infinite",
+              filter:`drop-shadow(0 0 16px ${ART_COLOR})`}}>🎨</div>
+            <div className="relative bg-white rounded-2xl px-4 py-3 border-4" style={{borderColor:ART_COLOR}}>
+              <p className="text-gray-900 font-black text-lg">דור! בחר כלי יצירה! 🎨</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 w-full max-w-sm">
+            {TOOLS.map(t=>(
+              <button key={t.id} onClick={()=>selectTool(t)}
+                className="rounded-3xl p-5 border-4 flex items-center gap-4 active:scale-95 transition-all"
+                style={{background:`linear-gradient(135deg,${t.color}22,#050015)`,
+                  borderColor:t.color,boxShadow:`0 0 20px ${t.color}33`}}>
+                <span className="text-5xl">{t.emoji}</span>
+                <div className="text-right">
+                  <div className="text-white font-black text-xl">{t.title}</div>
+                  <div className="text-gray-400 text-sm">{t.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tool==="draw"  && <DrawingCanvas narrator={narrator}/>}
+      {tool==="color" && <ColoringPage  narrator={narrator}/>}
+      {tool==="write" && <WritingPad    narrator={narrator}/>}
+
+      <style>{`
+        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+      `}</style>
+    </div>
+  );
+}
+
 // ─── PLACEHOLDER for remaining zones ─────────────────────────────────────────
 function ZonePlaceholder({ zone, hero, save, onSave, onBack }) {
   const earn = () => {
@@ -3401,7 +4179,7 @@ function App() {
   }
   if (!hero) return null;
 
-  const builtZones = ["wheel","kingdom","letters","puzzle","hero"];
+  const builtZones = ["wheel","kingdom","letters","puzzle","hero","art"];
 
   return (
     <>
@@ -3417,6 +4195,7 @@ function App() {
       {screen==="letters" && <LettersZone hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="puzzle"  && <PuzzleZone  hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="hero"    && <HeroZone    hero={hero} save={save} onSave={persist} onBack={goHome}/>}
+      {screen==="art"     && <ArtZone     hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {activeZone && !builtZones.includes(screen) && (
         <ZonePlaceholder zone={activeZone} hero={hero} save={save} onSave={persist} onBack={goHome}/>
       )}
