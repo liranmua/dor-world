@@ -86,6 +86,11 @@
     @keyframes breathe{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.35);opacity:1}}
     @keyframes xpPop{0%{opacity:0;transform:translateX(-50%) translateY(0)}20%{opacity:1;transform:translateX(-50%) translateY(-10px)}80%{opacity:1;transform:translateX(-50%) translateY(-20px)}100%{opacity:0;transform:translateX(-50%) translateY(-30px)}}
     @keyframes tapRingAnim{0%{transform:scale(1);opacity:0.8}100%{transform:scale(1.5);opacity:0}}
+    @keyframes castleRise{from{opacity:0;transform:translateY(30px) scale(0.85)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes flagWave{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+    @keyframes towerGlow{0%,100%{box-shadow:0 0 12px #FFD70066}50%{box-shadow:0 0 28px #FFD700cc}}
+    @keyframes stoneAppear{from{opacity:0;transform:scale(0.3) rotate(-15deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
+    @keyframes windowLight{0%,100%{opacity:0.4}50%{opacity:1}}
 
     .slide-up{animation:slideUp 0.35s ease both}
     .pop-in{animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both}
@@ -1672,10 +1677,179 @@ function KingdomWheelSVG({ hero, onSelect, spinning, spinDeg, compact=false }) {
   );
 }
 
+
+// ── Castle SVG — builds up with each correct answer ──────────────────────────
+function CastleSVG({ score, total, animate }) {
+  const pct  = score / total;          // 0..1
+  const gold = "#FFD700";
+  const stone= "#8B9BB4";
+  const dark = "#4A5568";
+  const lit  = "#FFF9C4";
+
+  // Parts reveal at score thresholds
+  const show = {
+    base:    pct >= 0,           // always
+    walls:   pct >= 0.2,
+    towers:  pct >= 0.4,
+    gate:    pct >= 0.6,
+    windows: pct >= 0.6,
+    battlements: pct >= 0.8,
+    flag:    pct >= 1.0,
+  };
+
+  const Part = ({visible, delay=0, children}) => visible ? (
+    <g style={{animation:`stoneAppear 0.6s cubic-bezier(0.34,1.56,0.64,1) ${delay}s both`}}>
+      {children}
+    </g>
+  ) : null;
+
+  return (
+    <svg viewBox="0 0 200 160" width="100%" style={{maxWidth:280,filter:"drop-shadow(0 8px 16px rgba(0,0,0,0.5))"}}>
+      {/* sky gradient */}
+      <defs>
+        <linearGradient id="skyKing" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0a0020"/>
+          <stop offset="100%" stopColor="#1a1200"/>
+        </linearGradient>
+        <linearGradient id="stoneGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#9AA5B4"/>
+          <stop offset="100%" stopColor="#6B7A8D"/>
+        </linearGradient>
+        <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#F59E0B"/>
+          <stop offset="50%" stopColor="#FFD700"/>
+          <stop offset="100%" stopColor="#F59E0B"/>
+        </linearGradient>
+      </defs>
+      <rect width="200" height="160" fill="url(#skyKing)"/>
+
+      {/* ground */}
+      <rect x="0" y="145" width="200" height="15" fill="#2d3748" rx="2"/>
+      <rect x="0" y="143" width="200" height="4" fill="#FFD70033"/>
+
+      {/* ── BASE ── */}
+      <Part visible={show.base} delay={0}>
+        <rect x="60" y="110" width="80" height="36" fill="url(#stoneGrad)" rx="2"/>
+        {/* stone lines */}
+        {[120,130,140].map(y=>(
+          <line key={y} x1="60" y1={y} x2="140" y2={y} stroke={dark} strokeWidth="0.8" opacity="0.5"/>
+        ))}
+        {[80,100,120].map(x=>(
+          <line key={x} x1={x} y1="110" x2={x} y2="146" stroke={dark} strokeWidth="0.8" opacity="0.5"/>
+        ))}
+      </Part>
+
+      {/* ── WALLS ── */}
+      <Part visible={show.walls} delay={0.1}>
+        <rect x="55" y="80" width="90" height="32" fill="url(#stoneGrad)" rx="1"/>
+        {[90,100,110,120].map(y=>(
+          <line key={y} x1="55" y1={y} x2="145" y2={y} stroke={dark} strokeWidth="0.8" opacity="0.4"/>
+        ))}
+        {[75,95,115,135].map(x=>(
+          <line key={x} x1={x} y1="80" x2={x} y2="112" stroke={dark} strokeWidth="0.8" opacity="0.4"/>
+        ))}
+      </Part>
+
+      {/* ── TOWERS (left + right) ── */}
+      <Part visible={show.towers} delay={0.2}>
+        {/* left tower */}
+        <rect x="42" y="65" width="28" height="60" fill="url(#stoneGrad)" rx="2"/>
+        {/* right tower */}
+        <rect x="130" y="65" width="28" height="60" fill="url(#stoneGrad)" rx="2"/>
+        {/* tower stones */}
+        {[75,88,101,114].map(y=>(
+          <g key={y}>
+            <line x1="42" y1={y} x2="70" y2={y} stroke={dark} strokeWidth="0.7" opacity="0.4"/>
+            <line x1="130" y1={y} x2="158" y2={y} stroke={dark} strokeWidth="0.7" opacity="0.4"/>
+          </g>
+        ))}
+        {/* tower tops with gold trim */}
+        <rect x="40" y="60" width="32" height="7" fill="url(#goldGrad)" rx="2"
+          style={{animation:"towerGlow 2s ease-in-out infinite"}}/>
+        <rect x="128" y="60" width="32" height="7" fill="url(#goldGrad)" rx="2"
+          style={{animation:"towerGlow 2s ease-in-out infinite",animationDelay:"0.5s"}}/>
+      </Part>
+
+      {/* ── GATE ── */}
+      <Part visible={show.gate} delay={0.3}>
+        <path d="M 80 146 L 80 118 Q 80 108 100 108 Q 120 108 120 118 L 120 146 Z"
+          fill={dark} stroke={gold} strokeWidth="1.5"/>
+        {/* portcullis bars */}
+        {[85,93,101,109,117].map(x=>(
+          <line key={x} x1={x} y1="112" x2={x} y2="146" stroke="#4A5568" strokeWidth="1" opacity="0.8"/>
+        ))}
+        {[118,125,132,139].map(y=>(
+          <line key={y} x1="80" y1={y} x2="120" y2={y} stroke="#4A5568" strokeWidth="1" opacity="0.8"/>
+        ))}
+        {/* keystone */}
+        <circle cx="100" cy="108" r="4" fill={gold}/>
+      </Part>
+
+      {/* ── WINDOWS ── */}
+      <Part visible={show.windows} delay={0.35}>
+        {/* left tower windows */}
+        <rect x="50" y="75" width="12" height="10" rx="6" fill={lit}
+          style={{animation:"windowLight 1.5s ease-in-out infinite"}}/>
+        <rect x="50" y="95" width="12" height="10" rx="6" fill={lit}
+          style={{animation:"windowLight 1.5s ease-in-out infinite",animationDelay:"0.7s"}}/>
+        {/* right tower windows */}
+        <rect x="138" y="75" width="12" height="10" rx="6" fill={lit}
+          style={{animation:"windowLight 1.5s ease-in-out infinite",animationDelay:"0.3s"}}/>
+        <rect x="138" y="95" width="12" height="10" rx="6" fill={lit}
+          style={{animation:"windowLight 1.5s ease-in-out infinite",animationDelay:"1s"}}/>
+        {/* main wall windows */}
+        <rect x="68" y="88" width="10" height="12" rx="5" fill={lit}
+          style={{animation:"windowLight 2s ease-in-out infinite",animationDelay:"0.5s"}}/>
+        <rect x="122" y="88" width="10" height="12" rx="5" fill={lit}
+          style={{animation:"windowLight 2s ease-in-out infinite",animationDelay:"1.2s"}}/>
+      </Part>
+
+      {/* ── BATTLEMENTS ── */}
+      <Part visible={show.battlements} delay={0.4}>
+        {/* main wall battlements */}
+        {[58,70,82,94,106,118,130].map((x,i)=>(
+          i%2===0 && <rect key={x} x={x} y="72" width="9" height="10" fill="url(#stoneGrad)" rx="1"/>
+        ))}
+        {/* left tower battlements */}
+        {[43,51,59].map((x,i)=>(
+          i%2===0 && <rect key={x} x={x} y="56" width="8" height="8" fill="url(#stoneGrad)" rx="1"/>
+        ))}
+        {/* right tower battlements */}
+        {[131,139,147].map((x,i)=>(
+          i%2===0 && <rect key={x} x={x} y="56" width="8" height="8" fill="url(#stoneGrad)" rx="1"/>
+        ))}
+        {/* gold crenellation trim */}
+        <rect x="55" y="79" width="90" height="3" fill={gold} opacity="0.6"/>
+        <rect x="41" y="63" width="32" height="2" fill={gold} opacity="0.6"/>
+        <rect x="129" y="63" width="32" height="2" fill={gold} opacity="0.6"/>
+      </Part>
+
+      {/* ── FLAG ── */}
+      <Part visible={show.flag} delay={0.1}>
+        {/* flagpole */}
+        <line x1="100" y1="28" x2="100" y2="72" stroke={gold} strokeWidth="2"/>
+        {/* flag */}
+        <polygon points="100,28 130,36 100,44"
+          fill="#EF4444"
+          style={{transformOrigin:"100px 36px",animation:"flagWave 1.2s ease-in-out infinite"}}/>
+        {/* crown on top */}
+        <text x="100" y="28" textAnchor="middle" fontSize="12"
+          style={{filter:"drop-shadow(0 0 6px #FFD700)",animation:"glowPulse 2s ease-in-out infinite"}}>👑</text>
+      </Part>
+
+      {/* Stars floating for correct answers */}
+      {Array.from({length:score}).map((_,i)=>(
+        <text key={i} x={20+i*22} y={30+Math.sin(i)*8} fontSize="14"
+          style={{animation:`glowPulse ${1+i*0.3}s ease-in-out infinite`}}>⭐</text>
+      ))}
+    </svg>
+  );
+}
+
 function KingdomZone({ hero, save, onSave, onBack }) {
   const narrator = useNarrator();
-  const [phase, setPhase] = useState("mode");   // mode | card | spin | result | summary
-  const [mode, setMode] = useState(null);        // "solo" | "parent"
+  const [phase, setPhase] = useState("mode");
+  const [mode, setMode] = useState(null);
   const [card, setCard] = useState(null);
   const [chosen, setChosen] = useState(null);
   const [isGreen, setIsGreen] = useState(null);
@@ -1685,6 +1859,7 @@ function KingdomZone({ hero, save, onSave, onBack }) {
   const [spinDeg, setSpinDeg] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [usedCards, setUsedCards] = useState([]);
+  const [castleAnim, setCastleAnim] = useState(false);
   const baseRot = useRef(0);
 
   const pickCard = (used=[]) => {
@@ -1731,8 +1906,9 @@ function KingdomZone({ hero, save, onSave, onBack }) {
       setScore(s=>s+1);
       setShowConfetti(true);
       setTimeout(()=>setShowConfetti(false),2000);
-      narrator.say(`${sol.label} — פתרון ירוק! כל הכבוד דור!`, {priority:true});
-      // XP
+      setCastleAnim(true);
+      setTimeout(()=>setCastleAnim(false),800);
+      narrator.say(`${sol.label} — פתרון ירוק! כל הכבוד דור! הטירה גדלה!`, {priority:true});
       const newStars = Math.min(5,(save.zone_stars?.kingdom||0)+1);
       onSave({...save, xp:(save.xp||0)+12,
         zone_stars:{...save.zone_stars,kingdom:newStars}});
@@ -1808,26 +1984,36 @@ function KingdomZone({ hero, save, onSave, onBack }) {
 
       {/* ── MODE SELECT ── */}
       {phase==="mode" && (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-6">
-          <div className="text-7xl" style={{filter:"drop-shadow(0 0 20px #FFD700)",animation:"heroFloat 3s ease-in-out infinite"}}>👑</div>
-          <div className="relative bg-white rounded-2xl px-4 py-3 border-4 max-w-xs text-right"
-            style={{borderColor:"#FFD700"}}>
-            <p className="text-gray-900 font-black text-lg">דור! בחר איך תרצה לשחק את משחק הממלכה!</p>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4">
+          {/* mini castle preview */}
+          <div className="pop-in" style={{width:"100%",maxWidth:260}}>
+            <CastleSVG score={0} total={KINGDOM_ROUNDS} animate={false}/>
+          </div>
+          <div className="relative bg-white rounded-2xl px-4 py-3 border-4 max-w-xs text-right pop-in"
+            style={{borderColor:"#FFD700",animationDelay:"0.2s"}}>
+            <p style={{color:"#1a1a1a",fontWeight:900,fontSize:17,fontFamily:"Heebo,sans-serif",lineHeight:1.4}}>
+              דור! בנה את הטירה שלך — פתרון ירוק = חלק חדש בטירה! 🏰
+            </p>
             <div className="absolute -bottom-4 right-6 w-0 h-0"
               style={{borderLeft:"14px solid transparent",borderRight:"14px solid transparent",borderTop:"14px solid #FFD700"}}/>
           </div>
-          <div className="flex flex-col gap-4 w-full max-w-sm mt-4">
+          <div className="flex flex-col gap-3 w-full max-w-sm mt-2">
             {[
               {id:"solo",   emoji:"🦸", title:"לבד",      sub:"סובב גלגל או בחר פתרון",  border:"#FFD700"},
               {id:"parent", emoji:"👨‍👩‍👦", title:"עם הורה", sub:"שחקו ביחד ודברו",          border:"#A78BFA"},
-            ].map(m=>(
+            ].map((m,i)=>(
               <button key={m.id} onClick={()=>startGame(m.id)}
-                className="rounded-3xl p-5 border-4 flex items-center gap-4 active:scale-95 transition-all"
-                style={{background:"#ffffff08",borderColor:m.border,boxShadow:`0 0 16px ${m.border}33`}}>
-                <span className="text-5xl">{m.emoji}</span>
+                className="btn-3d tap-ring rounded-3xl p-5 flex items-center gap-4 slide-up"
+                style={{
+                  background:`linear-gradient(145deg,${m.border}18,#06001e)`,
+                  border:`2.5px solid ${m.border}66`,
+                  boxShadow:`0 6px 20px ${m.border}22, 0 2px 0 ${m.border}44`,
+                  animationDelay:`${0.3+i*0.1}s`,
+                }}>
+                <span style={{fontSize:46}}>{m.emoji}</span>
                 <div className="text-right">
-                  <div className="text-white font-black text-xl">{m.title}</div>
-                  <div className="text-gray-400 text-sm">{m.sub}</div>
+                  <div style={{color:"white",fontWeight:900,fontSize:20,fontFamily:"Heebo,sans-serif"}}>{m.title}</div>
+                  <div style={{color:"#9ca3af",fontSize:13,fontFamily:"Heebo,sans-serif"}}>{m.sub}</div>
                 </div>
               </button>
             ))}
@@ -1838,37 +2024,58 @@ function KingdomZone({ hero, save, onSave, onBack }) {
       {/* ── CARD PHASE ── */}
       {phase==="card" && card && (
         <div className="flex-1 flex flex-col items-center px-3 pb-3">
+          {/* castle progress strip */}
+          <div className="w-full max-w-sm mb-1">
+            <div className="flex items-center gap-2 mb-1 px-1">
+              <span style={{fontSize:11,color:"#FFD700",fontWeight:900,fontFamily:"Heebo,sans-serif"}}>
+                🏰 {score}/{KINGDOM_ROUNDS} אבני טירה
+              </span>
+              <div className="flex-1 rounded-full overflow-hidden" style={{height:6,background:"#ffffff11"}}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{width:`${(score/KINGDOM_ROUNDS)*100}%`,
+                    background:"linear-gradient(90deg,#FFD700,#FF8C00)",
+                    boxShadow:"0 0 8px #FFD70088"}}/>
+              </div>
+            </div>
+          </div>
           <RoundDots/>
           {/* problem card */}
-          <div className="w-full max-w-sm rounded-3xl p-5 border-4 mb-3 relative overflow-hidden"
-            style={{background:"linear-gradient(135deg,#2d2500,#1a1200)",
-              borderColor:"#FFD700",boxShadow:"0 0 28px rgba(255,215,0,0.35)"}}>
+          <div className="w-full max-w-sm rounded-3xl p-4 border-2 mb-2 relative overflow-hidden slide-up"
+            style={{background:"linear-gradient(145deg,#2d2500,#1a1000)",
+              border:"2px solid #FFD70077",
+              boxShadow:"0 0 28px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,215,0,0.1)"}}>
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{background:"linear-gradient(90deg,transparent,#FFD700cc,transparent)"}}/>
             <div className="absolute -top-6 -left-6 w-24 h-24 rounded-full opacity-15 blur-2xl" style={{background:"#FFD700"}}/>
             <div className="relative text-center">
-              <div className="text-6xl mb-3">{card.emoji}</div>
-              <div className="bg-yellow-50 rounded-2xl px-4 py-3 mb-2">
-                <p className="text-gray-900 font-black text-xl leading-snug">{card.text}</p>
+              <div style={{fontSize:56,marginBottom:10,animation:"heroFloat 2s ease-in-out infinite",display:"inline-block"}}>{card.emoji}</div>
+              <div className="rounded-2xl px-4 py-3 mb-2"
+                style={{background:"rgba(255,248,200,0.95)",boxShadow:"inset 0 2px 8px rgba(0,0,0,0.1)"}}>
+                <p style={{color:"#1a1a1a",fontWeight:900,fontSize:19,lineHeight:1.35,fontFamily:"Heebo,sans-serif"}}>{card.text}</p>
               </div>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xs font-black rounded-full px-3 py-1"
-                  style={{background:"#FFD70022",color:"#FFD700",border:"1px solid #FFD70044"}}>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span style={{fontSize:11,fontWeight:900,borderRadius:99,padding:"3px 10px",
+                  background:"#FFD70022",color:"#FFD700",border:"1px solid #FFD70044",fontFamily:"Heebo,sans-serif"}}>
                   🃏 בעיה מהממלכה
                 </span>
                 {mode==="parent" && (
-                  <span className="text-xs font-black rounded-full px-3 py-1"
-                    style={{background:"#A78BFA22",color:"#A78BFA",border:"1px solid #A78BFA44"}}>
+                  <span style={{fontSize:11,fontWeight:900,borderRadius:99,padding:"3px 10px",
+                    background:"#A78BFA22",color:"#A78BFA",border:"1px solid #A78BFA44",fontFamily:"Heebo,sans-serif"}}>
                     👨‍👩‍👦 תחשבו ביחד
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <p className="text-gray-400 text-xs font-bold mb-2">בחר פתרון ירוק מהגלגל!</p>
+          <p style={{color:"#6b7280",fontSize:11,fontWeight:700,marginBottom:6,fontFamily:"Heebo,sans-serif"}}>
+            בחר פתרון ירוק — ותוסיף אבן לטירה! 🏰
+          </p>
           <KingdomWheelSVG hero={hero} onSelect={doSelectSlice} spinning={spinning} spinDeg={spinDeg} compact={true}/>
           <button onClick={doSpin} disabled={spinning}
-            className="mt-3 px-10 py-3.5 rounded-full font-black text-xl text-black active:scale-95 transition-all disabled:opacity-40"
-            style={{background:spinning?"#444":`linear-gradient(135deg,#FFD700,#FF8C00)`,
-              boxShadow:spinning?"none":"0 0 24px rgba(255,215,0,0.6)"}}>
+            className="btn-3d mt-3 px-10 py-3.5 rounded-full font-black text-xl text-black"
+            style={{background:spinning?"#555":`linear-gradient(135deg,#FFD700,#FF8C00)`,
+              boxShadow:spinning?"none":"0 6px 20px rgba(255,215,0,0.5), 0 2px 0 #CC8800",
+              fontFamily:"Heebo,sans-serif"}}>
             {spinning?"⏳ מסתובב...":"🌀 סובב!"}
           </button>
         </div>
@@ -1876,65 +2083,82 @@ function KingdomZone({ hero, save, onSave, onBack }) {
 
       {/* ── RESULT PHASE ── */}
       {phase==="result" && chosen && card && (
-        <div className="flex-1 flex flex-col items-center px-4 pb-6 gap-4">
+        <div className="flex-1 flex flex-col items-center px-4 pb-4 gap-3">
           <RoundDots/>
+
+          {/* castle — grows with score */}
+          <div className="w-full flex justify-center" style={{
+            animation: isGreen&&castleAnim?"castleRise 0.5s cubic-bezier(0.34,1.56,0.64,1)":"none"
+          }}>
+            <CastleSVG score={score} total={KINGDOM_ROUNDS} animate={isGreen}/>
+          </div>
+
           {/* result card */}
-          <div className={`w-full max-w-sm rounded-3xl p-5 border-4 text-center relative overflow-hidden`}
+          <div className="w-full max-w-sm rounded-3xl p-4 border-2 text-center relative overflow-hidden pop-in"
             style={{
-              background: isGreen?"linear-gradient(135deg,#003300,#001a00)":"linear-gradient(135deg,#2d1a00,#1a0f00)",
-              borderColor: isGreen?"#00CC66":"#FF8C00",
-              boxShadow: isGreen?"0 0 28px #00CC6644":"0 0 20px #FF8C0033",
+              background: isGreen?"linear-gradient(145deg,#003d1a,#001a0a)":"linear-gradient(145deg,#2d1800,#1a0a00)",
+              border:`2px solid ${isGreen?"#00CC66":"#FF8C00"}`,
+              boxShadow: isGreen?"0 0 32px #00CC6655, 0 4px 0 #006633":"0 0 20px #FF8C0033",
             }}>
-            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-20 blur-xl"
-              style={{background:isGreen?"#00CC66":"#FF8C00"}}/>
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{background:isGreen?"linear-gradient(90deg,transparent,#00FF88cc,transparent)":"none"}}/>
             <div className="relative">
-              <div className="text-5xl mb-2">{isGreen?"✅":"🔄"}</div>
-              <div className="font-black text-2xl mb-1" style={{color:isGreen?"#00FF88":"#FFB347"}}>
-                {isGreen?"פתרון ירוק!":"ננסה שוב!"}
+              <div style={{fontSize:44,marginBottom:4,display:"inline-block",
+                animation:isGreen?"laughBounce 0.8s ease-in-out infinite":"none"}}>
+                {isGreen?"✅":"🔄"}
+              </div>
+              <div style={{fontWeight:900,fontSize:22,marginBottom:4,fontFamily:"Heebo,sans-serif",
+                color:isGreen?"#00FF88":"#FFB347",
+                textShadow:isGreen?"0 0 12px #00FF8866":"none"}}>
+                {isGreen?"פתרון ירוק! 🏰":"ננסה שוב! 💪"}
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-2xl">{chosen.emoji}</span>
-                <span className="text-white font-black text-xl">{chosen.label}</span>
+                <span style={{fontSize:24}}>{chosen.emoji}</span>
+                <span style={{color:"white",fontWeight:900,fontSize:18,fontFamily:"Heebo,sans-serif"}}>{chosen.label}</span>
               </div>
               {isGreen
-                ? <div className="rounded-2xl px-3 py-2 text-sm font-bold"
-                    style={{background:"#00CC6622",color:"#00FF88",border:"1px solid #00CC6644"}}>
-                    {chosen.desc} 💚 +12 ⚡
+                ? <div className="rounded-2xl px-3 py-2"
+                    style={{background:"#00CC6622",color:"#00FF88",fontSize:13,fontWeight:700,
+                      border:"1px solid #00CC6644",fontFamily:"Heebo,sans-serif"}}>
+                    {chosen.desc} 💚 +12 ⚡ אבן חדשה בטירה!
                   </div>
-                : <div className="rounded-2xl px-3 py-2 text-sm font-bold"
-                    style={{background:"#FF8C0022",color:"#FFB347",border:"1px solid #FF8C0044"}}>
+                : <div className="rounded-2xl px-3 py-2"
+                    style={{background:"#FF8C0022",color:"#FFB347",fontSize:13,fontWeight:700,
+                      border:"1px solid #FF8C0044",fontFamily:"Heebo,sans-serif"}}>
                     פתרון ירוק עוזר לך ולאחרים 💛
                   </div>
               }
             </div>
           </div>
 
-          {/* hero speech */}
-          <div className="relative bg-white rounded-2xl px-4 py-3 border-4 max-w-xs text-right"
-            style={{borderColor:isGreen?"#00CC66":"#FFD700"}}>
-            <p className="text-gray-900 font-black text-base leading-snug">
+          {/* hero speech bubble */}
+          <div className="relative bg-white rounded-2xl px-4 py-3 max-w-xs text-right slide-up"
+            style={{border:`3px solid ${isGreen?"#00CC66":"#FFD700"}`,
+              boxShadow:`0 4px 16px ${isGreen?"#00CC6644":"#FFD70033"}`}}>
+            <p style={{color:"#1a1a1a",fontWeight:900,fontSize:14,lineHeight:1.4,fontFamily:"Heebo,sans-serif"}}>
               {isGreen
                 ? `${chosen.label} — זה ${chosen.power}! אתה גיבור אמיתי! 🌟`
                 : `בוא נחשוב — האם ${chosen.label} עוזר לכולם? 🤔`}
             </p>
           </div>
 
-          {/* parent mode hint */}
+          {/* parent hint */}
           {mode==="parent" && !isGreen && (
             <div className="w-full max-w-sm rounded-2xl p-3 border text-right"
               style={{background:"#A78BFA11",borderColor:"#A78BFA44"}}>
-              <p className="text-purple-300 font-black text-sm mb-1">💬 שאלה להורה ולדור:</p>
-              <p className="text-white text-sm font-bold">מה חשבת שיעזור? למה?</p>
-              <p className="text-gray-400 text-xs mt-1">
+              <p style={{color:"#c4b5fd",fontWeight:900,fontSize:13,marginBottom:4,fontFamily:"Heebo,sans-serif"}}>💬 שאלה להורה ולדור:</p>
+              <p style={{color:"white",fontSize:13,fontWeight:700,fontFamily:"Heebo,sans-serif"}}>מה חשבת שיעזור? למה?</p>
+              <p style={{color:"#6b7280",fontSize:11,marginTop:4,fontFamily:"Heebo,sans-serif"}}>
                 פתרונות ירוקים: {card.green.map(id=>SOLUTIONS.find(s=>s.id===id)?.emoji).join(" ")}
               </p>
             </div>
           )}
 
           <button onClick={nextRound}
-            className="px-10 py-4 rounded-full font-black text-xl text-black active:scale-95 transition-all"
+            className="btn-3d px-10 py-4 rounded-full font-black text-xl text-black"
             style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",
-              boxShadow:"0 0 24px rgba(255,215,0,0.5)"}}>
+              boxShadow:"0 6px 20px rgba(255,215,0,0.5), 0 2px 0 #CC8800",
+              fontFamily:"Heebo,sans-serif"}}>
             {round>=KINGDOM_ROUNDS?"🏆 לסיכום!":`סיבוב ${round+1} ▶`}
           </button>
         </div>
@@ -1942,32 +2166,50 @@ function KingdomZone({ hero, save, onSave, onBack }) {
 
       {/* ── SUMMARY ── */}
       {phase==="summary" && (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-5">
-          <div className="text-7xl" style={{animation:"heroFloat 2s ease-in-out infinite"}}>
-            {score>=4?"👑":score>=2?"🌟":"💪"}
+        <div className="flex-1 flex flex-col items-center px-4 pb-6 gap-4" style={{paddingTop:8}}>
+          {/* full castle display */}
+          <div className="w-full" style={{maxWidth:320,animation:"castleRise 0.8s cubic-bezier(0.34,1.56,0.64,1)"}}>
+            <CastleSVG score={score} total={KINGDOM_ROUNDS} animate={true}/>
           </div>
-          <div className="w-full max-w-sm rounded-3xl p-6 border-4 text-center"
-            style={{background:"linear-gradient(135deg,#2d2500,#1a1200)",
-              borderColor:"#FFD700",boxShadow:"0 0 30px rgba(255,215,0,0.4)"}}>
-            <div className="text-white font-black text-2xl mb-2">סיכום משחק</div>
-            <div className="text-6xl font-black mb-2" style={{color:"#FFD700",textShadow:"0 0 20px #FFD700"}}>
-              {score}/{KINGDOM_ROUNDS}
+
+          {/* score card */}
+          <div className="w-full max-w-sm rounded-3xl p-5 border-2 text-center relative overflow-hidden pop-in"
+            style={{background:"linear-gradient(145deg,#2d2500,#1a1000)",
+              border:"2px solid #FFD70099",
+              boxShadow:"0 0 32px rgba(255,215,0,0.4), inset 0 1px 0 rgba(255,215,0,0.1)"}}>
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{background:"linear-gradient(90deg,transparent,#FFD700cc,transparent)"}}/>
+            <div style={{fontSize:48,marginBottom:4,display:"inline-block",
+              animation:score>=4?"laughBounce 0.8s ease-in-out infinite":"heroFloat 2s ease-in-out infinite"}}>
+              {score>=4?"👑":score>=2?"🌟":"💪"}
             </div>
-            <div className="text-white font-bold text-lg mb-3">
+            <div style={{color:"white",fontWeight:900,fontSize:22,fontFamily:"Heebo,sans-serif",marginBottom:4}}>
               {score>=4?"מלך הפתרונות!":score>=2?"גיבור ירוק!":"כל הכבוד שניסית!"}
             </div>
-            <Stars n={Math.round((score/KINGDOM_ROUNDS)*5)} max={5} size={22}/>
-            <div className="mt-3 text-gray-300 text-sm">{summaryText(score)}</div>
+            <div style={{fontWeight:900,fontSize:44,fontFamily:"Heebo,sans-serif",
+              color:"#FFD700",textShadow:"0 0 24px #FFD700aa",marginBottom:8}}>
+              {score}/{KINGDOM_ROUNDS}
+            </div>
+            <Stars n={Math.round((score/KINGDOM_ROUNDS)*5)} max={5} size={24}/>
+            <div style={{marginTop:8,color:"#9ca3af",fontSize:13,fontFamily:"Heebo,sans-serif"}}>
+              {summaryText(score)}
+            </div>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex gap-3 slide-up" style={{animationDelay:"0.4s"}}>
             <button onClick={restart}
-              className="px-7 py-3 rounded-full font-black text-lg text-black active:scale-95"
-              style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)"}}>
+              className="btn-3d px-7 py-3 rounded-full font-black text-lg text-black"
+              style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",
+                boxShadow:"0 6px 16px rgba(255,215,0,0.45), 0 2px 0 #CC8800",
+                fontFamily:"Heebo,sans-serif"}}>
               🔄 שחק שוב
             </button>
             <button onClick={()=>{narrator.stop();onBack();}}
-              className="px-7 py-3 rounded-full font-black text-lg border active:scale-95"
-              style={{background:"#ffffff08",borderColor:"#FFD700",color:"#FFD700"}}>
+              className="btn-3d px-7 py-3 rounded-full font-black text-lg"
+              style={{background:"linear-gradient(145deg,#2d2500,#1a1000)",
+                border:"2px solid #FFD70066",color:"#FFD700",
+                boxShadow:"0 4px 12px rgba(255,215,0,0.2)",
+                fontFamily:"Heebo,sans-serif"}}>
               🏠 בית
             </button>
           </div>
