@@ -7,14 +7,154 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <title>עולם דור 🌍</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{margin:0;background:#050015;overscroll-behavior:none}
+    body{margin:0;background:#050015;overscroll-behavior:none;font-family:'Heebo',sans-serif}
     html{-webkit-overflow-scrolling:touch}
+
+    /* ── 3D Button system ── */
+    .btn-3d {
+      position:relative;
+      transform-style:preserve-3d;
+      transition:transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .btn-3d::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      background:rgba(0,0,0,0.35);
+      transform:translateY(5px) translateZ(-4px);
+      filter:blur(2px);
+      transition:transform 0.12s ease, opacity 0.12s ease;
+      z-index:-1;
+    }
+    .btn-3d:active{transform:translateY(3px) scale(0.97);}
+    .btn-3d:active::after{transform:translateY(2px) translateZ(-2px);opacity:0.5;}
+
+    /* ── Pulse ring on tap ── */
+    .tap-ring{position:relative;overflow:visible;}
+    .tap-ring:active::before{
+      content:'';
+      position:absolute;
+      inset:-6px;
+      border-radius:inherit;
+      border:3px solid currentColor;
+      opacity:0.5;
+      animation:tapRing 0.4s ease-out forwards;
+    }
+    @keyframes tapRing{
+      0%{transform:scale(0.9);opacity:0.6}
+      100%{transform:scale(1.2);opacity:0}
+    }
+
+    /* ── Entrance animations ── */
+    @keyframes slideUp{
+      from{opacity:0;transform:translateY(24px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes popIn{
+      from{opacity:0;transform:scale(0.7)}
+      to{opacity:1;transform:scale(1)}
+    }
+    @keyframes fadeIn{
+      from{opacity:0}to{opacity:1}
+    }
+    @keyframes shimmer{
+      0%{background-position:200% center}
+      100%{background-position:-200% center}
+    }
+    @keyframes floatBob{
+      0%,100%{transform:translateY(0px)}
+      50%{transform:translateY(-10px)}
+    }
+    @keyframes glowPulse{
+      0%,100%{opacity:0.6}50%{opacity:1}
+    }
+    @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+    @keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+    @keyframes sparkleOut{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.8)}}
+    @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+    @keyframes breathe{0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.35);opacity:1}}
+    @keyframes xpPop{0%{opacity:0;transform:translateX(-50%) translateY(0)}20%{opacity:1;transform:translateX(-50%) translateY(-10px)}80%{opacity:1;transform:translateX(-50%) translateY(-20px)}100%{opacity:0;transform:translateX(-50%) translateY(-30px)}}
+    @keyframes tapRingAnim{0%{transform:scale(1);opacity:0.8}100%{transform:scale(1.5);opacity:0}}
+
+    .slide-up{animation:slideUp 0.35s ease both}
+    .pop-in{animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both}
+    .fade-in{animation:fadeIn 0.4s ease both}
+
+    /* stagger helpers */
+    .delay-1{animation-delay:0.05s}
+    .delay-2{animation-delay:0.10s}
+    .delay-3{animation-delay:0.15s}
+    .delay-4{animation-delay:0.20s}
+    .delay-5{animation-delay:0.25s}
+    .delay-6{animation-delay:0.30s}
+
+    /* ── Wheel solution animations ── */
+    @keyframes breatheRing {
+      0%,100%{transform:scale(1);opacity:0.35}
+      50%{transform:scale(1.55);opacity:0}
+    }
+    @keyframes breatheCore {
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.28)}
+    }
+    @keyframes breatheText {
+      0%,100%{opacity:0.7;transform:translateY(0)}
+      50%{opacity:1;transform:translateY(-3px)}
+    }
+    @keyframes walkStep {
+      0%,100%{transform:translateX(0) rotate(0deg)}
+      25%{transform:translateX(6px) rotate(3deg)}
+      75%{transform:translateX(-4px) rotate(-2deg)}
+    }
+    @keyframes coolWave {
+      0%{transform:scaleX(0);transform-origin:right}
+      100%{transform:scaleX(1);transform-origin:right}
+    }
+    @keyframes talkBubble {
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.08)}
+    }
+    @keyframes waitCount {
+      0%{transform:scale(1.2);opacity:0}
+      20%{transform:scale(1);opacity:1}
+      80%{transform:scale(1);opacity:1}
+      100%{transform:scale(0.8);opacity:0}
+    }
+    @keyframes handshakeWiggle {
+      0%,100%{transform:rotate(0deg)}
+      25%{transform:rotate(-10deg)}
+      75%{transform:rotate(10deg)}
+    }
+    @keyframes fadeWave {
+      0%{opacity:1;transform:translateY(0)}
+      100%{opacity:0;transform:translateY(-20px)}
+    }
+    @keyframes laughBounce {
+      0%,100%{transform:translateY(0) rotate(0deg)}
+      25%{transform:translateY(-8px) rotate(-5deg)}
+      75%{transform:translateY(-4px) rotate(5deg)}
+    }
+    @keyframes solutionEntrance {
+      0%{opacity:0;transform:scale(0.5) rotate(-10deg)}
+      60%{transform:scale(1.08) rotate(2deg)}
+      100%{opacity:1;transform:scale(1) rotate(0deg)}
+    }
+    @keyframes ringPulse {
+      0%{transform:scale(1);opacity:0.7}
+      50%{transform:scale(1.6);opacity:0}
+      100%{transform:scale(1);opacity:0}
+    }
   </style>
 </head>
 <body>
@@ -55,9 +195,17 @@ function getLevelXP(xp) { return (xp||0) % XP_PER_LEVEL; }
 // ─── tiny shared components ───────────────────────────────────────────────────
 function Stars({ n = 0, max = 5, size = 16 }) {
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5 items-center">
       {Array.from({ length: max }).map((_, i) => (
-        <span key={i} style={{ fontSize: size, opacity: i < n ? 1 : 0.2, filter: i < n ? "drop-shadow(0 0 3px #FFD700)" : "none" }}>⭐</span>
+        <span key={i} style={{
+          fontSize: size,
+          opacity: i < n ? 1 : 0.18,
+          filter: i < n ? "drop-shadow(0 0 4px #FFD700)" : "none",
+          transform: i < n ? "scale(1.1)" : "scale(0.9)",
+          display:"inline-block",
+          transition:"all 0.3s ease",
+          animationDelay: `${i*0.06}s`,
+        }}>⭐</span>
       ))}
     </div>
   );
@@ -70,17 +218,27 @@ function XPBar({ xp, hero }) {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-1.5">
-        <span className="font-black text-xs" style={{ color: hero.accent }}>רמה {lvl} · {xp || 0} ⚡</span>
-        <span className="text-gray-400 text-xs">{cur}/{XP_PER_LEVEL} לרמה הבאה</span>
+        <span style={{ color: hero.accent, fontFamily:"Heebo,sans-serif", fontWeight:900, fontSize:13 }}>
+          🏅 רמה {lvl} · {xp || 0} ⚡
+        </span>
+        <span style={{ color:"#9ca3af", fontSize:11 }}>{cur}/{XP_PER_LEVEL} לרמה הבאה</span>
       </div>
-      <div className="relative h-5 rounded-full overflow-hidden border-2" style={{ borderColor: hero.accent + "88", background: "#111" }}>
+      <div className="relative rounded-full overflow-hidden"
+        style={{ height:22, border:`2px solid ${hero.accent}66`, background:"#0d0d1a",
+          boxShadow:`inset 0 2px 6px rgba(0,0,0,0.5)` }}>
         <div className="h-full rounded-full transition-all duration-1000 relative overflow-hidden"
-          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${hero.color}, ${hero.accent})`, boxShadow: `0 0 12px ${hero.glow}` }}>
-          <div className="absolute inset-0 animate-pulse opacity-30"
-            style={{ background: "linear-gradient(90deg, transparent, white, transparent)", animationDuration: "2s" }} />
+          style={{ width:`${pct}%`,
+            background:`linear-gradient(90deg, ${hero.color}, ${hero.accent}, ${hero.color})`,
+            backgroundSize:"200% 100%",
+            animation:"shimmer 2.5s linear infinite",
+            boxShadow:`0 0 14px ${hero.glow}88, inset 0 1px 0 rgba(255,255,255,0.3)` }}>
         </div>
-        <span className="absolute inset-0 flex items-center justify-center text-white font-black text-xs"
-          style={{ textShadow: "0 1px 3px #000" }}>{Math.round(pct)}%</span>
+        <div className="absolute inset-0 rounded-full" style={{
+          background:"linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 60%)"}}/>
+        <span className="absolute inset-0 flex items-center justify-center font-black"
+          style={{ fontSize:11, color:"white", textShadow:"0 1px 3px #000", fontFamily:"Heebo,sans-serif" }}>
+          {Math.round(pct)}%
+        </span>
       </div>
     </div>
   );
@@ -171,38 +329,43 @@ function ZoneCard({ zone, stars, onClick, index }) {
   const s = stars || 0;
   return (
     <button onClick={onClick}
-      className="relative rounded-3xl p-4 border-2 text-right active:scale-95 transition-all overflow-hidden"
+      className="btn-3d tap-ring relative rounded-3xl p-4 text-right overflow-hidden slide-up"
       style={{
-        background: `linear-gradient(135deg, ${zone.darkBg} 0%, #050015 100%)`,
-        borderColor: zone.color + "66",
-        boxShadow: `0 4px 20px ${zone.color}22`,
-        animationDelay: `${index * 0.08}s`,
+        border:`2px solid ${zone.color}55`,
+        background:`linear-gradient(145deg, ${zone.darkBg} 0%, #06001e 100%)`,
+        boxShadow:`0 6px 24px ${zone.color}25, 0 2px 0 ${zone.color}44, inset 0 1px 0 rgba(255,255,255,0.07)`,
+        animationDelay:`${index*0.07}s`,
+        color:zone.color,
       }}>
+      {/* shimmer top edge */}
+      <div className="absolute top-0 left-0 right-0 h-px rounded-full"
+        style={{background:`linear-gradient(90deg,transparent,${zone.color}88,transparent)`}}/>
       {/* glow blob */}
-      <div className="absolute -top-4 -left-4 w-16 h-16 rounded-full opacity-20 blur-xl"
+      <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full opacity-25 blur-2xl"
         style={{ background: zone.color }} />
       {/* content */}
       <div className="relative z-10 flex items-start gap-3">
-        <div className="flex-shrink-0 rounded-2xl flex items-center justify-center text-3xl"
-          style={{ width: 52, height: 52, background: zone.color + "22", border: `2px solid ${zone.color}44` }}>
+        <div className="flex-shrink-0 rounded-2xl flex items-center justify-center"
+          style={{ width:54, height:54, fontSize:28,
+            background:`linear-gradient(135deg,${zone.color}33,${zone.color}11)`,
+            border:`2px solid ${zone.color}55`,
+            boxShadow:`0 4px 12px ${zone.color}33, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
           {zone.emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white font-black text-sm leading-tight">{zone.label}</div>
-          <div className="text-gray-400 text-xs mt-0.5">{zone.desc}</div>
-          <div className="mt-1.5"><Stars n={s} max={5} size={12} /></div>
+          <div style={{ color:"white", fontWeight:900, fontSize:14, lineHeight:1.2, fontFamily:"Heebo,sans-serif" }}>{zone.label}</div>
+          <div style={{ color:"#9ca3af", fontSize:11, marginTop:2 }}>{zone.desc}</div>
+          <div className="mt-1.5"><Stars n={s} max={5} size={11} /></div>
         </div>
-        {s === 5 && (
-          <div className="flex-shrink-0 text-lg" style={{ filter: "drop-shadow(0 0 6px #FFD700)" }}>👑</div>
-        )}
+        {s===5 && <div className="flex-shrink-0" style={{fontSize:18,filter:"drop-shadow(0 0 8px #FFD700)",animation:"floatBob 2s ease-in-out infinite"}}>👑</div>}
       </div>
       {/* progress bar */}
-      {s > 0 && (
-        <div className="relative mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: "#ffffff11" }}>
-          <div className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${(s / 5) * 100}%`, background: `linear-gradient(90deg, ${zone.color}88, ${zone.color})` }} />
-        </div>
-      )}
+      <div className="relative mt-2.5 rounded-full overflow-hidden" style={{height:5,background:"#ffffff09"}}>
+        <div className="h-full rounded-full transition-all duration-700"
+          style={{ width:`${(s/5)*100}%`,
+            background:`linear-gradient(90deg,${zone.color}77,${zone.color})`,
+            boxShadow:`0 0 8px ${zone.color}88` }} />
+      </div>
     </button>
   );
 }
@@ -316,14 +479,18 @@ function HeroSelect({ savedXP, onSelect }) {
           )}
         </div>
         <div className="grid grid-cols-2 gap-4">
-          {HEROES.map(h => (
+          {HEROES.map((h,i) => (
             <button key={h.id} onClick={() => onSelect(h)}
-              className="rounded-3xl p-5 border-4 text-center active:scale-95 transition-all relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${h.sky} 0%, #050015 100%)`, borderColor: h.accent, boxShadow: `0 0 24px ${h.glow}44` }}>
-              <div className="absolute inset-0 opacity-10" style={{ background: `radial-gradient(circle at 50% 50%, ${h.color}, transparent)` }} />
+              className="btn-3d tap-ring rounded-3xl p-5 text-center relative overflow-hidden pop-in"
+              style={{ background:`linear-gradient(145deg,${h.sky} 0%,#06001e 100%)`,
+                border:`3px solid ${h.accent}88`,
+                boxShadow:`0 8px 28px ${h.glow}44, 0 3px 0 ${h.accent}66, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                animationDelay:`${i*0.08}s` }}>
+              <div className="absolute inset-0 opacity-15" style={{ background:`radial-gradient(circle at 50% 40%,${h.color},transparent 70%)` }}/>
+              <div className="absolute top-0 left-0 right-0 h-px" style={{background:`linear-gradient(90deg,transparent,${h.accent}99,transparent)`}}/>
               <div className="relative">
-                <div className="text-5xl mb-2" style={{ filter: `drop-shadow(0 0 12px ${h.glow})` }}>{h.emoji}</div>
-                <div className="text-white font-black text-sm">{h.name}</div>
+                <div className="mb-2" style={{ fontSize:52, filter:`drop-shadow(0 0 16px ${h.glow}) drop-shadow(0 4px 8px rgba(0,0,0,0.4))`, animation:"floatBob 3s ease-in-out infinite", animationDelay:`${i*0.5}s` }}>{h.emoji}</div>
+                <div style={{ color:"white", fontWeight:900, fontSize:14, fontFamily:"Heebo,sans-serif", textShadow:"0 1px 4px rgba(0,0,0,0.6)" }}>{h.name}</div>
               </div>
             </button>
           ))}
@@ -387,26 +554,33 @@ function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
         </div>
 
         {/* hero card */}
-        <div className="rounded-3xl p-4 mb-4 border relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${hero.sky}dd 0%, #0a0020 100%)`, borderColor: hero.accent + "44", boxShadow: `0 0 30px ${hero.glow}22` }}>
-          <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-15 blur-2xl" style={{ background: hero.color }} />
+        <div className="rounded-3xl p-4 mb-4 relative overflow-hidden slide-up"
+          style={{ background:`linear-gradient(145deg,${hero.sky}ee 0%,#06001e 100%)`,
+            border:`2px solid ${hero.accent}44`,
+            boxShadow:`0 8px 32px ${hero.glow}28, 0 2px 0 ${hero.accent}33, inset 0 1px 0 rgba(255,255,255,0.06)` }}>
+          <div className="absolute top-0 left-0 right-0 h-px" style={{background:`linear-gradient(90deg,transparent,${hero.accent}88,transparent)`}}/>
+          <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full opacity-12 blur-3xl" style={{ background: hero.color }} />
           <div className="relative flex items-center gap-4">
-            <HeroAvatar hero={hero} size={72} />
+            <HeroAvatar hero={hero} size={74} />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-white font-black text-xl">דור</span>
-                <span className="rounded-full px-2 py-0.5 text-xs font-black" style={{ background: hero.accent + "33", color: hero.accent }}>
+                <span style={{color:"white",fontWeight:900,fontSize:22,fontFamily:"Heebo,sans-serif",textShadow:`0 0 12px ${hero.accent}66`}}>דור</span>
+                <span className="rounded-full px-2.5 py-0.5"
+                  style={{ background:`linear-gradient(135deg,${hero.accent}44,${hero.accent}22)`,
+                    color:hero.accent, fontWeight:900, fontSize:11, fontFamily:"Heebo,sans-serif",
+                    border:`1px solid ${hero.accent}55`,
+                    boxShadow:`0 0 8px ${hero.accent}33` }}>
                   רמה {level}
                 </span>
               </div>
-              <div className="text-gray-300 text-sm mb-2">{greeting}</div>
+              <div style={{color:"#d1d5db",fontSize:13,marginBottom:8,fontFamily:"Heebo,sans-serif"}}>{greeting}</div>
               <XPBar xp={xp} hero={hero} />
             </div>
           </div>
-          {/* total stars */}
-          <div className="mt-3 flex items-center justify-between rounded-2xl px-3 py-2" style={{ background: "#ffffff08" }}>
-            <Stars n={Math.min(5, Math.floor(totalStars / 5))} max={5} size={14} />
-            <span className="text-gray-300 text-xs font-bold">סה״כ {totalStars} ⭐ נצברו</span>
+          <div className="mt-3 flex items-center justify-between rounded-2xl px-3 py-2"
+            style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)"}}>
+            <Stars n={Math.min(5, Math.floor(totalStars/5))} max={5} size={15} />
+            <span style={{color:"#9ca3af",fontSize:11,fontWeight:700,fontFamily:"Heebo,sans-serif"}}>סה״כ {totalStars} ⭐ נצברו</span>
           </div>
         </div>
 
@@ -437,13 +611,6 @@ function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
           <span className="text-gray-600 text-xs">⚡ ההתקדמות נשמרת אוטומטית</span>
         </div>
       </div>
-
-      <style>{`
-        @keyframes heroFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -549,16 +716,17 @@ function EmotionBtn({ emotion, onClick, size="lg" }) {
   const big = size==="lg";
   return (
     <button onClick={onClick}
-      className="flex flex-col items-center rounded-3xl active:scale-90 transition-all border-2"
+      className="btn-3d tap-ring flex flex-col items-center rounded-3xl transition-all"
       style={{
-        padding: big?"18px 14px":"12px 10px",
-        background: emotion.color+"18",
-        borderColor: emotion.color+"55",
-        boxShadow: `0 4px 16px ${emotion.color}22`,
-        minWidth: big?72:56,
+        padding: big?"20px 16px":"13px 11px",
+        background:`linear-gradient(145deg,${emotion.color}28,${emotion.color}10)`,
+        border:`2.5px solid ${emotion.color}66`,
+        boxShadow:`0 6px 20px ${emotion.color}28, 0 2px 0 ${emotion.color}44, inset 0 1px 0 rgba(255,255,255,0.1)`,
+        minWidth: big?78:58,
       }}>
-      <span style={{fontSize: big?44:32}}>{emotion.emoji}</span>
-      <span className="text-white font-black mt-1" style={{fontSize: big?13:11}}>{emotion.label}</span>
+      <span style={{fontSize: big?46:34, filter:`drop-shadow(0 2px 6px ${emotion.color}88)`}}>{emotion.emoji}</span>
+      <span style={{color:"white",fontWeight:900,marginTop:4,fontSize:big?14:12,fontFamily:"Heebo,sans-serif",
+        textShadow:"0 1px 3px rgba(0,0,0,0.5)"}}>{emotion.label}</span>
     </button>
   );
 }
@@ -590,11 +758,19 @@ function Confetti({ active }) {
 // xp toast
 function XPToast({ xp, accent }) {
   return (
-    <div className="fixed top-24 left-1/2 z-50 pointer-events-none"
+    <div className="fixed top-20 left-1/2 z-50 pointer-events-none"
       style={{transform:"translateX(-50%)", animation:"xpPop 1.8s ease-out forwards"}}>
-      <div className="rounded-full px-5 py-2 font-black text-lg text-black"
-        style={{background:`linear-gradient(135deg,${accent},#FFD700)`,
-          boxShadow:`0 0 20px ${accent}88`}}>
+      <div className="rounded-full px-6 py-2.5 font-black text-lg"
+        style={{
+          background:`linear-gradient(135deg,${accent},#FFD700,${accent})`,
+          backgroundSize:"200% 100%",
+          animation:"shimmer 1.5s linear infinite, xpPop 1.8s ease-out forwards",
+          color:"#000",
+          boxShadow:`0 0 24px ${accent}99, 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)`,
+          fontFamily:"Heebo,sans-serif",
+          fontSize:18,
+          textShadow:"none",
+        }}>
         +{xp} ⚡
       </div>
     </div>
@@ -603,20 +779,235 @@ function XPToast({ xp, accent }) {
 
 // breathing animation
 function BreathingGuide({ active, color }) {
-  if(!active) return null;
+  const [phase, setPhase] = useState("inhale"); // inhale | hold | exhale
+  const [count, setCount] = useState(4);
+
+  useEffect(() => {
+    if (!active) return;
+    // breathing cycle: inhale 4s → hold 2s → exhale 4s
+    const CYCLE = [
+      {phase:"inhale", dur:4000, label:"שאפו...", count:4},
+      {phase:"hold",   dur:2000, label:"עצרו...", count:2},
+      {phase:"exhale", dur:4000, label:"נשפו...", count:4},
+    ];
+    let step=0, timer=null, countTimer=null;
+    const runStep = () => {
+      const s = CYCLE[step % CYCLE.length];
+      setPhase(s.phase); setCount(s.count);
+      // countdown
+      let c=s.count;
+      countTimer = setInterval(()=>{ c--; if(c>=0) setCount(c); }, s.dur/s.count);
+      timer = setTimeout(()=>{ clearInterval(countTimer); step++; runStep(); }, s.dur);
+    };
+    runStep();
+    return ()=>{ clearTimeout(timer); clearInterval(countTimer); };
+  }, [active]);
+
+  if (!active) return null;
+
+  const isIn  = phase==="inhale";
+  const isHold= phase==="hold";
+  const scale = isIn ? 1.35 : isHold ? 1.25 : 1;
+  const label = isIn ? "שאפו..." : isHold ? "עצרו..." : "נשפו...";
+
   return (
-    <div className="flex flex-col items-center gap-2 my-2">
-      <div className="rounded-full flex items-center justify-center text-3xl"
-        style={{
-          width:80, height:80,
-          background:`${color}22`,
-          border:`3px solid ${color}`,
-          animation:"breathe 4s ease-in-out infinite",
-          boxShadow:`0 0 20px ${color}44`,
-        }}>🫁</div>
-      <span className="text-white font-black text-sm" style={{color}}>נשום איתי... 🌬️</span>
+    <div className="flex flex-col items-center gap-3 my-2 w-full max-w-xs">
+      {/* animated rings */}
+      <div className="relative flex items-center justify-center" style={{width:140,height:140}}>
+        {/* outer pulse ring */}
+        <div className="absolute inset-0 rounded-full" style={{
+          background:`${color}15`,
+          border:`2px solid ${color}44`,
+          animation: isIn?"breatheRing 4s ease-in-out infinite":"breatheRing 4s ease-in-out infinite reverse",
+          animationPlayState: isHold?"paused":"running",
+        }}/>
+        {/* mid ring */}
+        <div className="absolute rounded-full" style={{
+          width:110,height:110,
+          background:`${color}20`,
+          border:`2px solid ${color}66`,
+          transform:`scale(${isIn?1.1:0.95})`,
+          transition:"transform 4s ease-in-out",
+          boxShadow:`0 0 20px ${color}33`,
+        }}/>
+        {/* core circle */}
+        <div className="rounded-full flex items-center justify-center relative overflow-hidden"
+          style={{
+            width:80,height:80,
+            background:`linear-gradient(135deg,${color}55,${color}22)`,
+            border:`3px solid ${color}`,
+            transform:`scale(${scale})`,
+            transition:`transform ${isIn?4:isHold?0.2:4}s ease-in-out`,
+            boxShadow:`0 0 24px ${color}66, inset 0 0 16px ${color}33`,
+          }}>
+          <span style={{fontSize:32, animation:"breatheCore 4s ease-in-out infinite"}}>🫁</span>
+        </div>
+      </div>
+      {/* phase label */}
+      <div className="text-center">
+        <div className="font-black text-xl" style={{color, fontFamily:"Heebo,sans-serif",
+          animation:"breatheText 1s ease-in-out infinite"}}>
+          {label}
+        </div>
+        {/* countdown dots */}
+        <div className="flex gap-1.5 justify-center mt-1.5">
+          {Array.from({length:4}).map((_,i)=>(
+            <div key={i} className="rounded-full transition-all duration-500"
+              style={{width:10,height:10,
+                background: i<count ? color : color+"33",
+                boxShadow: i<count ? `0 0 6px ${color}` : "none",
+              }}/>
+          ))}
+        </div>
+      </div>
     </div>
   );
+}
+
+
+// ── Per-solution visual animations ────────────────────────────────────────────
+function SolutionAnim({ sol }) {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setStep(s => s + 1), 800);
+    return () => clearInterval(t);
+  }, []);
+
+  // id:1 נשימה — handled by BreathingGuide
+  if (sol.id === 1) return null;
+
+  // id:2 להתקרר — walking figure moving away
+  if (sol.id === 2) return (
+    <div className="flex flex-col items-center gap-2 my-2">
+      <div className="relative w-full max-w-xs h-16 overflow-hidden rounded-2xl"
+        style={{background:`${sol.color}15`,border:`1px solid ${sol.color}33`}}>
+        <div className="absolute flex flex-col items-center"
+          style={{
+            right: `${10 + (step % 20) * 4}%`,
+            top:"50%",
+            transform:"translateY(-50%)",
+            transition:"right 0.8s linear",
+            fontSize:32,
+            animation:"walkStep 0.8s ease-in-out infinite",
+          }}>🚶</div>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg opacity-40">➡️</div>
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 rounded-xl px-2 py-1 text-xs font-black"
+          style={{background:`${sol.color}33`,color:sol.color,fontFamily:"Heebo,sans-serif"}}>פינה שקטה</div>
+      </div>
+    </div>
+  );
+
+  // id:3 לבקש עזרה — speech bubble pulsing
+  if (sol.id === 3) return (
+    <div className="flex items-center justify-center gap-3 my-2">
+      <div className="text-4xl" style={{animation:"talkBubble 1.5s ease-in-out infinite"}}>🗣️</div>
+      <div className="flex flex-col gap-1">
+        {["אפשר", "לעזור?"].map((w,i)=>(
+          <div key={i} className="rounded-full px-3 py-1 text-sm font-black"
+            style={{background:`${sol.color}33`,color:sol.color,
+              animation:`talkBubble 1.5s ease-in-out infinite`,
+              animationDelay:`${i*0.3}s`,
+              fontFamily:"Heebo,sans-serif"}}>
+            {w}
+          </div>
+        ))}
+      </div>
+      <div className="text-4xl">👤</div>
+    </div>
+  );
+
+  // id:4 לחכות — animated countdown timer
+  if (sol.id === 4) {
+    const num = 10 - (step % 11);
+    return (
+      <div className="flex flex-col items-center gap-2 my-2">
+        <div className="rounded-full flex items-center justify-center font-black"
+          style={{width:72,height:72,fontSize:32,
+            background:`linear-gradient(135deg,${sol.color}44,${sol.color}11)`,
+            border:`3px solid ${sol.color}`,
+            boxShadow:`0 0 20px ${sol.color}44`,
+            animation:"waitCount 1s ease-in-out",
+            animationIterationCount:"infinite",
+            color:sol.color,fontFamily:"Heebo,sans-serif"}}>
+          {num}
+        </div>
+        <div className="flex gap-1">
+          {Array.from({length:10}).map((_,i)=>(
+            <div key={i} className="rounded-full transition-all duration-300"
+              style={{width:8,height:8,
+                background: (10-num)>i ? sol.color : sol.color+"33"}}/>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // id:5 להתפשר — handshake
+  if (sol.id === 5) return (
+    <div className="flex items-center justify-center gap-2 my-2">
+      <div style={{fontSize:36,animation:"handshakeWiggle 0.8s ease-in-out infinite",
+        animationDelay:"0s",display:"inline-block"}}>👤</div>
+      <div style={{fontSize:40,animation:"handshakeWiggle 0.8s ease-in-out infinite",
+        animationDelay:"0.1s",display:"inline-block"}}>🤝</div>
+      <div style={{fontSize:36,animation:"handshakeWiggle 0.8s ease-in-out infinite",
+        animationDelay:"0.2s",display:"inline-block"}}>👤</div>
+    </div>
+  );
+
+  // id:6 להתעלם — fading away emoji
+  if (sol.id === 6) return (
+    <div className="flex items-center justify-center gap-3 my-2">
+      <div style={{fontSize:36}}>😎</div>
+      {["💢","😤","😠"].map((e,i)=>(
+        <div key={i} style={{fontSize:28,
+          animation:"fadeWave 2s ease-out infinite",
+          animationDelay:`${i*0.4}s`,
+          opacity:0}}>
+          {e}
+        </div>
+      ))}
+    </div>
+  );
+
+  // id:7 לדבר — chat bubbles
+  if (sol.id === 7) return (
+    <div className="flex flex-col gap-1.5 my-2 max-w-xs w-full">
+      {[
+        {text:"אני מרגיש...", align:"right", delay:0},
+        {text:"אני מקשיב 💙", align:"left", delay:0.5},
+      ].map((b,i)=>(
+        <div key={i} className="rounded-2xl px-3 py-1.5 text-sm font-black"
+          style={{
+            background:`${sol.color}${i===0?"44":"22"}`,
+            color: i===0 ? sol.color : "#fff",
+            alignSelf: b.align==="right" ? "flex-end" : "flex-start",
+            animation:"talkBubble 2s ease-in-out infinite",
+            animationDelay:`${b.delay}s`,
+            fontFamily:"Heebo,sans-serif",
+            boxShadow:`0 2px 8px ${sol.color}33`,
+          }}>
+          {b.text}
+        </div>
+      ))}
+    </div>
+  );
+
+  // id:8 לצחוק — bouncing laugh emojis
+  if (sol.id === 8) return (
+    <div className="flex justify-center gap-2 my-2">
+      {["😂","🤣","😄","😁"].map((e,i)=>(
+        <div key={i} style={{fontSize:32,
+          animation:"laughBounce 0.6s ease-in-out infinite",
+          animationDelay:`${i*0.12}s`,
+          display:"inline-block"}}>
+          {e}
+        </div>
+      ))}
+    </div>
+  );
+
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1074,40 +1465,66 @@ function WheelZone({ hero, save, onSave, onBack }) {
       {/* ── PHASE: result ── */}
       {phase==="result" && sol && (
         <div className="flex-1 flex flex-col items-center px-4 pb-6">
-          {/* big solution card */}
-          <div className="w-full max-w-sm rounded-3xl p-5 border-2 mb-5 relative overflow-hidden"
-            style={{background:`linear-gradient(135deg,${sol.color}22,#050015)`,
-              borderColor:sol.color+"66",boxShadow:`0 0 30px ${sol.color}44`}}>
-            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-20 blur-xl" style={{background:sol.color}}/>
+          {/* big solution card — entrance animation */}
+          <div className="w-full max-w-sm rounded-3xl p-5 border-2 mb-4 relative overflow-hidden"
+            style={{
+              background:`linear-gradient(145deg,${sol.color}28,#06001e)`,
+              border:`2px solid ${sol.color}77`,
+              boxShadow:`0 0 36px ${sol.color}55, 0 4px 0 ${sol.color}44, inset 0 1px 0 rgba(255,255,255,0.08)`,
+              animation:"solutionEntrance 0.5s cubic-bezier(0.34,1.56,0.64,1) both",
+            }}>
+            {/* shimmer top */}
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{background:`linear-gradient(90deg,transparent,${sol.color}cc,transparent)`}}/>
+            {/* glow blob */}
+            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-25 blur-2xl" style={{background:sol.color}}/>
             <div className="relative flex items-center gap-4">
-              <div className="rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{width:72,height:72,background:sol.color+"33",border:`3px solid ${sol.color}`,fontSize:38}}>
-                {sol.emoji}
-              </div>
-              <div className="text-right">
-                {/* big first letter */}
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-black text-4xl" style={{color:sol.color,textShadow:`0 0 16px ${sol.color}`}}>{sol.letter}</span>
-                  <span className="text-white font-black text-2xl">{sol.label}</span>
+              {/* big emoji with pulse rings */}
+              <div className="relative flex-shrink-0 flex items-center justify-center" style={{width:76,height:76}}>
+                <div className="absolute inset-0 rounded-full" style={{background:`${sol.color}22`,animation:"ringPulse 2s ease-out infinite"}}/>
+                <div className="rounded-2xl flex items-center justify-center"
+                  style={{width:72,height:72,background:`linear-gradient(135deg,${sol.color}44,${sol.color}22)`,
+                    border:`3px solid ${sol.color}`,fontSize:38,
+                    boxShadow:`0 0 20px ${sol.color}66, inset 0 1px 0 rgba(255,255,255,0.2)`}}>
+                  {sol.emoji}
                 </div>
-                <div className="text-gray-300 text-sm">{sol.desc}</div>
-                <div className="mt-1 rounded-full px-2 py-0.5 inline-block text-xs font-black"
-                  style={{background:sol.color+"22",color:sol.color}}>
-                  {sol.power}
+              </div>
+              <div className="text-right flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span style={{fontWeight:900,fontSize:38,color:sol.color,
+                    textShadow:`0 0 20px ${sol.color}, 0 0 40px ${sol.color}88`,
+                    fontFamily:"Heebo,sans-serif",animation:"glowPulse 2s ease-in-out infinite"}}>
+                    {sol.letter}
+                  </span>
+                  <span style={{color:"white",fontWeight:900,fontSize:24,fontFamily:"Heebo,sans-serif"}}>{sol.label}</span>
+                </div>
+                <div style={{color:"#d1d5db",fontSize:13,fontFamily:"Heebo,sans-serif"}}>{sol.desc}</div>
+                <div className="mt-1.5 inline-block rounded-full px-3 py-0.5"
+                  style={{background:`linear-gradient(135deg,${sol.color}44,${sol.color}22)`,
+                    color:sol.color,fontSize:11,fontWeight:900,fontFamily:"Heebo,sans-serif",
+                    border:`1px solid ${sol.color}55`}}>
+                  {sol.power} ⚡
                 </div>
               </div>
             </div>
             <div className="relative mt-3 text-center rounded-2xl py-2"
-              style={{background:sol.color+"11",border:`1px solid ${sol.color}33`}}>
-              <span className="text-white font-bold text-sm">💡 נסה עכשיו: {sol.desc}</span>
+              style={{background:`${sol.color}15`,border:`1px solid ${sol.color}33`}}>
+              <span style={{color:"white",fontWeight:700,fontSize:13,fontFamily:"Heebo,sans-serif"}}>💡 נסה עכשיו: {sol.desc}</span>
             </div>
           </div>
 
-          {/* breathing guide for solution 1 */}
-          {sol.id===1 && <BreathingGuide active={true} color={sol.color}/>}
+          {/* per-solution visual animation */}
+          <div className="w-full max-w-sm flex justify-center pop-in" style={{animationDelay:"0.3s"}}>
+            {sol.id===1
+              ? <BreathingGuide active={true} color={sol.color}/>
+              : <SolutionAnim sol={sol}/>}
+          </div>
 
-          <p className="text-white font-black text-center text-base mb-4">איך הרגשת אחרי?</p>
-          <div className="flex gap-3 justify-center">
+          <p style={{color:"white",fontWeight:900,textAlign:"center",fontSize:16,
+            margin:"16px 0 12px",fontFamily:"Heebo,sans-serif"}}>
+            איך הרגשת אחרי?
+          </p>
+          <div className="flex gap-3 justify-center slide-up" style={{animationDelay:"0.5s"}}>
             {EMOTIONS_AFTER.map(e=>(
               <EmotionBtn key={e.emoji} emotion={e} size="sm" onClick={()=>doFeelAfter(e)}/>
             ))}
@@ -1119,18 +1536,31 @@ function WheelZone({ hero, save, onSave, onBack }) {
       {phase==="reflect" && sol && (
         <div className="flex-1 flex flex-col items-center px-4 pb-8 gap-4">
           {/* result banner */}
-          <div className="w-full max-w-sm rounded-3xl p-4 border-2 text-center"
+          <div className="w-full max-w-sm rounded-3xl p-5 border-2 text-center relative overflow-hidden pop-in"
             style={{
-              background: feelAfter==="😊" ? "#00660022" : "#33330022",
-              borderColor: feelAfter==="😊" ? "#00CC66" : "#888",
-              boxShadow: feelAfter==="😊" ? "0 0 24px #00CC6644" : "none",
+              background: feelAfter==="😊"
+                ? "linear-gradient(145deg,#003d1a,#001a0a)"
+                : feelAfter==="😐" ? "linear-gradient(145deg,#1a1a2e,#06001e)"
+                : "linear-gradient(145deg,#1a0a2e,#06001e)",
+              borderColor: feelAfter==="😊" ? "#00CC66" : feelAfter==="😐" ? "#888" : "#A78BFA",
+              boxShadow: feelAfter==="😊" ? "0 0 32px #00CC6677" : "none",
             }}>
-            <div className="text-4xl mb-1">{feelAfter==="😊"?"🌟":feelAfter==="😐"?"💪":"🤗"}</div>
-            <div className="text-white font-black text-lg">
-              {feelAfter==="😊" ? "פתרון מוצלח!" : feelAfter==="😐" ? "ניסיון טוב!" : "הצלחת לנסות!"}
-            </div>
-            <div className="text-gray-300 text-sm mt-1">
-              {sol.emoji} {sol.label} · +{feelAfter==="😊"?sol.xp+5:sol.xp} ⚡
+            {feelAfter==="😊" && (
+              <div className="absolute inset-0 opacity-10"
+                style={{background:"radial-gradient(circle,#00FF88,transparent 70%)"}}/>
+            )}
+            <div className="relative">
+              <div style={{fontSize:52,animation:feelAfter==="😊"?"laughBounce 0.8s ease-in-out infinite":"none",
+                display:"inline-block",marginBottom:6}}>
+                {feelAfter==="😊"?"🌟":feelAfter==="😐"?"💪":"🤗"}
+              </div>
+              <div style={{color:"white",fontWeight:900,fontSize:20,fontFamily:"Heebo,sans-serif",
+                textShadow:feelAfter==="😊"?"0 0 12px #00FF8888":"none"}}>
+                {feelAfter==="😊" ? "פתרון מוצלח!" : feelAfter==="😐" ? "ניסיון טוב!" : "הצלחת לנסות!"}
+              </div>
+              <div style={{color:"#9ca3af",fontSize:13,marginTop:4,fontFamily:"Heebo,sans-serif"}}>
+                {sol.emoji} {sol.label} · +{feelAfter==="😊"?sol.xp+5:sol.xp} ⚡
+              </div>
             </div>
           </div>
 
@@ -1173,12 +1603,7 @@ function WheelZone({ hero, save, onSave, onBack }) {
         </div>
       )}
 
-      <style>{`
-        @keyframes heroFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        @keyframes confettiFall { to{transform:translateY(110vh) rotate(360deg);opacity:0} }
-        @keyframes xpPop { 0%{opacity:0;transform:translateX(-50%) translateY(0)} 20%{opacity:1;transform:translateX(-50%) translateY(-10px)} 80%{opacity:1;transform:translateX(-50%) translateY(-20px)} 100%{opacity:0;transform:translateX(-50%) translateY(-30px)} }
-        @keyframes breathe { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.35);opacity:1} }
-      `}</style>
+
     </div>
   );
 }
@@ -1548,11 +1973,6 @@ function KingdomZone({ hero, save, onSave, onBack }) {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
-      `}</style>
     </div>
   );
 }
@@ -2127,13 +2547,7 @@ function LettersZone({ hero, save, onSave, onBack }) {
           onBack={()=>setScreen("menu")} hero={hero}/>
       )}
 
-      <style>{`
-        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-        @keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
-        @keyframes sparkleOut{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.8)}}
-        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
-      `}</style>
+
     </div>
   );
 }
@@ -2781,13 +3195,7 @@ function PuzzleZone({hero, save, onSave, onBack}){
           onBack={()=>setScreen("menu")}/>
       )}
 
-      <style>{`
-        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-        @keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
-        @keyframes sparkleOut{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.8)}}
-        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
-      `}</style>
+
     </div>
   );
 }
@@ -3490,13 +3898,6 @@ function HeroZone({hero, save, onSave, onBack}){
           )}
         </div>
       )}
-
-      <style>{`
-        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-        @keyframes correctPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
-        @keyframes confettiFall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
-      `}</style>
     </div>
   );
 }
@@ -4310,10 +4711,6 @@ function ArtZone({hero, save, onSave, onBack}) {
       {tool==="draw"  && <DrawingCanvas narrator={narrator}/>}
       {tool==="color" && <ColoringPage  narrator={narrator}/>}
       {tool==="write" && <WritingPad    narrator={narrator}/>}
-
-      <style>{`
-        @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-      `}</style>
     </div>
   );
 }
