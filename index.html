@@ -91,18 +91,9 @@
     @keyframes towerGlow{0%,100%{box-shadow:0 0 12px #FFD70066}50%{box-shadow:0 0 28px #FFD700cc}}
     @keyframes stoneAppear{from{opacity:0;transform:scale(0.3) rotate(-15deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
     @keyframes windowLight{0%,100%{opacity:0.4}50%{opacity:1}}
-    @keyframes letterExplode{0%{transform:scale(1);opacity:1}30%{transform:scale(1.6);opacity:0.8}100%{transform:scale(2.2);opacity:0}}
-    @keyframes starBurst{0%{transform:scale(0) rotate(0deg);opacity:1}100%{transform:scale(1.8) rotate(180deg);opacity:0}}
-    @keyframes correctBounce{0%,100%{transform:translateY(0) scale(1)}20%{transform:translateY(-18px) scale(1.15)}40%{transform:translateY(-8px) scale(1.05)}60%{transform:translateY(-14px) scale(1.1)}80%{transform:translateY(-4px) scale(1.02)}}
-    @keyframes wrongWobble{0%,100%{transform:rotate(0deg) scale(1)}15%{transform:rotate(-12deg) scale(0.95)}30%{transform:rotate(10deg) scale(0.95)}45%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}75%{transform:rotate(-3deg)}}
-    @keyframes scoreFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.3)}}
-    @keyframes streakFlame{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.2)}}
-    @keyframes ripple{0%{transform:scale(0.5);opacity:0.8}100%{transform:scale(2.5);opacity:0}}
 
-    @keyframes patienceFill{from{width:0%}to{width:100%}}
-    @keyframes patienceGlow{0%,100%{box-shadow:0 0 8px #FFD70066}50%{box-shadow:0 0 20px #FFD700cc,0 0 40px #FFD70055}}
-    @keyframes prizeReveal{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}
-    @keyframes tickTock{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+    @keyframes comicBoom{0%{opacity:0;transform:scale(0.2) rotate(-15deg)}60%{opacity:1;transform:scale(1.25) rotate(5deg)}80%{transform:scale(0.95)}100%{opacity:0;transform:scale(1.1)}}
+    @keyframes floatBob{0%,100%{transform:translateY(0px)}50%{transform:translateY(-10px)}}
     .slide-up{animation:slideUp 0.35s ease both}
     .pop-in{animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both}
     .fade-in{animation:fadeIn 0.4s ease both}
@@ -189,68 +180,36 @@ function writeSave(d) {
 
 // ─── constants ───────────────────────────────────────────────────────────────
 const HEROES = [
-  { id:"fire", name:"גיבור האש", emoji:"🔥", color:"#FF4500", accent:"#FF6B35", glow:"#FF4500", sky:"#1a0500",
-    title:"אדון הלהבות", power:"כוח חום", rank:"קדט",
-    speech: [
-      "דור! בוא נאמן את כוח האש שלך! 🔥",
-      "גיבורים אמיתיים לא מוותרים! 💪",
-      "כל טעות היא אימון! קדימה! 🔥",
-      "אש שמתחזקת כל יום — זה אתה! ⚡",
-      "מדהים! האש בך בוערת חזק! 🌟",
-    ]
-  },
-  { id:"water", name:"גיבור המים", emoji:"🌊", color:"#00BFFF", accent:"#00E5FF", glow:"#00BFFF", sky:"#001830",
-    title:"שומר האוקיינוס", power:"כוח גלים", rank:"קדט",
-    speech: [
-      "דור! המים זורמים — ואתה איתם! 🌊",
-      "שקט כמו ים רגוע — כך גיבורים חושבים! 💎",
-      "כל גל מתגבר על הסלע! כך גם אתה! 🌊",
-      "מים חכמים מוצאים תמיד את הדרך! ✨",
-      "כל הכבוד! הגלים שלך חזקים! 🏆",
-    ]
-  },
-  { id:"wind", name:"גיבור הרוח", emoji:"🌪️", color:"#00FF7F", accent:"#00FF7F", glow:"#00CC66", sky:"#001a10",
-    title:"מהיר הרוחות", power:"כוח מהירות", rank:"קדט",
-    speech: [
-      "דור! מהיר כרוח — קדימה! 🌪️",
-      "הרוח לא עוצרת — אתה גם לא! 💚",
-      "כל ניסיון מקרב אותך למטרה! 🌪️",
-      "קל ומהיר — כמו גיבור אמיתי! ⭐",
-      "וואו! מהיר כמו סופה! 🏆",
-    ]
-  },
-  { id:"thunder", name:"גיבור הברק", emoji:"⚡", color:"#FFD700", accent:"#FFE44D", glow:"#FFD700", sky:"#111100",
-    title:"אדון הסערה", power:"כוח ברק", rank:"קדט",
-    speech: [
-      "דור! ברק מהיר ועוצמתי — כמוך! ⚡",
-      "הסערה שבך תהפוך אותך לגיבור! 💛",
-      "כל ברק מאיר את הדרך! 🌟",
-      "חזק כרעם! כל הכבוד! ⚡",
-      "בום! זה היה מדהים! 🏆",
-    ]
-  },
+  { id:"fire",    name:"גיבור האש",    emoji:"🔥", color:"#FF4500", accent:"#FF6B35", glow:"#FF4500", sky:"#1a0500",
+    title:"אדון הלהבות",
+    speech:["דור! בוא נאמן את כוח האש! 🔥","גיבורים אמיתיים לא מוותרים! 💪","כל טעות היא אימון! 🔥","מדהים! האש בך בוערת! 🌟"] },
+  { id:"water",   name:"גיבור המים",   emoji:"🌊", color:"#00BFFF", accent:"#00E5FF", glow:"#00BFFF", sky:"#001830",
+    title:"שומר האוקיינוס",
+    speech:["דור! המים זורמים — ואתה איתם! 🌊","שקט כמו ים רגוע — כך גיבורים חושבים! 💎","כל גל מתגבר! כך גם אתה! 🌊","כל הכבוד! הגלים שלך חזקים! 🏆"] },
+  { id:"wind",    name:"גיבור הרוח",   emoji:"🌪️", color:"#00FF7F", accent:"#00FF7F", glow:"#00CC66", sky:"#001a10",
+    title:"מהיר הרוחות",
+    speech:["דור! מהיר כרוח — קדימה! 🌪️","הרוח לא עוצרת — אתה גם לא! 💚","קל ומהיר — כמו גיבור אמיתי! ⭐","וואו! מהיר כמו סופה! 🏆"] },
+  { id:"thunder", name:"גיבור הברק",   emoji:"⚡",  color:"#FFD700", accent:"#FFE44D", glow:"#FFD700", sky:"#111100",
+    title:"אדון הסערה",
+    speech:["דור! ברק מהיר ועוצמתי — כמוך! ⚡","הסערה שבך תהפוך אותך לגיבור! 💛","חזק כרעם! כל הכבוד! ⚡","בום! זה היה מדהים! 🏆"] },
 ];
 
-// Hero rank progression based on level
 const HERO_RANKS = [
-  { level:1,  rank:"קדט",        emoji:"🥉", color:"#CD7F32" },
-  { level:3,  rank:"לוחם",       emoji:"🥈", color:"#C0C0C0" },
-  { level:5,  rank:"גיבור",      emoji:"🥇", color:"#FFD700" },
-  { level:8,  rank:"אלוף",       emoji:"🏆", color:"#FF6B35" },
-  { level:12, rank:"אגדה",       emoji:"👑", color:"#FF00FF" },
+  {level:1, rank:"קדט",  emoji:"🥉", color:"#CD7F32"},
+  {level:3, rank:"לוחם", emoji:"🥈", color:"#C0C0C0"},
+  {level:5, rank:"גיבור",emoji:"🥇", color:"#FFD700"},
+  {level:8, rank:"אלוף", emoji:"🏆", color:"#FF6B35"},
 ];
-
 function getHeroRank(level) {
-  let rank = HERO_RANKS[0];
-  for (const r of HERO_RANKS) { if (level >= r.level) rank = r; }
-  return rank;
+  let r=HERO_RANKS[0];
+  for(const rk of HERO_RANKS){ if(level>=rk.level) r=rk; }
+  return r;
 }
 
 const ZONES = [
   { id:"wheel",   label:"גלגל הפתרונות", emoji:"🎡", color:"#FF6B35", darkBg:"#2d0f00", desc:"פתרון בעיות" },
   { id:"kingdom", label:"משחק הממלכה",   emoji:"👑", color:"#FFD700", darkBg:"#2d2500", desc:"כרטיסיות ירוק/אדום" },
   { id:"letters", label:"מרחב למידה",    emoji:"📚", color:"#A78BFA", darkBg:"#180030", desc:"אותיות ומספרים" },
-  { id:"vocab",   label:"עולם המילים",   emoji:"🌍", color:"#34D399", darkBg:"#002820", desc:"קטגוריות ויוצא דופן" },
   { id:"puzzle",  label:"מגדל ההרכבה",   emoji:"🧩", color:"#60A5FA", darkBg:"#001830", desc:"פאזלים" },
   { id:"hero",    label:"סדנת גיבורים",  emoji:"🦸", color:"#F472B6", darkBg:"#2d0020", desc:"בנה גיבור" },
   { id:"art",     label:"סטודיו יצירה",  emoji:"🎨", color:"#FB923C", darkBg:"#2d1000", desc:"ציור חופשי" },
@@ -286,7 +245,7 @@ function XPBar({ xp, hero }) {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-1.5">
-        <span style={{color:hero.accent,fontFamily:"Heebo,sans-serif",fontWeight:900,fontSize:12}}>
+        <span style={{ color: hero.accent, fontFamily:"Heebo,sans-serif", fontWeight:900, fontSize:13 }}>
           {getHeroRank(lvl).emoji} {xp||0} כוח גבורה
         </span>
         <span style={{color:"#9ca3af",fontSize:10,fontFamily:"Heebo,sans-serif"}}>{cur}/{XP_PER_LEVEL} לרמה הבאה</span>
@@ -523,179 +482,99 @@ function ParentPanel({ save, hero, onClose }) {
 }
 
 // ─── hero select ──────────────────────────────────────────────────────────────
-
-// ── Hero Speech Bubble — hero talks to Dor ───────────────────────────────────
 function HeroBubble({ hero, text, style={} }) {
   if (!text) return null;
   return (
     <div className="flex items-end gap-2 w-full max-w-sm" style={style} dir="rtl">
-      {/* hero avatar small */}
       <div className="flex-shrink-0 rounded-full flex items-center justify-center border-2"
         style={{width:44,height:44,fontSize:24,
           background:`radial-gradient(circle,${hero.color}44,${hero.sky})`,
           borderColor:hero.accent,
           boxShadow:`0 0 12px ${hero.glow}66`,
-          animation:"floatBob 3s ease-in-out infinite",
-        }}>
+          animation:"floatBob 3s ease-in-out infinite"}}>
         {hero.emoji}
       </div>
-      {/* bubble */}
       <div className="relative flex-1 rounded-3xl rounded-br-none px-4 py-3 pop-in"
-        style={{
-          background:`linear-gradient(145deg,${hero.color}33,${hero.sky}cc)`,
+        style={{background:`linear-gradient(145deg,${hero.color}33,${hero.sky}cc)`,
           border:`2px solid ${hero.accent}66`,
-          boxShadow:`0 4px 16px ${hero.glow}33, inset 0 1px 0 rgba(255,255,255,0.1)`,
-        }}>
-        {/* top shimmer */}
+          boxShadow:`0 4px 16px ${hero.glow}33`}}>
         <div className="absolute top-0 left-0 right-0 h-px rounded-full"
           style={{background:`linear-gradient(90deg,transparent,${hero.accent}88,transparent)`}}/>
         <p style={{color:"white",fontWeight:800,fontSize:14,lineHeight:1.4,
-          fontFamily:"Heebo,sans-serif",margin:0,
-          textShadow:"0 1px 3px rgba(0,0,0,0.5)"}}>
-          {text}
-        </p>
-        {/* bubble tail */}
-        <div className="absolute -bottom-2 right-4" style={{
-          width:0,height:0,
-          borderLeft:"10px solid transparent",
-          borderRight:"0px solid transparent",
-          borderTop:`10px solid ${hero.accent}66`,
-        }}/>
+          fontFamily:"Heebo,sans-serif",margin:0}}>{text}</p>
+        <div className="absolute -bottom-2 right-4" style={{width:0,height:0,
+          borderLeft:"10px solid transparent",borderRight:"0px solid transparent",
+          borderTop:`10px solid ${hero.accent}66`}}/>
       </div>
     </div>
   );
 }
 
-// ── Comic "BOOM" effect ───────────────────────────────────────────────────────
 function ComicBoom({ text="💥 בום!", color="#FFD700", show }) {
   if (!show) return null;
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
-      <div style={{
-        fontSize:72, fontWeight:900, fontFamily:"Heebo,sans-serif",
-        color, textShadow:`0 0 30px ${color}, 0 0 60px ${color}88`,
+      <div style={{fontSize:72,fontWeight:900,fontFamily:"Heebo,sans-serif",
+        color,textShadow:`0 0 30px ${color}, 0 0 60px ${color}88`,
         animation:"comicBoom 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards",
-        WebkitTextStroke:"3px rgba(0,0,0,0.5)",
-      }}>
+        WebkitTextStroke:"3px rgba(0,0,0,0.5)"}}>
         {text}
       </div>
     </div>
   );
 }
 
-// ── Power Badge — shows hero rank ─────────────────────────────────────────────
 function PowerBadge({ level, hero, size="sm" }) {
   const rank = getHeroRank(level);
-  const big  = size === "lg";
+  const big  = size==="lg";
   return (
-    <div className="flex items-center gap-1 rounded-full"
-      style={{
-        padding: big?"6px 14px":"3px 8px",
+    <div className="inline-flex items-center gap-1 rounded-full"
+      style={{padding:big?"6px 14px":"3px 8px",
         background:`linear-gradient(135deg,${rank.color}33,${rank.color}11)`,
         border:`1.5px solid ${rank.color}66`,
-        boxShadow:`0 0 10px ${rank.color}44`,
-      }}>
-      <span style={{fontSize: big?20:13}}>{rank.emoji}</span>
-      <span style={{color:rank.color,fontWeight:900,fontSize:big?14:10,
-        fontFamily:"Heebo,sans-serif"}}>
-        {rank.rank}
-      </span>
+        boxShadow:`0 0 10px ${rank.color}44`}}>
+      <span style={{fontSize:big?20:13}}>{rank.emoji}</span>
+      <span style={{color:rank.color,fontWeight:900,fontSize:big?14:10,fontFamily:"Heebo,sans-serif"}}>{rank.rank}</span>
     </div>
   );
 }
 
 function HeroSelect({ savedXP, onSelect }) {
-  const [hoveredHero, setHoveredHero] = useState(null);
-  const level = getLevel(savedXP);
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-5 text-right"
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-right"
       style={{ background: "radial-gradient(ellipse at 50% 0%, #0d1b4b 0%, #050015 70%)" }} dir="rtl">
       {/* stars bg */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {Array.from({ length: 30 }).map((_, i) => (
           <div key={i} className="absolute rounded-full bg-white"
-            style={{ left:`${Math.random()*100}%`, top:`${Math.random()*60}%`,
-              width:2, height:2, opacity:Math.random()*0.7+0.2 }}/>
+            style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 60}%`, width: 2, height: 2, opacity: Math.random() * 0.7 + 0.2, animationDelay: `${Math.random() * 3}s` }} />
         ))}
       </div>
       <div className="relative z-10 w-full max-w-sm">
-
-        {/* Academy header */}
-        <div className="text-center mb-5 slide-up">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-3"
-            style={{background:"linear-gradient(135deg,#FFD70033,#FF450022)",
-              border:"1.5px solid #FFD70055"}}>
-            <span style={{fontSize:14}}>🏫</span>
-            <span style={{color:"#FFD700",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif"}}>
-              אקדמיית גיבורי העל
-            </span>
-          </div>
-          <h1 style={{fontSize:36,fontWeight:900,color:"white",fontFamily:"Heebo,sans-serif",
-            textShadow:"0 0 30px #FFD700, 0 2px 0 rgba(0,0,0,0.5)",margin:"0 0 4px"}}>
-            עולם דור
-          </h1>
-          <p style={{color:"#fde68a",fontWeight:700,fontSize:15,fontFamily:"Heebo,sans-serif",margin:0}}>
-            בחר את הגיבור שיאמן אותך!
-          </p>
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-3" style={{ filter: "drop-shadow(0 0 20px #FFD700)" }}>🌍</div>
+          <h1 className="text-4xl font-black text-white" style={{ textShadow: "0 0 30px #FFD700" }}>עולם דור</h1>
+          <p className="text-yellow-300 font-bold mt-1">בחר את הגיבור שלך!</p>
           {savedXP > 0 && (
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1"
-              style={{background:"#FFD70022",border:"1px solid #FFD70044"}}>
-              <PowerBadge level={level} hero={HEROES[0]} size="sm"/>
-              <span style={{color:"#FFD700",fontWeight:900,fontSize:11,fontFamily:"Heebo,sans-serif"}}>
-                ⚡ {savedXP} כוח גבורה
-              </span>
+            <div className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-black"
+              style={{ background: "#FFD70022", color: "#FFD700", border: "1px solid #FFD70044" }}>
+              ⚡ {savedXP} XP שמורים
             </div>
           )}
         </div>
-
-        {/* hero speech bubble (on hover) */}
-        {hoveredHero && (
-          <div className="mb-3 px-1">
-            <HeroBubble hero={hoveredHero} text={hoveredHero.speech[0]}/>
-          </div>
-        )}
-        {!hoveredHero && (
-          <div className="mb-3 text-center" style={{height:60,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{color:"#6b7280",fontSize:13,fontFamily:"Heebo,sans-serif"}}>
-              לחץ על גיבור כדי להתחיל!
-            </span>
-          </div>
-        )}
-
-        {/* hero grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {HEROES.map((h,i) => (
-            <button key={h.id}
-              onClick={()=>onSelect(h)}
-              onMouseEnter={()=>setHoveredHero(h)}
-              onTouchStart={()=>setHoveredHero(h)}
-              onMouseLeave={()=>setHoveredHero(null)}
-              className="btn-3d tap-ring rounded-3xl p-4 text-center relative overflow-hidden pop-in"
-              style={{
-                background:`linear-gradient(145deg,${h.sky} 0%,#06001e 100%)`,
+            <button key={h.id} onClick={() => onSelect(h)}
+              className="btn-3d tap-ring rounded-3xl p-5 text-center relative overflow-hidden pop-in"
+              style={{ background:`linear-gradient(145deg,${h.sky} 0%,#06001e 100%)`,
                 border:`3px solid ${h.accent}88`,
                 boxShadow:`0 8px 28px ${h.glow}44, 0 3px 0 ${h.accent}66, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                animationDelay:`${i*0.08}s`,
-              }}>
-              <div className="absolute inset-0 opacity-15"
-                style={{background:`radial-gradient(circle at 50% 40%,${h.color},transparent 70%)`}}/>
-              <div className="absolute top-0 left-0 right-0 h-px"
-                style={{background:`linear-gradient(90deg,transparent,${h.accent}99,transparent)`}}/>
+                animationDelay:`${i*0.08}s` }}>
+              <div className="absolute inset-0 opacity-15" style={{ background:`radial-gradient(circle at 50% 40%,${h.color},transparent 70%)` }}/>
+              <div className="absolute top-0 left-0 right-0 h-px" style={{background:`linear-gradient(90deg,transparent,${h.accent}99,transparent)`}}/>
               <div className="relative">
-                <div style={{fontSize:48,marginBottom:6,
-                  filter:`drop-shadow(0 0 16px ${h.glow}) drop-shadow(0 4px 8px rgba(0,0,0,0.4))`,
-                  animation:"floatBob 3s ease-in-out infinite",
-                  animationDelay:`${i*0.5}s`}}>
-                  {h.emoji}
-                </div>
-                <div style={{color:"white",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif",
-                  textShadow:"0 1px 4px rgba(0,0,0,0.6)",marginBottom:3}}>
-                  {h.name}
-                </div>
-                <div style={{color:h.accent,fontWeight:700,fontSize:11,fontFamily:"Heebo,sans-serif",opacity:0.85}}>
-                  {h.title}
-                </div>
+                <div className="mb-2" style={{ fontSize:52, filter:`drop-shadow(0 0 16px ${h.glow}) drop-shadow(0 4px 8px rgba(0,0,0,0.4))`, animation:"floatBob 3s ease-in-out infinite", animationDelay:`${i*0.5}s` }}>{h.emoji}</div>
+                <div style={{ color:"white", fontWeight:900, fontSize:14, fontFamily:"Heebo,sans-serif", textShadow:"0 1px 4px rgba(0,0,0,0.6)" }}>{h.name}</div>
               </div>
             </button>
           ))}
@@ -711,12 +590,7 @@ function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
   const level = getLevel(xp);
   const zoneStars = save.zone_stars || {};
   const [greeting] = useState(() => {
-    const pool = hero.speech || [
-      `שלום דור! מוכן לאימון? 💪`,
-      `היי דור! האקדמיה מחכה! 🏫`,
-      `דור! הגיבור בך מתחזק! ⚡`,
-      `יאללה דור, לאמן! 🦸`,
-    ];
+    const pool = hero.speech || [`שלום דור! מוכן להרפתקה? 💪`,`היי דור! הגיבור חזר! 🦸`,`דור! העיר מחכה לך! 🌆`,`יאללה דור, נתחיל! ⚡`];
     return pool[Math.floor(Math.random() * pool.length)];
   });
 
@@ -739,18 +613,15 @@ function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
       {/* main content */}
       <div className="flex-1 px-4 pb-6" style={{ background: "linear-gradient(180deg, #050015 0%, #080020 100%)" }}>
 
-        {/* top bar — Academy branding */}
-        <div className="flex items-center justify-between py-2 mb-2">
+        {/* top bar */}
+        <div className="flex items-center justify-between py-3 mb-2">
           <button onClick={onParentOpen}
-            className="btn-3d rounded-full px-3 py-1.5 font-black border"
-            style={{fontSize:11,background:"#ffffff08",borderColor:"#ffffff22",color:"#888",
-              boxShadow:"0 3px 6px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05)",
-              fontFamily:"Heebo,sans-serif"}}>
+            className="rounded-full px-3 py-1.5 text-xs font-black border active:scale-95 transition-all"
+            style={{ background: "#ffffff08", borderColor: "#ffffff22", color: "#888" }}>
             🔒 הורה
           </button>
           <div className="text-center">
-            <div style={{color:"white",fontWeight:900,fontSize:15,fontFamily:"Heebo,sans-serif",
-              textShadow:`0 0 12px ${hero.accent}`}}>
+            <div style={{color:"white",fontWeight:900,fontSize:15,fontFamily:"Heebo,sans-serif",textShadow:`0 0 12px ${hero.accent}`}}>
               🏫 אקדמיית גיבורים
             </div>
             <div style={{color:hero.accent,fontWeight:700,fontSize:10,fontFamily:"Heebo,sans-serif",opacity:0.8}}>
@@ -758,57 +629,40 @@ function HomeScreen({ hero, save, onZone, onChangeHero, onParentOpen }) {
             </div>
           </div>
           <button onClick={onChangeHero}
-            className="btn-3d rounded-full px-3 py-1.5 font-black border"
-            style={{fontSize:11,background:hero.color+"22",borderColor:hero.accent+"66",color:hero.accent,
-              boxShadow:`0 3px 8px ${hero.glow}22, 0 1px 0 ${hero.accent}33`,
-              fontFamily:"Heebo,sans-serif"}}>
+            className="rounded-full px-3 py-1.5 text-xs font-black border active:scale-95 transition-all"
+            style={{ background: hero.color + "22", borderColor: hero.accent + "66", color: hero.accent }}>
             {hero.emoji} שנה
           </button>
         </div>
 
-        {/* hero card — Academy style */}
-        <div className="rounded-3xl p-4 mb-3 relative overflow-hidden slide-up"
-          style={{background:`linear-gradient(145deg,${hero.sky}ee 0%,#06001e 100%)`,
-            border:`2px solid ${hero.accent}55`,
-            boxShadow:`0 8px 32px ${hero.glow}33, 0 2px 0 ${hero.accent}44, inset 0 1px 0 rgba(255,255,255,0.07)`}}>
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{background:`linear-gradient(90deg,transparent,${hero.accent}99,transparent)`}}/>
-          <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full blur-3xl"
-            style={{background:hero.color,opacity:0.12}}/>
-          <div className="relative flex items-center gap-3">
-            <HeroAvatar hero={hero} size={72}/>
+        {/* hero card */}
+        <div className="rounded-3xl p-4 mb-4 relative overflow-hidden slide-up"
+          style={{ background:`linear-gradient(145deg,${hero.sky}ee 0%,#06001e 100%)`,
+            border:`2px solid ${hero.accent}44`,
+            boxShadow:`0 8px 32px ${hero.glow}28, 0 2px 0 ${hero.accent}33, inset 0 1px 0 rgba(255,255,255,0.06)` }}>
+          <div className="absolute top-0 left-0 right-0 h-px" style={{background:`linear-gradient(90deg,transparent,${hero.accent}88,transparent)`}}/>
+          <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full opacity-12 blur-3xl" style={{ background: hero.color }} />
+          <div className="relative flex items-center gap-4">
+            <HeroAvatar hero={hero} size={74} />
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span style={{color:"white",fontWeight:900,fontSize:20,fontFamily:"Heebo,sans-serif",
-                  textShadow:`0 0 12px ${hero.accent}66`}}>
-                  דור
-                </span>
-                <span style={{color:hero.accent,fontWeight:700,fontSize:12,fontFamily:"Heebo,sans-serif",opacity:0.9}}>
-                  — {hero.title}
+              <div className="flex items-center gap-2 mb-1">
+                <span style={{color:"white",fontWeight:900,fontSize:22,fontFamily:"Heebo,sans-serif",textShadow:`0 0 12px ${hero.accent}66`}}>דור</span>
+                <span className="rounded-full px-2.5 py-0.5"
+                  style={{ background:`linear-gradient(135deg,${hero.accent}44,${hero.accent}22)`,
+                    color:hero.accent, fontWeight:900, fontSize:11, fontFamily:"Heebo,sans-serif",
+                    border:`1px solid ${hero.accent}55`,
+                    boxShadow:`0 0 8px ${hero.accent}33` }}>
+                  רמה {level}
                 </span>
               </div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="rounded-full px-2 py-0.5"
-                  style={{background:`linear-gradient(135deg,${hero.accent}44,${hero.accent}22)`,
-                    color:hero.accent,fontWeight:900,fontSize:10,fontFamily:"Heebo,sans-serif",
-                    border:`1px solid ${hero.accent}55`}}>
-                  ⚡ רמה {level}
-                </span>
-                <PowerBadge level={level} hero={hero} size="sm"/>
-              </div>
-              <XPBar xp={xp} hero={hero}/>
+              <div style={{color:"#d1d5db",fontSize:13,marginBottom:8,fontFamily:"Heebo,sans-serif"}}>{greeting}</div>
+              <XPBar xp={xp} hero={hero} />
             </div>
-          </div>
-          {/* hero speech bubble */}
-          <div className="mt-3">
-            <HeroBubble hero={hero} text={greeting}/>
           </div>
           <div className="mt-3 flex items-center justify-between rounded-2xl px-3 py-2"
             style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)"}}>
-            <Stars n={Math.min(5,Math.floor(totalStars/5))} max={5} size={14}/>
-            <span style={{color:"#9ca3af",fontSize:11,fontWeight:700,fontFamily:"Heebo,sans-serif"}}>
-              {totalStars} ⭐ כוח גבורה
-            </span>
+            <Stars n={Math.min(5, Math.floor(totalStars/5))} max={5} size={15} />
+            <span style={{color:"#9ca3af",fontSize:11,fontWeight:700,fontFamily:"Heebo,sans-serif"}}>סה״כ {totalStars} ⭐ נצברו</span>
           </div>
         </div>
 
@@ -1339,189 +1193,6 @@ function SpeakerBtn({ narrator, onRepeat, accent }) {
 }
 
 // ─── main WheelZone component ─────────────────────────────────────────────────
-
-// ── Patience Meter — teaches delayed gratification ────────────────────────────
-function PatienceMeter({ duration=5, onComplete, color="#FFD700", label="חכה בסבלנות!", reward }) {
-  const [elapsed, setElapsed]   = useState(0);
-  const [done,    setDone]      = useState(false);
-  const [clicked, setClicked]   = useState(false);
-  const [tooEarly,setTooEarly]  = useState(false);
-
-  useEffect(() => {
-    if (done) return;
-    const t = setInterval(() => {
-      setElapsed(e => {
-        if (e+1 >= duration) {
-          clearInterval(t);
-          setDone(true);
-          return duration;
-        }
-        return e+1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [done, duration]);
-
-  const handleClick = () => {
-    if (done) { onComplete(); return; }
-    // clicked too early!
-    setClicked(true);
-    setTooEarly(true);
-    setTimeout(() => { setClicked(false); setTooEarly(false); }, 1200);
-  };
-
-  const pct = Math.round((elapsed/duration)*100);
-
-  return (
-    <div className="w-full max-w-sm flex flex-col items-center gap-3">
-      {/* instruction */}
-      <div className="text-center">
-        <p style={{color:"white",fontWeight:900,fontSize:15,fontFamily:"Heebo,sans-serif",margin:0}}>
-          {done ? "🎉 כל הכבוד! עכשיו לחץ!" : label}
-        </p>
-        {tooEarly && (
-          <p className="pop-in" style={{color:"#FF6B6B",fontWeight:900,fontSize:13,
-            fontFamily:"Heebo,sans-serif",marginTop:4}}>
-            ⏳ עוד קצת... גיבורים יודעים לחכות!
-          </p>
-        )}
-      </div>
-
-      {/* hourglass + timer */}
-      <div className="flex items-center gap-3">
-        <span style={{fontSize:36,
-          animation: done?"none":"tickTock 1s ease-in-out infinite",
-          display:"inline-block",
-          filter: done?`drop-shadow(0 0 12px ${color})`:"none"}}>
-          {done?"🎁":"⏳"}
-        </span>
-        <div style={{fontWeight:900,fontSize:32,fontFamily:"Heebo,sans-serif",
-          color: done?color:"white",
-          textShadow: done?`0 0 16px ${color}`:"none"}}>
-          {done?"!" : `${duration-elapsed}`}
-        </div>
-      </div>
-
-      {/* progress bar */}
-      <div className="w-full rounded-full overflow-hidden relative"
-        style={{height:22,background:"#ffffff11",border:`2px solid ${color}44`}}>
-        <div className="h-full rounded-full absolute top-0 right-0"
-          style={{
-            width:`${pct}%`,
-            background:`linear-gradient(90deg,${color}88,${color})`,
-            boxShadow:`0 0 12px ${color}88`,
-            animation: done?"patienceGlow 1s ease-in-out infinite":"none",
-            transition:"width 0.9s linear",
-          }}/>
-        {/* emoji markers */}
-        {[25,50,75].map(m=>(
-          <div key={m} className="absolute top-0 bottom-0 flex items-center"
-            style={{right:`${m}%`,width:2,background:color+"33"}}/>
-        ))}
-        <span className="absolute inset-0 flex items-center justify-center"
-          style={{color:"white",fontWeight:900,fontSize:11,fontFamily:"Heebo,sans-serif"}}>
-          {pct}%
-        </span>
-      </div>
-
-      {/* dots */}
-      <div className="flex gap-1.5">
-        {Array.from({length:duration}).map((_,i)=>(
-          <div key={i} className="rounded-full transition-all duration-500"
-            style={{width:i<elapsed?14:10,height:i<elapsed?14:10,
-              background:i<elapsed?color:"#333",
-              boxShadow:i<elapsed?`0 0 6px ${color}`:"none"}}/>
-        ))}
-      </div>
-
-      {/* reward preview — blurred until done */}
-      {reward && (
-        <div className="relative rounded-3xl p-4 border-2 text-center w-full"
-          style={{background:`${color}11`,borderColor:`${color}44`,
-            filter: done?"none":"blur(4px)",
-            transition:"filter 0.5s ease"}}>
-          <div style={{fontSize:48}}>{reward.emoji}</div>
-          <div style={{color:"white",fontWeight:900,fontSize:16,fontFamily:"Heebo,sans-serif"}}>
-            {done?reward.label:"???"}
-          </div>
-        </div>
-      )}
-
-      {/* tap button */}
-      <button onClick={handleClick}
-        className="btn-3d tap-ring w-full py-4 rounded-full font-black text-xl"
-        style={{
-          background: done
-            ? `linear-gradient(135deg,${color},#FF8C00)`
-            : clicked
-              ? "linear-gradient(135deg,#CC2200,#FF4444)"
-              : "linear-gradient(145deg,#333,#1a1a1a)",
-          color: done?"black":"white",
-          boxShadow: done?`0 6px 24px ${color}66, 0 2px 0 ${color}88`:"none",
-          animation: done?"patienceGlow 1.5s ease-in-out infinite":"none",
-          fontFamily:"Heebo,sans-serif",
-          transition:"all 0.3s ease",
-        }}>
-        {done ? "🎉 קבל את הפרס!" : clicked ? "⛔ חכה..." : "⏳ ממתין..."}
-      </button>
-    </div>
-  );
-}
-
-// ── Patience Challenge Modal — wraps any solution with a wait ─────────────────
-function PatienceChallenge({ sol, hero, onDone }) {
-  const [phase, setPhase] = useState("intro"); // intro | wait | prize
-  const PATIENCE_SOLUTIONS = [1,4]; // breathing & waiting get patience meter
-
-  const needsPatience = PATIENCE_SOLUTIONS.includes(sol?.id);
-  const duration = sol?.id===1 ? 8 : sol?.id===4 ? 10 : 5;
-
-  useEffect(()=>{
-    if (!needsPatience) { onDone(); return; }
-    const t = setTimeout(()=>setPhase("wait"), 1200);
-    return()=>clearTimeout(t);
-  },[]);
-
-  if (!needsPatience) return null;
-  if (phase==="intro") return (
-    <div className="w-full max-w-sm rounded-3xl p-5 border-2 text-center pop-in"
-      style={{background:`linear-gradient(145deg,${sol.color}22,#06001e)`,
-        border:`2px solid ${sol.color}66`}}>
-      <div style={{fontSize:48,marginBottom:8}}>{sol.emoji}</div>
-      <HeroBubble hero={hero} text={
-        sol.id===1
-          ? "גיבורים יודעים לנשום לאט! חכה עם האנימציה..."
-          : "כוח הסבלנות הוא כוח על! חכה בלי ללחוץ..."
-      }/>
-    </div>
-  );
-
-  if (phase==="wait") return (
-    <PatienceMeter
-      duration={duration}
-      color={sol.color}
-      label={sol.id===1 ? "נשום איתי — ספור עד האפס!" : "ספור לאט ואל תלחץ עד שהגיבור אומר!"}
-      reward={{emoji:"⚡", label:`+${sol.xp+10} כוח גבורה בונוס!`}}
-      onComplete={()=>{ setPhase("prize"); setTimeout(onDone,1500); }}
-    />
-  );
-
-  if (phase==="prize") return (
-    <div className="w-full max-w-sm rounded-3xl p-5 text-center"
-      style={{animation:"prizeReveal 0.6s cubic-bezier(0.34,1.56,0.64,1)"}}>
-      <div style={{fontSize:64,filter:`drop-shadow(0 0 20px ${sol.color})`,
-        animation:"laughBounce 0.8s ease-in-out infinite",display:"inline-block"}}>
-        🏆
-      </div>
-      <div style={{color:sol.color,fontWeight:900,fontSize:22,fontFamily:"Heebo,sans-serif",marginTop:8}}>
-        כוח הסבלנות הופעל! +בונוס ⚡
-      </div>
-    </div>
-  );
-
-  return null;
-}
-
 function WheelZone({ hero, save, onSave, onBack }) {
   const [phase, setPhase] = useState("emotion"); // emotion | happy | spin | result | reflect
   const [emotionBefore, setEmotionBefore] = useState(null);
@@ -1536,8 +1207,6 @@ function WheelZone({ hero, save, onSave, onBack }) {
   const [showXP, setShowXP] = useState(false);
   const [showBreathing, setShowBreathing] = useState(false);
   const [streakMsg, setStreakMsg] = useState(null);
-  const [showPatience, setShowPatience] = useState(false);
-  const [patienceDone, setPatienceDone] = useState(false);
   const baseRot = useRef(0);
   const actBaseRot = useRef(0);
   const narrator = useNarrator();
@@ -1666,7 +1335,6 @@ function WheelZone({ hero, save, onSave, onBack }) {
     setSol(null); setFeelAfter(null); setPhase("emotion");
     setEmotionBefore(null); setShowBreathing(false); setStreakMsg(null);
     setChosenActivity(null); setActSpinning(false); setActSpinDeg(0);
-    setPatienceDone(false); setShowPatience(false);
   };
 
   // Activity wheel spin
@@ -1729,9 +1397,18 @@ function WheelZone({ hero, save, onSave, onBack }) {
           onRepeat={()=> narrator.say(bubbleText().replace(/[🎡💪🌀💥🌟💪🤗🔄🏠⭐🔥⚡💡]/gu,""), {priority:true})}/>
       </div>
 
-      {/* speech bubble — hero style */}
+      {/* speech bubble */}
       <div className="px-4 mb-3">
-        <HeroBubble hero={hero} text={bubbleText().replace(/[🎡💪🌀💥🌟🤗🔄⭐🔥⚡💡]/gu,"")}/>
+        <div className="relative rounded-2xl px-4 py-3 border-2 text-right"
+          style={{background:"#ffffff0d",borderColor:hero.accent+"44",
+            boxShadow:`0 2px 16px ${hero.glow}22`}}>
+          <p className="text-white font-black text-base leading-snug">{bubbleText()}</p>
+          <div style={{
+            position:"absolute",bottom:-10,right:20,width:0,height:0,
+            borderLeft:"10px solid transparent",borderRight:"10px solid transparent",
+            borderTop:`10px solid ${hero.accent}44`,
+          }}/>
+        </div>
       </div>
 
       {/* ── PHASE: emotion ── */}
@@ -1918,31 +1595,22 @@ function WheelZone({ hero, save, onSave, onBack }) {
             </div>
           </div>
 
-          {/* per-solution visual animation OR patience challenge */}
+          {/* per-solution visual animation */}
           <div className="w-full max-w-sm flex justify-center pop-in" style={{animationDelay:"0.3s"}}>
-            {[1,4].includes(sol.id) && !patienceDone
-              ? <PatienceChallenge sol={sol} hero={hero}
-                  onDone={()=>{ setPatienceDone(true); narrator.say("כל הכבוד! כוח הסבלנות!",{priority:true}); }}/>
-              : sol.id===1
-                ? <BreathingGuide active={true} color={sol.color}/>
-                : <SolutionAnim sol={sol}/>
-            }
+            {sol.id===1
+              ? <BreathingGuide active={true} color={sol.color}/>
+              : <SolutionAnim sol={sol}/>}
           </div>
 
-          {/* emotion buttons — only show after patience done or non-patience solution */}
-          {(!([1,4].includes(sol.id)) || patienceDone) && (
-            <>
-              <p style={{color:"white",fontWeight:900,textAlign:"center",fontSize:16,
-                margin:"16px 0 12px",fontFamily:"Heebo,sans-serif"}}>
-                איך הרגשת אחרי?
-              </p>
-              <div className="flex gap-3 justify-center slide-up" style={{animationDelay:"0.1s"}}>
-                {EMOTIONS_AFTER.map(e=>(
-                  <EmotionBtn key={e.emoji} emotion={e} size="sm" onClick={()=>doFeelAfter(e)}/>
-                ))}
-              </div>
-            </>
-          )}
+          <p style={{color:"white",fontWeight:900,textAlign:"center",fontSize:16,
+            margin:"16px 0 12px",fontFamily:"Heebo,sans-serif"}}>
+            איך הרגשת אחרי?
+          </p>
+          <div className="flex gap-3 justify-center slide-up" style={{animationDelay:"0.5s"}}>
+            {EMOTIONS_AFTER.map(e=>(
+              <EmotionBtn key={e.emoji} emotion={e} size="sm" onClick={()=>doFeelAfter(e)}/>
+            ))}
+          </div>
         </div>
       )}
 
@@ -2269,7 +1937,6 @@ function KingdomZone({ hero, save, onSave, onBack }) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [usedCards, setUsedCards] = useState([]);
   const [castleAnim, setCastleAnim] = useState(false);
-  const [kingdomPatienceDone, setKingdomPatienceDone] = useState(false);
   const baseRot = useRef(0);
 
   const pickCard = (used=[]) => {
@@ -2349,7 +2016,6 @@ function KingdomZone({ hero, save, onSave, onBack }) {
   const restart = () => {
     setScore(0); setRound(1); setChosen(null); setIsGreen(null);
     setUsedCards([]); setPhase("mode"); setMode(null);
-    setKingdomPatienceDone(false);
     narrator.stop();
   };
 
@@ -2578,17 +2244,6 @@ function KingdomZone({ hero, save, onSave, onBack }) {
       {/* ── SUMMARY ── */}
       {phase==="summary" && (
         <div className="flex-1 flex flex-col items-center px-4 pb-6 gap-4" style={{paddingTop:8}}>
-          {/* bonus patience challenge before claiming reward */}
-          {!kingdomPatienceDone ? (
-            <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 w-full">
-              <HeroBubble hero={hero} text="כל הכבוד! לפני הפרס — הוכח שאתה גיבור סבלנות! ⏳"/>
-              <PatienceMeter duration={6} color="#FFD700"
-                label="חכה בסבלנות לפרס הסיום!"
-                reward={{emoji:"👑",label:"פרס הטירה!"}}
-                onComplete={()=>{ setKingdomPatienceDone(true); narrator.say("בונוס סבלנות! כל הכבוד!",{priority:true}); }}/>
-            </div>
-          ) : (
-            <>
           {/* full castle display */}
           <div className="w-full" style={{maxWidth:320,animation:"castleRise 0.8s cubic-bezier(0.34,1.56,0.64,1)"}}>
             <CastleSVG score={score} total={KINGDOM_ROUNDS} animate={true}/>
@@ -2635,8 +2290,6 @@ function KingdomZone({ hero, save, onSave, onBack }) {
               🏠 בית
             </button>
           </div>
-            </>
-          )}
         </div>
       )}
     </div>
@@ -2647,120 +2300,68 @@ function KingdomZone({ hero, save, onSave, onBack }) {
 // 🔤 LETTERS ZONE — ממלכת האותיות ומספרים
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── Adaptive difficulty system ───────────────────────────────────────────────
+// ── Adaptive difficulty system ──────────────────────────────────────────────
+// shuffleArr must be defined before getDistractors uses it
+function shuffleArr(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
 const ADAPTIVE_KEY = "dor_adaptive_v1";
+function loadAdaptive(){try{return JSON.parse(localStorage.getItem(ADAPTIVE_KEY))||{};}catch{return {};}}
+function saveAdaptive(d){try{localStorage.setItem(ADAPTIVE_KEY,JSON.stringify(d));}catch{}}
+function getItemStats(adaptive,key){return adaptive[key]||{correct:0,wrong:0,level:1};}
+function updateItemStats(adaptive,key,wasCorrect){
+  const s=getItemStats(adaptive,key);
+  const n={...s,correct:s.correct+(wasCorrect?1:0),wrong:s.wrong+(wasCorrect?0:1)};
+  if(!wasCorrect) n.level=Math.max(1,s.level-1);
+  return{...adaptive,[key]:n};
+}
+function levelUpItem(adaptive,key){const s=getItemStats(adaptive,key);return{...adaptive,[key]:{...s,level:Math.min(3,s.level+1)}};}
 
-function loadAdaptive() {
-  try { return JSON.parse(localStorage.getItem(ADAPTIVE_KEY)) || {}; } catch { return {}; }
-}
-function saveAdaptive(d) {
-  try { localStorage.setItem(ADAPTIVE_KEY, JSON.stringify(d)); } catch {}
-}
-
-// Each item tracked: { correct: n, wrong: n, level: 1|2|3 }
-// Level 1 = easy (2 options), Level 2 = normal (4 options), Level 3 = hard (confusable)
-function getItemStats(adaptive, key) {
-  return adaptive[key] || { correct:0, wrong:0, level:1 };
-}
-function updateItemStats(adaptive, key, wasCorrect) {
-  const s = getItemStats(adaptive, key);
-  const newS = {
-    ...s,
-    correct: s.correct + (wasCorrect?1:0),
-    wrong:   s.wrong   + (wasCorrect?0:1),
-  };
-  // level up: 3 correct in a row tracked via streak elsewhere
-  // level down: wrong → drop to level 1
-  if (!wasCorrect) newS.level = Math.max(1, s.level-1);
-  return { ...adaptive, [key]: newS };
-}
-function levelUpItem(adaptive, key) {
-  const s = getItemStats(adaptive, key);
-  return { ...adaptive, [key]: { ...s, level: Math.min(3, s.level+1) } };
-}
-
-// Confusable letter pairs (visually similar)
 const CONFUSABLE_LETTERS = {
-  "ב": ["כ","ד"],   "כ": ["ב","פ"],   "ד": ["ר","ה"],
-  "ה": ["ח","ד"],   "ח": ["ה","ת"],   "ו": ["ז","י"],
-  "ז": ["ו","נ"],   "י": ["ו","ן"],   "מ": ["ס","ם"],
-  "נ": ["ז","כ"],   "ס": ["מ","ע"],   "ע": ["צ","ס"],
-  "פ": ["כ","ף"],   "צ": ["ע","ץ"],   "ר": ["ד","ן"],
-  "ש": ["ת","ף"],   "ת": ["ש","ח"],   "ל": ["ך","א"],
-  "א": ["ל","ע"],   "ג": ["ג","ג"],   "ט": ["מ","ס"],
+  "ב":["כ","ד"],"כ":["ב","פ"],"ד":["ר","ה"],"ה":["ח","ד"],"ח":["ה","ת"],
+  "ו":["ז","י"],"ז":["ו","נ"],"י":["ו","ן"],"מ":["ס","ם"],"נ":["ז","כ"],
+  "ס":["מ","ע"],"ע":["צ","ס"],"פ":["כ","ף"],"צ":["ע","ץ"],"ר":["ד","ן"],
+  "ש":["ת","ף"],"ת":["ש","ח"],"ל":["ך","א"],"א":["ל","ע"],
 };
+const CONFUSABLE_NUMBERS = {1:[2,7],2:[1,3],3:[2,8],4:[9,7],5:[6,3],6:[5,9],7:[1,4],8:[3,9],9:[6,4],10:[6,0]};
 
-const CONFUSABLE_NUMBERS = {
-  1:[2,7],  2:[1,3],  3:[2,8],  4:[9,7],  5:[6,3],
-  6:[5,9],  7:[1,4],  8:[3,9],  9:[6,4],  10:[6,0],
-};
-
-// Build distractor pool for adaptive mode
-function getDistractors(target, data, mode, level) {
-  const key = mode==="letters" ? target.letter : String(target.number);
-  if (level >= 3) {
-    // hard: use confusable items
-    const confusable = mode==="letters"
-      ? (CONFUSABLE_LETTERS[key] || [])
-      : (CONFUSABLE_NUMBERS[target.number] || []);
-    const confusableItems = confusable
-      .map(k => mode==="letters"
-        ? data.find(d=>d.letter===k)
-        : data.find(d=>d.number===k))
-      .filter(Boolean);
-    const remaining = shuffleArr(data.filter(d =>
-      mode==="letters" ? d.letter!==key : d.number!==target.number
-    ));
-    return shuffleArr([...confusableItems, ...remaining]).slice(0,3);
+function getDistractors(target,data,mode,level){
+  const key=mode==="letters"?target.letter:String(target.number);
+  if(level>=3){
+    const conf=mode==="letters"?(CONFUSABLE_LETTERS[key]||[]):(CONFUSABLE_NUMBERS[target.number]||[]);
+    const confItems=conf.map(k=>mode==="letters"?data.find(d=>d.letter===k):data.find(d=>d.number===k)).filter(Boolean);
+    const rest=shuffleArr(data.filter(d=>mode==="letters"?d.letter!==key:d.number!==target.number));
+    return shuffleArr([...confItems,...rest]).slice(0,3);
   }
-  // normal: random distractors
-  return shuffleArr(data.filter(d =>
-    mode==="letters" ? d.letter!==key : d.number!==target.number
-  )).slice(0, level===1 ? 1 : 3);
+  return shuffleArr(data.filter(d=>mode==="letters"?d.letter!==key:d.number!==target.number)).slice(0,level===1?1:3);
 }
 
-// Visual hint for wrong answers
-function AdaptiveHint({ target, mode, show }) {
-  if (!show) return null;
-  return (
+function AdaptiveHint({target,mode,show}){
+  if(!show) return null;
+  return(
     <div className="w-full max-w-sm rounded-2xl p-3 border-2 text-center pop-in"
-      style={{background:"#1a0a00",border:"2px solid #FFD700",
-        boxShadow:"0 0 20px #FFD70055"}}>
-      <div style={{fontSize:11,color:"#FFD700",fontWeight:900,
-        fontFamily:"Heebo,sans-serif",marginBottom:4}}>
-        💡 רמז — זוהי האות:
-      </div>
-      <div style={{fontSize:72,fontWeight:900,fontFamily:"Heebo,sans-serif",
-        color:"#FFD700",textShadow:"0 0 24px #FFD700aa",lineHeight:1}}>
-        {mode==="letters" ? target?.letter : target?.number}
+      style={{background:"#1a0a00",border:"2px solid #FFD700",boxShadow:"0 0 20px #FFD70055"}}>
+      <div style={{fontSize:11,color:"#FFD700",fontWeight:900,fontFamily:"Heebo,sans-serif",marginBottom:4}}>💡 רמז — זוהי:</div>
+      <div style={{fontSize:72,fontWeight:900,fontFamily:"Heebo,sans-serif",color:"#FFD700",textShadow:"0 0 24px #FFD700aa",lineHeight:1}}>
+        {mode==="letters"?target?.letter:target?.number}
       </div>
       <div style={{fontSize:32,marginTop:4}}>{target?.emoji}</div>
-      {mode==="letters" && (
-        <div style={{color:"#9ca3af",fontSize:12,fontFamily:"Heebo,sans-serif",marginTop:4}}>
-          {target?.letter} כמו {target?.word}
-        </div>
-      )}
+      {mode==="letters"&&<div style={{color:"#9ca3af",fontSize:12,fontFamily:"Heebo,sans-serif",marginTop:4}}>{target?.letter} כמו {target?.word}</div>}
     </div>
   );
 }
 
-// Difficulty level indicator
-function DifficultyBadge({ level }) {
-  const labels = {1:"קל 🌱", 2:"בינוני ⭐", 3:"מאתגר 🔥"};
-  const colors  = {1:"#00CC44", 2:"#FFD700",  3:"#FF4500"};
-  return (
+function DifficultyBadge({level}){
+  const labels={1:"קל 🌱",2:"בינוני ⭐",3:"מאתגר 🔥"};
+  const colors={1:"#00CC44",2:"#FFD700",3:"#FF4500"};
+  return(
     <div className="rounded-full px-2 py-0.5 inline-flex items-center"
       style={{background:colors[level]+"22",border:`1px solid ${colors[level]}55`}}>
-      <span style={{color:colors[level],fontWeight:900,fontSize:10,fontFamily:"Heebo,sans-serif"}}>
-        {labels[level]}
-      </span>
+      <span style={{color:colors[level],fontWeight:900,fontSize:10,fontFamily:"Heebo,sans-serif"}}>{labels[level]}</span>
     </div>
   );
 }
 
-// ── Adaptive difficulty system ───────────────────────────────────────────────
 const LETTER_DATA = [
-[
   {letter:"א", word:"ארנב",   emoji:"🐰", sound:"א"},
   {letter:"ב", word:"בית",    emoji:"🏠", sound:"ב"},
   {letter:"ג", word:"גמל",    emoji:"🐪", sound:"ג"},
@@ -2801,7 +2402,6 @@ const NUMBER_DATA = [
 const ZONE_COLOR = "#A78BFA";
 
 // shuffle helper
-function shuffleArr(arr) {
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a;
@@ -2809,171 +2409,55 @@ function shuffleArr(arr) {
 
 // ── AnswerBtn — big tap target with correct/wrong animations ──
 function AnswerBtn({ label, sublabel, onClick, state, accentColor }) {
-  const isCorrect = state==="correct";
-  const isWrong   = state==="wrong";
-  const isIdle    = state==="idle";
+  // state: "idle" | "correct" | "wrong"
+  const bg = state==="correct" ? "linear-gradient(135deg,#00AA44,#00CC66)"
+           : state==="wrong"   ? "linear-gradient(135deg,#CC2200,#FF4444)"
+           : `linear-gradient(135deg,${accentColor}22,${accentColor}11)`;
+  const border = state==="correct" ? "#00FF88"
+               : state==="wrong"   ? "#FF4444"
+               : accentColor+"55";
+  const shake = state==="wrong" ? "wrongShake 0.5s ease" : "none";
+  const scale = state==="correct" ? "correctPop 0.4s ease" : "none";
 
   return (
     <button onClick={onClick}
-      className="rounded-3xl flex flex-col items-center justify-center relative overflow-hidden"
+      className="rounded-3xl flex flex-col items-center justify-center active:scale-90 transition-colors border-4 relative overflow-hidden"
       style={{
-        minHeight:96, padding:"14px 10px",
-        background: isCorrect ? "linear-gradient(145deg,#00AA44,#00DD66)"
-                  : isWrong   ? "linear-gradient(145deg,#CC2200,#FF4444)"
-                  : `linear-gradient(145deg,${accentColor}28,${accentColor}10)`,
-        border: `3px solid ${isCorrect?"#00FF88":isWrong?"#FF4444":accentColor+"55"}`,
-        boxShadow: isCorrect ? `0 0 28px #00FF8899, 0 4px 0 #00AA44`
-                 : isWrong   ? `0 0 20px #FF444488, 0 2px 0 #CC0000`
-                 : `0 5px 16px ${accentColor}22, 0 2px 0 ${accentColor}33`,
-        animation: isWrong   ? "wrongWobble 0.6s ease"
-                 : isCorrect ? "correctBounce 0.7s ease"
-                 : "none",
-        transform: isIdle ? "translateY(0)" : undefined,
-        transition: isIdle ? "all 0.12s ease" : "none",
+        background:bg, borderColor:border,
+        minHeight:90, padding:"12px 8px",
+        animation: state==="wrong" ? shake : state==="correct" ? scale : "none",
+        boxShadow: state==="correct" ? `0 0 24px #00FF8888`
+                 : state==="wrong"   ? `0 0 16px #FF444488`
+                 : `0 4px 16px ${accentColor}22`,
       }}>
-
-      {/* correct: ripple rings */}
-      {isCorrect && [0,1].map(i=>(
-        <div key={i} className="absolute inset-0 rounded-3xl pointer-events-none"
-          style={{border:"3px solid #00FF88",
-            animation:`ripple 0.8s ease-out ${i*0.2}s forwards`,opacity:0}}/>
-      ))}
-
-      {/* correct: floating score */}
-      {isCorrect && (
-        <div className="absolute top-1 left-1/2 pointer-events-none font-black"
-          style={{transform:"translateX(-50%)",fontSize:20,color:"#FFD700",
-            textShadow:"0 0 8px #FFD700",
-            animation:"scoreFloat 1s ease-out forwards",fontFamily:"Heebo,sans-serif"}}>
-          +1 ⭐
-        </div>
+      {/* sparkles on correct */}
+      {state==="correct" && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center"
+          style={{fontSize:28,animation:"sparkleOut 0.6s ease forwards"}}>✨</div>
       )}
-
-      {/* wrong: X overlay */}
-      {isWrong && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{fontSize:40,opacity:0.5}}>❌</div>
-      )}
-
-      {/* correct: star burst */}
-      {isCorrect && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{fontSize:32,animation:"starBurst 0.6s ease forwards"}}>✨</div>
-      )}
-
-      {/* label */}
-      <span style={{
-        fontWeight:900, color:"white", lineHeight:1, fontSize:44,
-        fontFamily:"Heebo,sans-serif",
-        textShadow: isCorrect?"0 0 12px #00FF8877":isWrong?"0 0 8px #FF444466":"0 2px 4px rgba(0,0,0,0.4)",
-        transform: isCorrect?"scale(1.08)":"scale(1)",
-        transition:"transform 0.2s ease",
-        display:"inline-block",
-      }}>{label}</span>
-
-      {sublabel && (
-        <span style={{color:"white",fontWeight:700,marginTop:4,fontSize:13,
-          opacity: isWrong?0.5:0.85,fontFamily:"Heebo,sans-serif"}}>
-          {sublabel}
-        </span>
-      )}
-
-      {/* idle: shimmer top edge */}
-      {isIdle && (
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${accentColor}88,transparent)`}}/>
-      )}
+      <span className="font-black text-white leading-none" style={{fontSize:42}}>{label}</span>
+      {sublabel && <span className="text-white font-bold mt-1 opacity-80" style={{fontSize:13}}>{sublabel}</span>}
     </button>
-  );
-}
-
-// ── Streak badge ──────────────────────────────────────────────────────────────
-function StreakBadge({ streak }) {
-  if (streak < 2) return null;
-  return (
-    <div className="flex items-center gap-1 rounded-full px-3 py-1 pop-in"
-      style={{
-        background:"linear-gradient(135deg,#FF6B00,#FF4500)",
-        boxShadow:"0 0 16px #FF450088, 0 2px 0 #CC3300",
-      }}>
-      <span style={{fontSize:18,animation:"streakFlame 0.6s ease-in-out infinite"}}>🔥</span>
-      <span style={{color:"white",fontWeight:900,fontSize:14,fontFamily:"Heebo,sans-serif"}}>
-        {streak} ברצף!
-      </span>
-    </div>
-  );
-}
-
-// ── Particle burst on correct answer ─────────────────────────────────────────
-function ParticleBurst({ color, trigger }) {
-  const [active, setActive] = useState(false);
-  const particles = [
-    {emoji:"⭐",tx:"-60px",ty:"-50px"},
-    {emoji:"✨",tx:"60px", ty:"-60px"},
-    {emoji:"🌟",tx:"-40px",ty:"50px"},
-    {emoji:"💫",tx:"50px", ty:"50px"},
-    {emoji:"⭐",tx:"0px",  ty:"-70px"},
-    {emoji:"✨",tx:"-70px",ty:"10px"},
-  ];
-
-  useEffect(() => {
-    if (trigger > 0) {
-      setActive(true);
-      setTimeout(() => setActive(false), 900);
-    }
-  }, [trigger]);
-
-  if (!active) return null;
-  return (
-    <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-20">
-      {particles.map((p,i) => (
-        <div key={i} className="absolute" style={{
-          fontSize: 22+i*2,
-          "--tx": p.tx, "--ty": p.ty,
-          animation: `particleShoot 0.8s ease-out ${i*0.06}s forwards`,
-        }}>{p.emoji}</div>
-      ))}
-    </div>
   );
 }
 
 // ── Game 1: שמע וגע — hear a letter/number and tap it ──
 function HearAndTapGame({ hero, narrator, onScore, onDone, mode }) {
-  const data   = mode==="letters" ? LETTER_DATA : NUMBER_DATA;
+  const data = mode==="letters" ? LETTER_DATA : NUMBER_DATA;
   const ROUNDS = 8;
-  const [round,         setRound]         = useState(0);
-  const [score,         setScore]         = useState(0);
-  const [options,       setOptions]       = useState([]);
-  const [target,        setTarget]        = useState(null);
-  const [states,        setStates]        = useState({});
-  const [locked,        setLocked]        = useState(false);
-  const [showBoom,      setShowBoom]      = useState(false);
-  const [streak,        setStreak]        = useState(0);
-  const [burstTrigger,  setBurstTrigger]  = useState(0);
-  const [celebrating,   setCelebrating]   = useState(false);
-  const [showHint,      setShowHint]      = useState(false);
-  const [wrongCount,    setWrongCount]    = useState(0);
-  const [adaptive,      setAdaptive]      = useState(()=>loadAdaptive());
-  const [curLevel,      setCurLevel]      = useState(1);
+  const [round, setRound]     = useState(0);
+  const [score, setScore]     = useState(0);
+  const [options, setOptions] = useState([]);
+  const [target, setTarget]   = useState(null);
+  const [states, setStates]   = useState({});   // {idx: "correct"|"wrong"}
+  const [locked, setLocked]   = useState(false);
+  const [showBoom, setShowBoom] = useState(false);
 
-  const getKey = (item) => mode==="letters" ? item.letter : String(item.number);
-
-  const makeRound = (rnd, adap=adaptive) => {
-    // pick target — bias toward items with lower success rate
-    const shuffled = shuffleArr(data);
-    const tgt = shuffled[Math.floor(Math.random()*Math.min(data.length,6))];
-    const itemKey = getKey(tgt);
-    const stats = getItemStats(adap, itemKey);
-    const lvl = stats.level;
-    setCurLevel(lvl);
-
-    // build options based on level
-    const distractors = getDistractors(tgt, data, mode, lvl);
-    const numOptions  = lvl===1 ? 2 : 4;
-    const pool = shuffleArr([tgt, ...distractors.slice(0,numOptions-1)]);
-    setOptions(pool); setTarget(tgt); setStates({});
-    setLocked(false); setShowHint(false); setWrongCount(0);
-
+  const makeRound = (rnd) => {
+    const pool = shuffleArr(data).slice(0,4);
+    const tgt  = pool[Math.floor(Math.random()*4)];
+    setOptions(pool); setTarget(tgt); setStates({}); setLocked(false);
+    // announce
     const txt = mode==="letters"
       ? `מצא את האות ${tgt.letter}! ${tgt.letter} כמו ${tgt.word}`
       : `מצא את המספר ${tgt.number}! ${tgt.word}`;
@@ -2984,63 +2468,28 @@ function HearAndTapGame({ hero, narrator, onScore, onDone, mode }) {
 
   const choose = (idx, item) => {
     if (locked) return;
-    const isCorrect = mode==="letters"
-      ? item.letter===target.letter
-      : item.number===target.number;
+    const isLabel = mode==="letters" ? item.letter===target.letter : item.number===target.number;
+    // read it aloud
     narrator.say(mode==="letters" ? item.letter : String(item.number), {priority:true});
-
-    // update adaptive stats
-    const key = getKey(target);
-    let newAdaptive = updateItemStats(adaptive, key, isCorrect);
-
-    if (isCorrect) {
+    if (isLabel) {
       setStates({[idx]:"correct"});
       setLocked(true);
       setShowBoom(true);
-      setBurstTrigger(t=>t+1);
-      setCelebrating(true);
-      setTimeout(()=>{ setShowBoom(false); setCelebrating(false); }, 1400);
-
-      const ns = score+1; setScore(ns); onScore(ns);
-      const newStreak = streak+1; setStreak(newStreak);
-
-      // level up after 3 correct streak
-      if (newStreak>0 && newStreak%3===0) {
-        newAdaptive = levelUpItem(newAdaptive, key);
-        narrator.say(`מדהים! ${newStreak} ברצף! עולה לרמה קשה יותר!`, {priority:false});
-      } else {
-        const praise = newStreak>=3
-          ? `${newStreak} ברצף! אלוף!`
-          : mode==="letters"
-            ? `כן! ${item.letter} כמו ${item.word}! מעולה!`
-            : `כן! ${item.number}! מעולה!`;
-        narrator.say(praise, {priority:false});
-      }
-
-      setAdaptive(newAdaptive);
-      saveAdaptive(newAdaptive);
+      setTimeout(()=>setShowBoom(false),1500);
+      const ns = score+1;
+      setScore(ns);
+      onScore(ns);
+      narrator.say(mode==="letters"
+        ? `כן! ${item.letter} כמו ${item.word}! מעולה!`
+        : `כן! ${item.number}! ${item.word}! מעולה!`, {priority:false});
       setTimeout(()=>{
         if (round+1>=ROUNDS) onDone(ns);
-        else { setRound(r=>r+1); makeRound(round+1, newAdaptive); }
-      }, 1400);
-
+        else { setRound(r=>r+1); makeRound(round+1); }
+      },1400);
     } else {
       setStates(s=>({...s,[idx]:"wrong"}));
-      setStreak(0);
-      const newWrong = wrongCount+1;
-      setWrongCount(newWrong);
-
-      if (newWrong>=2) {
-        // show hint after 2 wrong
-        setShowHint(true);
-        narrator.say(`לא נורא! הנה רמז — זוהי ${mode==="letters"?target.letter:target.number}! נסה שוב!`, {priority:true});
-      } else {
-        narrator.say("לא זו! בוא ננסה שוב!", {priority:true});
-      }
-
-      setAdaptive(newAdaptive);
-      saveAdaptive(newAdaptive);
-      setTimeout(()=> setStates(s=>{const n={...s};delete n[idx];return n;}), 800);
+      narrator.say("לא זו! נסה שוב!", {priority:true});
+      setTimeout(()=> setStates(s=>{const n={...s};delete n[idx];return n;}), 700);
     }
   };
 
@@ -3048,13 +2497,8 @@ function HearAndTapGame({ hero, narrator, onScore, onDone, mode }) {
 
   return (
     <div className="flex-1 flex flex-col items-center px-4 pb-4">
-      {/* top row: streak + difficulty */}
-      <div className="flex items-center justify-between w-full max-w-sm mb-1">
-        <StreakBadge streak={streak}/>
-        <DifficultyBadge level={curLevel}/>
-      </div>
       {/* round progress */}
-      <div className="flex gap-1.5 justify-center mb-2">
+      <div className="flex gap-1.5 justify-center mb-3">
         {Array.from({length:ROUNDS}).map((_,i)=>(
           <div key={i} className="rounded-full transition-all" style={{
             width:i===round?14:10, height:i===round?14:10,
@@ -3064,82 +2508,39 @@ function HearAndTapGame({ hero, narrator, onScore, onDone, mode }) {
         ))}
       </div>
 
-      {/* score strip */}
-      <div className="flex items-center justify-between w-full max-w-sm mb-1 px-1">
-        <div className="flex gap-0.5">
-          {Array.from({length:score}).map((_,i)=>(
-            <span key={i} style={{fontSize:14,
-              animation:`starBurst 0.4s ease ${i===score-1?0:99}s both`,
-              filter:"drop-shadow(0 0 4px #FFD700)"}}>⭐</span>
-          ))}
-        </div>
-        <span style={{color:ZONE_COLOR,fontWeight:900,fontSize:12,fontFamily:"Heebo,sans-serif"}}>
-          {score}/{ROUNDS}
-        </span>
-      </div>
-
       {/* big target display */}
-      <div className="w-full max-w-sm rounded-3xl p-4 mb-3 border-2 text-center relative overflow-hidden"
-        style={{
-          background:`linear-gradient(145deg,${ZONE_COLOR}28,#06001e)`,
-          border:`2px solid ${ZONE_COLOR}66`,
-          boxShadow:`0 0 24px ${ZONE_COLOR}33, inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${ZONE_COLOR}aa,transparent)`}}/>
+      <div className="w-full max-w-sm rounded-3xl p-5 mb-4 border-2 text-center relative overflow-hidden"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
         {showBoom && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            {["🎉","⭐","✨","🌟"].map((e,i)=>(
-              <div key={i} className="absolute" style={{
-                fontSize: 32+i*8,
-                animation:`letterExplode 0.8s ease ${i*0.1}s forwards`,
-                left:`${20+i*18}%`, top:`${10+i*12}%`,
-              }}>{e}</div>
-            ))}
-          </div>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            style={{fontSize:60,animation:"sparkleOut 1s ease forwards"}}>🎉</div>
         )}
-        <ParticleBurst color={ZONE_COLOR} trigger={burstTrigger}/>
-        <p style={{color:"#9ca3af",fontWeight:900,fontSize:13,marginBottom:8,fontFamily:"Heebo,sans-serif"}}>
+        <p className="text-gray-300 font-black text-sm mb-2">
           {mode==="letters" ? "🎵 מצא את האות:" : "🎵 מצא את המספר:"}
         </p>
-        <div style={{
-          fontWeight:900, lineHeight:1, marginBottom:6,
-          fontSize:96, fontFamily:"Heebo,sans-serif",
-          color:ZONE_COLOR,
-          textShadow:`0 0 32px ${ZONE_COLOR}, 0 0 60px ${ZONE_COLOR}55`,
-          animation: celebrating
-            ? "letterCelebrate 0.6s ease"
-            : "glowPulse 2s ease-in-out infinite",
-          display:"inline-block",
-          transition:"transform 0.2s ease",
-        }}>
-          {mode==="letters" ? target.letter : target.number}
-        </div>
-        <div style={{fontSize:44,marginBottom:6}}>{target.emoji}</div>
-        {mode==="letters" && (
-          <div style={{color:"#6b7280",fontSize:12,fontFamily:"Heebo,sans-serif",marginBottom:6}}>
-            {target.letter} כמו {target.word}
+        {mode==="letters" ? (
+          <div className="font-black leading-none mb-1"
+            style={{fontSize:90,color:ZONE_COLOR,textShadow:`0 0 30px ${ZONE_COLOR}`}}>
+            {target.letter}
+          </div>
+        ) : (
+          <div className="font-black leading-none mb-1"
+            style={{fontSize:90,color:ZONE_COLOR,textShadow:`0 0 30px ${ZONE_COLOR}`}}>
+            {target.number}
           </div>
         )}
+        <div style={{fontSize:40}}>{mode==="letters" ? target.emoji : target.emoji}</div>
         <button onClick={()=> narrator.say(
           mode==="letters" ? `${target.letter} כמו ${target.word}` : `${target.number} ${target.word}`,
           {priority:true})}
-          className="btn-3d rounded-full px-4 py-1.5 font-black border"
-          style={{fontSize:12,background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="mt-2 rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR}}>
           🔊 שמע שוב
         </button>
       </div>
 
-      {/* hint (shown after 2 wrong) */}
-      {showHint && (
-        <div className="w-full max-w-sm mb-2">
-          <AdaptiveHint target={target} mode={mode} show={showHint}/>
-        </div>
-      )}
-
-      {/* answer buttons — 2 cols for easy, 2 cols for all */}
-      <div className={`grid gap-3 w-full max-w-sm ${options.length<=2?"grid-cols-2":"grid-cols-2"}`}>
+      {/* 4 answer buttons */}
+      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
         {options.map((item,idx)=>(
           <AnswerBtn key={idx}
             label={mode==="letters" ? item.letter : String(item.number)}
@@ -3165,23 +2566,10 @@ function MatchPicGame({ hero, narrator, onScore, onDone, mode }) {
   const [locked, setLocked] = useState(false);
   const [showBoom, setShowBoom] = useState(false);
 
-  const [adaptive2, setAdaptive2] = useState(()=>loadAdaptive());
-  const [curLevel2, setCurLevel2] = useState(1);
-  const [showHint2, setShowHint2] = useState(false);
-  const [wrongCount2,setWrongCount2]=useState(0);
-
-  const makeRound = (adap=adaptive2) => {
-    const shuffled = shuffleArr(data);
-    const tgt = shuffled[Math.floor(Math.random()*Math.min(data.length,6))];
-    const key = mode==="letters" ? tgt.letter : String(tgt.number);
-    const stats = getItemStats(adap, key);
-    const lvl = stats.level;
-    setCurLevel2(lvl);
-    const distractors = getDistractors(tgt, data, mode, lvl);
-    const numOpts = lvl===1 ? 2 : 4;
-    const pool = shuffleArr([tgt, ...distractors.slice(0,numOpts-1)]);
-    setItem(tgt); setOptions(pool); setStates({}); setLocked(false);
-    setShowHint2(false); setWrongCount2(0);
+  const makeRound = () => {
+    const pool = shuffleArr(data).slice(0,4);
+    const tgt  = pool[0];
+    setItem(tgt); setOptions(shuffleArr(pool)); setStates({}); setLocked(false);
     const txt = mode==="letters"
       ? `מה האות הראשונה של ${tgt.word}?`
       : `כמה ${tgt.emoji} יש כאן? ספור!`;
@@ -3194,26 +2582,18 @@ function MatchPicGame({ hero, narrator, onScore, onDone, mode }) {
     if (locked) return;
     const correct = mode==="letters" ? opt.letter===item.letter : opt.number===item.number;
     narrator.say(mode==="letters" ? opt.letter : String(opt.number), {priority:true});
-    const key = mode==="letters" ? item.letter : String(item.number);
-    let newAdap = updateItemStats(adaptive2, key, correct);
-
     if (correct) {
       setStates({[idx]:"correct"}); setLocked(true);
-      setShowBoom(true); setTimeout(()=>setShowBoom(false),1400);
+      setShowBoom(true); setTimeout(()=>setShowBoom(false),1500);
       const ns=score+1; setScore(ns); onScore(ns);
-      if ((score+1)%3===0) newAdap = levelUpItem(newAdap, key);
       narrator.say(mode==="letters"
         ? `נכון! ${item.word} מתחיל ב${item.letter}! מעולה!`
-        : `נכון! ${item.number}! מעולה!`, {priority:false});
-      setAdaptive2(newAdap); saveAdaptive(newAdap);
-      setTimeout(()=>{ if(round+1>=ROUNDS) onDone(ns); else{setRound(r=>r+1);makeRound(newAdap);} },1400);
+        : `נכון! ${item.number}! ${item.word}!`, {priority:false});
+      setTimeout(()=>{ if(round+1>=ROUNDS) onDone(ns); else{setRound(r=>r+1);makeRound();} },1400);
     } else {
       setStates(s=>({...s,[idx]:"wrong"}));
-      const nw=wrongCount2+1; setWrongCount2(nw);
-      if(nw>=2) { setShowHint2(true); narrator.say(`רמז: ${mode==="letters"?item.letter:item.number}! נסה שוב!`,{priority:true}); }
-      else narrator.say("לא זו! נסה שוב!", {priority:true});
-      setAdaptive2(newAdap); saveAdaptive(newAdap);
-      setTimeout(()=>setStates(s=>{const n={...s};delete n[idx];return n;}),800);
+      narrator.say("לא זו! נסה שוב!", {priority:true});
+      setTimeout(()=>setStates(s=>{const n={...s};delete n[idx];return n;}),700);
     }
   };
 
@@ -3221,67 +2601,39 @@ function MatchPicGame({ hero, narrator, onScore, onDone, mode }) {
 
   return (
     <div className="flex-1 flex flex-col items-center px-4 pb-4">
-      <div className="flex items-center justify-between w-full max-w-sm mb-2">
-        <div className="flex gap-1.5">
-          {Array.from({length:ROUNDS}).map((_,i)=>(
-            <div key={i} className="rounded-full transition-all" style={{
-              width:i===round?14:10,height:i===round?14:10,
-              background:i<round?"#FFD700":i===round?ZONE_COLOR:"#333",
-              boxShadow:i===round?`0 0 8px ${ZONE_COLOR}`:"none",
-            }}/>
-          ))}
-        </div>
-        <DifficultyBadge level={curLevel2}/>
+      <div className="flex gap-1.5 justify-center mb-3">
+        {Array.from({length:ROUNDS}).map((_,i)=>(
+          <div key={i} className="rounded-full transition-all" style={{
+            width:i===round?14:10,height:i===round?14:10,
+            background:i<round?"#FFD700":i===round?ZONE_COLOR:"#333",
+            boxShadow:i===round?`0 0 8px ${ZONE_COLOR}`:"none",
+          }}/>
+        ))}
       </div>
 
-      {/* hint */}
-      {showHint2 && <div className="w-full max-w-sm mb-2"><AdaptiveHint target={item} mode={mode} show={showHint2}/></div>}
-
       {/* picture card */}
-      <div className="w-full max-w-sm rounded-3xl p-4 mb-3 border-2 text-center relative overflow-hidden"
-        style={{
-          background:`linear-gradient(145deg,${ZONE_COLOR}28,#06001e)`,
-          border:`2px solid ${ZONE_COLOR}66`,
-          boxShadow:`0 0 24px ${ZONE_COLOR}33, inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${ZONE_COLOR}aa,transparent)`}}/>
-        {showBoom && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            {["🎉","⭐","✨","💫"].map((e,i)=>(
-              <div key={i} className="absolute" style={{
-                fontSize:28+i*6,
-                animation:`letterExplode 0.9s ease ${i*0.12}s forwards`,
-                left:`${15+i*20}%`,top:`${8+i*14}%`,
-              }}>{e}</div>
-            ))}
-          </div>
-        )}
-        <p style={{color:"#9ca3af",fontWeight:900,fontSize:13,marginBottom:6,fontFamily:"Heebo,sans-serif"}}>
+      <div className="w-full max-w-sm rounded-3xl p-5 mb-4 border-2 text-center relative overflow-hidden"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
+        {showBoom&&<div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+          style={{fontSize:60,animation:"sparkleOut 1s ease forwards"}}>🎉</div>}
+        <p className="text-gray-300 font-black text-sm mb-2">
           {mode==="letters" ? "🖼️ מה האות הראשונה?" : "🔢 כמה יש כאן?"}
         </p>
         {mode==="letters" ? (
           <>
-            <div style={{fontSize:80,filter:`drop-shadow(0 4px 12px ${ZONE_COLOR}55)`,
-              animation:"heroFloat 2s ease-in-out infinite",display:"inline-block"}}>{item.emoji}</div>
-            <div style={{color:"white",fontWeight:900,fontSize:24,marginTop:4,fontFamily:"Heebo,sans-serif",
-              textShadow:`0 0 12px ${ZONE_COLOR}66`}}>{item.word}</div>
+            <div style={{fontSize:80}}>{item.emoji}</div>
+            <div className="text-white font-black text-2xl mt-1">{item.word}</div>
           </>
         ) : (
           <div className="flex flex-wrap justify-center gap-1 my-2" style={{minHeight:60}}>
-            {item.items.map((e,i)=>(
-              <span key={i} style={{fontSize:32,
-                animation:`heroFloat ${1.5+i*0.2}s ease-in-out infinite`,
-                animationDelay:`${i*0.1}s`,display:"inline-block"}}>{e}</span>
-            ))}
+            {item.items.map((e,i)=><span key={i} style={{fontSize:32}}>{e}</span>)}
           </div>
         )}
         <button onClick={()=> narrator.say(
           mode==="letters"?`${item.word} — מה האות הראשונה?`:`ספור: ${item.items.join(" ")}`,
           {priority:true})}
-          className="btn-3d rounded-full px-4 py-1.5 font-black border mt-2"
-          style={{fontSize:12,background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="mt-2 rounded-full px-4 py-1.5 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"66",color:ZONE_COLOR}}>
           🔊 שמע שוב
         </button>
       </div>
@@ -3313,23 +2665,10 @@ function TapLetterGame({ hero, narrator, onScore, onDone, mode }) {
   const [locked, setLocked] = useState(false);
   const [showBoom, setShowBoom] = useState(false);
 
-  const [adaptive3, setAdaptive3] = useState(()=>loadAdaptive());
-  const [curLevel3, setCurLevel3] = useState(1);
-  const [wrongCount3,setWrongCount3]=useState(0);
-
-  const makeRound = (adap=adaptive3) => {
-    const key = "tap_global";
-    const stats = getItemStats(adap, key);
-    const lvl = Math.min(3, stats.level);
-    setCurLevel3(lvl);
-    // harder grid = more items
-    const gridSz = lvl===1 ? 4 : lvl===2 ? 6 : 9;
-    const pool = shuffleArr(data).slice(0, gridSz);
-    if (!pool.find(p=> mode==="letters"?false:false)) {
-      // ensure target is in pool
-    }
-    const tgt = pool[Math.floor(Math.random()*pool.length)];
-    setGrid(pool); setTarget(tgt); setStates({}); setLocked(false); setWrongCount3(0);
+  const makeRound = () => {
+    const pool = shuffleArr(data).slice(0, GRID_SIZE);
+    const tgt  = pool[Math.floor(Math.random()*GRID_SIZE)];
+    setGrid(pool); setTarget(tgt); setStates({}); setLocked(false);
     const txt = mode==="letters"
       ? `לחץ על האות ${tgt.letter}!`
       : `לחץ על המספר ${tgt.number}!`;
@@ -3369,84 +2708,51 @@ function TapLetterGame({ hero, narrator, onScore, onDone, mode }) {
       </div>
 
       {/* target */}
-      <div className="w-full max-w-sm rounded-2xl p-3 mb-2 border-2 text-center relative overflow-hidden"
-        style={{
-          background:`linear-gradient(145deg,${ZONE_COLOR}28,#06001e)`,
-          border:`2px solid ${ZONE_COLOR}66`,
-          boxShadow:`0 0 20px ${ZONE_COLOR}33`,
-        }}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${ZONE_COLOR}aa,transparent)`}}/>
-        {showBoom && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            {["⭐","✨","🌟","💫"].map((e,i)=>(
-              <div key={i} className="absolute" style={{
-                fontSize:24+i*4,
-                animation:`letterExplode 0.7s ease ${i*0.08}s forwards`,
-                left:`${20+i*18}%`, top:`${5+i*15}%`,
-              }}>{e}</div>
-            ))}
-          </div>
-        )}
-        <p style={{color:"#9ca3af",fontWeight:900,fontSize:12,marginBottom:4,fontFamily:"Heebo,sans-serif"}}>
-          לחץ על:
-        </p>
+      <div className="w-full max-w-sm rounded-2xl p-3 mb-3 border-2 text-center relative"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,borderColor:ZONE_COLOR+"55"}}>
+        {showBoom&&<div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+          style={{fontSize:50,animation:"sparkleOut 0.8s ease forwards"}}>⭐</div>}
+        <p className="text-gray-300 text-xs font-black mb-1">לחץ על:</p>
         <div className="flex items-center justify-center gap-3">
-          <span style={{fontWeight:900,fontSize:68,fontFamily:"Heebo,sans-serif",
-            color:ZONE_COLOR,textShadow:`0 0 24px ${ZONE_COLOR}`,
-            animation:"glowPulse 1.5s ease-in-out infinite",display:"inline-block"}}>
+          <span className="font-black" style={{fontSize:64,color:ZONE_COLOR,textShadow:`0 0 20px ${ZONE_COLOR}`}}>
             {mode==="letters" ? target.letter : target.number}
           </span>
-          <span style={{fontSize:42,animation:"heroFloat 2s ease-in-out infinite",display:"inline-block"}}>
-            {target.emoji}
-          </span>
+          <span style={{fontSize:40}}>{target.emoji}</span>
         </div>
         <button onClick={()=> narrator.say(
           mode==="letters"?`${target.letter}! ${target.letter} כמו ${target.word}`:`${target.number}!`,
           {priority:true})}
-          className="btn-3d rounded-full px-3 py-1 font-black border mt-1"
-          style={{fontSize:11,background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"55",color:ZONE_COLOR,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="mt-1 rounded-full px-3 py-1 text-xs font-black border active:scale-90"
+          style={{background:ZONE_COLOR+"22",borderColor:ZONE_COLOR+"55",color:ZONE_COLOR}}>
           🔊 שמע שוב
         </button>
       </div>
 
-      {/* 3x3 grid — bigger cells */}
+      {/* 3x3 grid */}
       <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
-        {grid.map((item,idx)=>{
-          const isC = states[idx]==="correct";
-          const isW = states[idx]==="wrong";
-          return (
-            <button key={idx} onClick={()=>choose(idx,item)}
-              className="rounded-2xl flex flex-col items-center justify-center relative overflow-hidden"
-              style={{
-                height:92,
-                background: isC ? "linear-gradient(145deg,#003d1a,#00CC44)"
-                           : isW ? "linear-gradient(145deg,#3d0000,#CC2200)"
-                           : `linear-gradient(145deg,${ZONE_COLOR}22,#06001e)`,
-                border:`3px solid ${isC?"#00FF88":isW?"#FF4444":ZONE_COLOR+"44"}`,
-                boxShadow: isC?"0 0 24px #00FF8877, 0 3px 0 #00AA44"
-                          :isW?"0 0 16px #FF444477"
-                          :`0 3px 0 ${ZONE_COLOR}33`,
-                animation: isW ? "wrongWobble 0.6s ease" : isC ? "correctBounce 0.7s ease" : "none",
-              }}>
-              {/* correct: burst */}
-              {isC && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div style={{fontSize:20,animation:"letterExplode 0.5s ease forwards"}}>⭐</div>
-                </div>
-              )}
-              {/* top shimmer */}
-              <div className="absolute top-0 left-0 right-0 h-px"
-                style={{background:`linear-gradient(90deg,transparent,${isC?"#00FF88":isW?"#FF4444":ZONE_COLOR}88,transparent)`}}/>
-              <span style={{fontWeight:900,color:"white",fontSize:40,fontFamily:"Heebo,sans-serif",
-                textShadow:isC?"0 0 8px #00FF8866":isW?"0 0 8px #FF444466":"0 2px 4px rgba(0,0,0,0.4)"}}>
-                {mode==="letters" ? item.letter : item.number}
-              </span>
-              <span style={{fontSize:18,marginTop:2}}>{item.emoji}</span>
-            </button>
-          );
-        })}
+        {grid.map((item,idx)=>(
+          <button key={idx} onClick={()=>choose(idx,item)}
+            className="rounded-2xl flex flex-col items-center justify-center border-3 active:scale-90 transition-all relative overflow-hidden"
+            style={{
+              height:88,
+              background: states[idx]==="correct" ? "linear-gradient(135deg,#003300,#00CC44)"
+                        : states[idx]==="wrong"   ? "linear-gradient(135deg,#330000,#CC2200)"
+                        : `linear-gradient(135deg,${ZONE_COLOR}18,#050015)`,
+              borderColor: states[idx]==="correct" ? "#00FF88"
+                         : states[idx]==="wrong"   ? "#FF4444"
+                         : ZONE_COLOR+"44",
+              border:"3px solid",
+              boxShadow: states[idx]==="correct"?"0 0 20px #00FF8877"
+                        :states[idx]==="wrong"?"0 0 12px #FF444477":"none",
+              animation: states[idx]==="wrong"?"wrongShake 0.5s ease"
+                        :states[idx]==="correct"?"correctPop 0.4s ease":"none",
+            }}>
+            <span className="font-black text-white" style={{fontSize:38}}>
+              {mode==="letters" ? item.letter : item.number}
+            </span>
+            <span style={{fontSize:16}}>{item.emoji}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -3454,71 +2760,36 @@ function TapLetterGame({ hero, narrator, onScore, onDone, mode }) {
 
 // ── Summary screen ──
 function LettersSummary({ score, total, gameTitle, onReplay, onBack, hero }) {
-  const pct   = Math.round((score/total)*100);
-  const stars = score>=total?5:score>=(total*0.8)?4:score>=(total*0.6)?3:score>=(total*0.4)?2:1;
-  const msg   = pct===100?"מושלם! אלוף האותיות! 👑"
-              : pct>=80 ?"מעולה מאוד! כמעט מושלם! 🌟"
-              : pct>=60 ?"יפה מאוד דור! 💪"
-              : "כל הכבוד שניסית! 🤗";
-  const trophy = pct===100?"🏆":pct>=80?"🌟":"💪";
+  const pct = Math.round((score/total)*100);
+  const stars = score>=total ? 5 : score>=(total*0.8) ? 4 : score>=(total*0.6) ? 3 : score>=(total*0.4) ? 2 : 1;
+  const msg = pct===100?"מושלם! אלוף האותיות! 👑"
+            : pct>=80?"מעולה מאוד! כמעט מושלם! 🌟"
+            : pct>=60?"יפה מאוד דור! 💪"
+            : "כל הכבוד שניסית! 🤗";
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4">
-      {/* trophy with burst */}
-      <div className="relative flex items-center justify-center" style={{width:120,height:120}}>
-        {pct>=80 && [0,1,2].map(i=>(
-          <div key={i} className="absolute inset-0 rounded-full pointer-events-none"
-            style={{border:`3px solid ${ZONE_COLOR}`,
-              animation:`ripple 1.2s ease-out ${i*0.3}s infinite`,opacity:0}}/>
-        ))}
-        <div style={{fontSize:72,
-          animation: pct===100?"laughBounce 0.8s ease-in-out infinite":"heroFloat 2s ease-in-out infinite",
-          filter:`drop-shadow(0 0 16px ${ZONE_COLOR})`,display:"inline-block"}}>
-          {trophy}
-        </div>
+      <div style={{fontSize:70,animation:"heroFloat 2s ease-in-out infinite"}}>
+        {pct===100?"🏆":pct>=80?"🌟":"💪"}
       </div>
-
-      <div className="w-full max-w-sm rounded-3xl p-5 border-2 text-center relative overflow-hidden pop-in"
-        style={{
-          background:`linear-gradient(145deg,${ZONE_COLOR}22,#06001e)`,
-          border:`2px solid ${ZONE_COLOR}`,
-          boxShadow:`0 0 32px ${ZONE_COLOR}44, inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${ZONE_COLOR}cc,transparent)`}}/>
-        <div style={{color:"white",fontWeight:900,fontSize:16,fontFamily:"Heebo,sans-serif",marginBottom:4}}>
-          {gameTitle}
-        </div>
-        <div style={{fontWeight:900,fontSize:52,fontFamily:"Heebo,sans-serif",
-          color:ZONE_COLOR,textShadow:`0 0 24px ${ZONE_COLOR}aa`,marginBottom:8}}>
+      <div className="w-full max-w-sm rounded-3xl p-6 border-4 text-center"
+        style={{background:`linear-gradient(135deg,${ZONE_COLOR}22,#050015)`,
+          borderColor:ZONE_COLOR,boxShadow:`0 0 28px ${ZONE_COLOR}44`}}>
+        <div className="text-white font-black text-xl mb-1">{gameTitle}</div>
+        <div className="font-black mb-2" style={{fontSize:56,color:ZONE_COLOR,textShadow:`0 0 20px ${ZONE_COLOR}`}}>
           {score}/{total}
         </div>
-        <Stars n={stars} max={5} size={26}/>
-        <div style={{color:"white",fontWeight:700,fontSize:17,marginTop:10,fontFamily:"Heebo,sans-serif"}}>
-          {msg}
-        </div>
-        {/* score bar */}
-        <div className="mt-3 rounded-full overflow-hidden" style={{height:8,background:"#ffffff11"}}>
-          <div className="h-full rounded-full transition-all duration-1000"
-            style={{width:`${pct}%`,
-              background:`linear-gradient(90deg,${ZONE_COLOR}88,${ZONE_COLOR})`,
-              boxShadow:`0 0 10px ${ZONE_COLOR}88`}}/>
-        </div>
+        <Stars n={stars} max={5} size={24}/>
+        <div className="text-white font-bold text-lg mt-3">{msg}</div>
       </div>
-
-      <div className="flex gap-3 slide-up" style={{animationDelay:"0.3s"}}>
+      <div className="flex gap-3">
         <button onClick={onReplay}
-          className="btn-3d px-7 py-3 rounded-full font-black text-lg text-black"
-          style={{background:`linear-gradient(135deg,${ZONE_COLOR},#7C3AED)`,
-            boxShadow:`0 6px 16px ${ZONE_COLOR}44, 0 2px 0 #5B21B6`,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="px-7 py-3 rounded-full font-black text-lg text-black active:scale-95"
+          style={{background:`linear-gradient(135deg,${ZONE_COLOR},#7C3AED)`}}>
           🔄 שוב!
         </button>
         <button onClick={onBack}
-          className="btn-3d px-7 py-3 rounded-full font-black text-lg"
-          style={{background:`linear-gradient(145deg,${ZONE_COLOR}18,#06001e)`,
-            border:`2px solid ${ZONE_COLOR}66`,color:ZONE_COLOR,
-            boxShadow:`0 4px 12px ${ZONE_COLOR}22`,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="px-7 py-3 rounded-full font-black text-lg border active:scale-95"
+          style={{background:"#ffffff08",borderColor:ZONE_COLOR,color:ZONE_COLOR}}>
           🏠 בית
         </button>
       </div>
@@ -3598,43 +2869,25 @@ function LettersZone({ hero, save, onSave, onBack }) {
             </div>
           </div>
 
-          {GAMES.map((g,gi)=>(
-            <div key={g.id} className="w-full max-w-sm mb-3 rounded-3xl overflow-hidden slide-up"
-              style={{
-                background:`linear-gradient(145deg,${g.color}18,#06001e)`,
-                border:`2px solid ${g.color}55`,
-                boxShadow:`0 6px 20px ${g.color}22, 0 2px 0 ${g.color}33, inset 0 1px 0 rgba(255,255,255,0.05)`,
-                animationDelay:`${gi*0.1}s`,
-              }}>
-              {/* top shimmer */}
-              <div className="h-px w-full"
-                style={{background:`linear-gradient(90deg,transparent,${g.color}88,transparent)`}}/>
+          {GAMES.map(g=>(
+            <div key={g.id} className="w-full max-w-sm mb-3 rounded-3xl border-2 overflow-hidden"
+              style={{borderColor:g.color+"55",background:"#ffffff06"}}>
               <div className="px-4 pt-3 pb-2 flex items-center gap-3">
-                <div className="rounded-2xl flex items-center justify-center"
-                  style={{width:48,height:48,fontSize:26,
-                    background:`linear-gradient(135deg,${g.color}33,${g.color}11)`,
-                    border:`2px solid ${g.color}44`,
-                    boxShadow:`0 4px 10px ${g.color}33`}}>
-                  {g.emoji}
-                </div>
+                <span className="text-3xl">{g.emoji}</span>
                 <div>
-                  <div style={{color:"white",fontWeight:900,fontSize:15,fontFamily:"Heebo,sans-serif"}}>{g.title}</div>
-                  <div style={{color:"#9ca3af",fontSize:12,fontFamily:"Heebo,sans-serif"}}>{g.sub}</div>
+                  <div className="text-white font-black text-base">{g.title}</div>
+                  <div className="text-gray-400 text-xs">{g.sub}</div>
                 </div>
               </div>
-              <div className="flex gap-2 px-4 pb-4">
+              <div className="flex gap-2 px-4 pb-3">
                 <button onClick={()=>startGame(g.id,"letters")}
-                  className="btn-3d flex-1 py-3 rounded-2xl font-black text-sm text-black"
-                  style={{background:`linear-gradient(135deg,${g.color},${g.color}bb)`,
-                    boxShadow:`0 4px 12px ${g.color}44, 0 2px 0 ${g.color}99`,
-                    fontFamily:"Heebo,sans-serif"}}>
+                  className="flex-1 py-2.5 rounded-2xl font-black text-sm text-black active:scale-95"
+                  style={{background:`linear-gradient(135deg,${g.color},${g.color}88)`}}>
                   🔤 אותיות
                 </button>
                 <button onClick={()=>startGame(g.id,"numbers")}
-                  className="btn-3d flex-1 py-3 rounded-2xl font-black text-sm text-black"
-                  style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)",
-                    boxShadow:"0 4px 12px rgba(255,215,0,0.4), 0 2px 0 #CC8800",
-                    fontFamily:"Heebo,sans-serif"}}>
+                  className="flex-1 py-2.5 rounded-2xl font-black text-sm text-black active:scale-95"
+                  style={{background:"linear-gradient(135deg,#FFD700,#FF8C00)"}}>
                   🔢 מספרים
                 </button>
               </div>
@@ -3647,22 +2900,13 @@ function LettersZone({ hero, save, onSave, onBack }) {
       {screen==="playing" && (
         <>
           {/* score strip */}
-          <div className="flex items-center justify-between px-4 py-2 flex-shrink-0 gap-2">
-            <div className="rounded-full px-3 py-1 font-black"
-              style={{fontSize:12,background:ZONE_COLOR+"22",color:ZONE_COLOR,
-                border:`1px solid ${ZONE_COLOR}44`,fontFamily:"Heebo,sans-serif"}}>
-              {gameObj?.emoji} {gameObj?.title}
+          <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+            <div className="rounded-full px-3 py-1 text-xs font-black"
+              style={{background:ZONE_COLOR+"22",color:ZONE_COLOR,border:`1px solid ${ZONE_COLOR}44`}}>
+              {gameObj?.emoji} {gameObj?.title} · {contentMode==="letters"?"אותיות":"מספרים"}
             </div>
-            {/* animated score bar */}
-            <div className="flex-1 rounded-full overflow-hidden" style={{height:8,background:"#ffffff11"}}>
-              <div className="h-full rounded-full transition-all duration-500"
-                style={{width:`${(currentScore/totalRounds)*100}%`,
-                  background:`linear-gradient(90deg,${ZONE_COLOR}88,${ZONE_COLOR})`,
-                  boxShadow:`0 0 8px ${ZONE_COLOR}88`}}/>
-            </div>
-            <div className="rounded-full px-3 py-1 font-black"
-              style={{fontSize:12,background:"#FFD70022",color:"#FFD700",
-                border:"1px solid #FFD70044",fontFamily:"Heebo,sans-serif"}}>
+            <div className="rounded-full px-3 py-1 text-xs font-black"
+              style={{background:"#FFD70022",color:"#FFD700",border:"1px solid #FFD70044"}}>
               ⭐ {currentScore}/{totalRounds}
             </div>
           </div>
@@ -5304,7 +4548,6 @@ function ColoringPage({narrator}) {
   const [pageIdx,  setPageIdx]  = useState(0);
   const [color,    setColor]    = useState("#FF4444");
   const [brushSize,setBrushSize]= useState(2);
-  const [savedColor, setSavedColor] = useState(false);
   const drawing    = useRef(false);
   const lastPos    = useRef(null);
   const page       = COLORING_PAGES[pageIdx];
@@ -5380,38 +4623,7 @@ function ColoringPage({narrator}) {
 
   const endPaint = () => { drawing.current = false; lastPos.current = null; };
 
-  const saveColoring = () => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    try {
-      const link = document.createElement("a");
-      link.download = `צביעה-${page.label}-${Date.now()}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      setSavedColor(true);
-      setTimeout(()=>setSavedColor(false), 2500);
-      narrator.say(`שמרת את ${page.label}! יפה מאוד!`, {priority:true});
-    } catch(e) {
-      narrator.say("לא ניתן לשמור כאן", {priority:true});
-    }
-  };
-
   const clearPage = () => { initCanvas(); narrator.say("נמחק! צבע שוב!", {priority:true}); };
-
-  const [savedColoring, setSavedColoring] = useState(false);
-  const saveColoring = () => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    try {
-      const link = document.createElement("a");
-      link.download = `צביעה-דור-${page.label}-${Date.now()}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      setSavedColoring(true);
-      setTimeout(() => setSavedColoring(false), 2500);
-      narrator.say(`הציור של ${page.label} נשמר! מעולה!`, {priority:true});
-    } catch(e) {
-      narrator.say("לא ניתן לשמור כאן", {priority:true});
-    }
-  };
 
   const changePage = (dir) => {
     const next = (pageIdx + dir + COLORING_PAGES.length) % COLORING_PAGES.length;
@@ -5464,42 +4676,18 @@ function ColoringPage({narrator}) {
                 boxShadow:col===color?"0 0 6px white":"none"}}/>
           ))}
         </div>
-        <div className="flex gap-1.5 justify-center items-center flex-wrap">
+        <div className="flex gap-2 justify-center items-center">
           {BRUSH_SIZES.map((sz,i)=>(
             <ToolBtn key={i} active={brushSize===i} onClick={()=>setBrushSize(i)}>
               <div className="rounded-full" style={{
                 width:Math.min(sz/1.5+2,20),height:Math.min(sz/1.5+2,20),
-                background: brushSize===i ? color : "white",
-                maxWidth:20, maxHeight:20,
+                background:color, maxWidth:20, maxHeight:20,
               }}/>
             </ToolBtn>
           ))}
           <ToolBtn active={false} onClick={clearPage} style={{background:"#FF444411",borderColor:"#FF444444"}}>
             <span style={{fontSize:16}}>🗑️</span>
           </ToolBtn>
-          {/* SAVE coloring */}
-          <button onClick={saveColoring}
-            className="btn-3d rounded-xl flex items-center gap-1.5 px-3"
-            style={{
-              height:44,
-              background: savedColor
-                ? "linear-gradient(135deg,#00AA44,#00FF66)"
-                : "linear-gradient(135deg,#FFD700,#FF8C00)",
-              border:`2px solid ${savedColor?"#00FF88":"#FFD700"}`,
-              boxShadow: savedColor
-                ? "0 0 16px #00FF8877, 0 3px 0 #006633"
-                : "0 5px 14px rgba(255,215,0,0.4), 0 2px 0 #CC8800",
-              transition:"all 0.35s ease",
-              animation: savedColor?"correctPop 0.4s ease":"none",
-            }}>
-            <span style={{fontSize:18,display:"inline-block",
-              animation:savedColor?"laughBounce 0.6s ease":"none"}}>
-              {savedColor?"✅":"💾"}
-            </span>
-            <span style={{color:"black",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif",whiteSpace:"nowrap"}}>
-              {savedColor?"נשמר! 🎉":"שמור"}
-            </span>
-          </button>
         </div>
       </div>
     </div>
@@ -5592,21 +4780,6 @@ function DrawingCanvas({narrator}) {
     narrator.say("הציור נמחק", {priority:true});
   };
 
-  const saveDrawing = () => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    try {
-      const link = document.createElement("a");
-      link.download = `ציור-דור-${Date.now()}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      setSavedMsg(true);
-      setTimeout(() => setSavedMsg(false), 2500);
-      narrator.say("הציור נשמר! כל הכבוד!", {priority:true});
-    } catch(e) {
-      narrator.say("לא ניתן לשמור כאן", {priority:true});
-    }
-  };
-
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -5615,79 +4788,46 @@ function DrawingCanvas({narrator}) {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col px-2 pb-2" style={{minHeight:0}}>
-      {/* canvas — full width, flex grow */}
-      <canvas ref={canvasRef} width={680} height={520}
+    <div className="flex-1 flex flex-col items-center px-2 pb-2">
+      {/* canvas */}
+      <canvas ref={canvasRef} width={340} height={280}
         className="rounded-2xl border-2 touch-none mb-2"
-        style={{
-          width:"100%", flex:1, minHeight:0,
-          borderColor: ART_COLOR+"55",
-          touchAction:"none",
-          cursor:"crosshair",
-          boxShadow:`0 0 24px ${ART_COLOR}33, inset 0 0 0 1px rgba(255,255,255,0.04)`,
-        }}
+        style={{borderColor: ART_COLOR+"44", maxWidth:"100%", cursor:"crosshair",
+          boxShadow:`0 0 20px ${ART_COLOR}22`}}
         onMouseDown={startDraw} onMouseMove={draw} onMouseUp={endDraw} onMouseLeave={endDraw}
         onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={endDraw}/>
 
       {/* color palette */}
-      <div className="flex flex-wrap gap-1 justify-center mb-1.5 max-w-sm mx-auto">
+      <div className="flex flex-wrap gap-1.5 justify-center mb-2 max-w-sm">
         {PALETTE.map(col => (
           <button key={col} onClick={()=>{setColor(col);setTool("pen");}}
-            className="rounded-full transition-all active:scale-90"
-            style={{
-              width:28, height:28, background:col,
+            className="rounded-full active:scale-90 transition-all"
+            style={{width:30,height:30,background:col,
               border:`3px solid ${col===color&&tool==="pen"?"white":"transparent"}`,
-              boxShadow: col===color&&tool==="pen"
-                ? `0 0 10px ${col}, 0 0 20px ${col}44`
-                : "none",
-              transform: col===color&&tool==="pen" ? "scale(1.2)" : "scale(1)",
-            }}/>
+              boxShadow:col===color&&tool==="pen"?"0 0 8px white":"none"}}/>
         ))}
       </div>
 
       {/* tools row */}
-      <div className="flex items-center gap-1.5 flex-wrap justify-center">
+      <div className="flex items-center gap-2 flex-wrap justify-center">
+        {/* brush sizes */}
         {BRUSH_SIZES.map((sz,i) => (
           <ToolBtn key={i} active={brushSize===i&&tool==="pen"} onClick={()=>{setBrushSize(i);setTool("pen");}}>
-            <div className="rounded-full" style={{
-              width:Math.min(sz/1.8+3,20), height:Math.min(sz/1.8+3,20),
-              background: brushSize===i&&tool==="pen" ? color : "white",
-              maxWidth:20, maxHeight:20,
-            }}/>
+            <div className="rounded-full bg-white" style={{width:sz/2+2,height:sz/2+2,maxWidth:20,maxHeight:20}}/>
           </ToolBtn>
         ))}
+        {/* shape toggle */}
         <ToolBtn active={shape==="square"} onClick={()=>setShape(s=>s==="round"?"square":"round")}>
-          <span style={{fontSize:17}}>{shape==="round"?"⬤":"■"}</span>
+          <span style={{fontSize:18}}>{shape==="round"?"⬤":"■"}</span>
         </ToolBtn>
+        {/* eraser */}
         <ToolBtn active={tool==="eraser"} onClick={()=>setTool("eraser")}>
-          <span style={{fontSize:17}}>🧹</span>
+          <span style={{fontSize:18}}>🧹</span>
         </ToolBtn>
-        <ToolBtn active={false} onClick={clear}
-          style={{background:"#FF444411",borderColor:"#FF444444"}}>
-          <span style={{fontSize:17}}>🗑️</span>
+        {/* clear */}
+        <ToolBtn active={false} onClick={clear} style={{background:"#FF444411",borderColor:"#FF444444"}}>
+          <span style={{fontSize:18}}>🗑️</span>
         </ToolBtn>
-        {/* SAVE BUTTON — prominent */}
-        <button onClick={saveDrawing}
-          className="btn-3d rounded-xl flex items-center gap-1.5 px-3"
-          style={{
-            height:44,
-            background: savedMsg
-              ? "linear-gradient(135deg,#00AA44,#00FF66)"
-              : `linear-gradient(135deg,${ART_COLOR},#EC4899)`,
-            border:`2px solid ${savedMsg?"#00FF88":ART_COLOR}`,
-            boxShadow: savedMsg
-              ? "0 0 20px #00FF8888, 0 3px 0 #006633"
-              : `0 5px 14px ${ART_COLOR}55, 0 2px 0 #C2410C`,
-            transition:"all 0.35s ease",
-            animation: savedMsg?"correctPop 0.4s ease":"none",
-          }}>
-          <span style={{fontSize:18, animation: savedMsg?"laughBounce 0.6s ease":"none", display:"inline-block"}}>
-            {savedMsg?"✅":"💾"}
-          </span>
-          <span style={{color:"white",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif",whiteSpace:"nowrap"}}>
-            {savedMsg?"נשמר! 🎉":"שמור יצירה"}
-          </span>
-        </button>
       </div>
     </div>
   );
@@ -5721,12 +4861,11 @@ function WritingPad({narrator}) {
     };
   };
 
-  const [savedWriting, setSavedWriting] = useState(false);
-
   const clearCanvas = () => {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // guide letter faint
     if (showGuide) {
       ctx.globalAlpha = 0.08;
       ctx.font        = "bold 200px Arial";
@@ -5737,29 +4876,6 @@ function WritingPad({narrator}) {
       ctx.globalAlpha = 1;
     }
     setStrokes([]); setPraised(false);
-  };
-
-  const saveWriting = () => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    try {
-      // Create white-bg version for saving
-      const tmpCanvas = document.createElement("canvas");
-      tmpCanvas.width  = canvas.width;
-      tmpCanvas.height = canvas.height;
-      const tmpCtx = tmpCanvas.getContext("2d");
-      tmpCtx.fillStyle = "#1F2937";
-      tmpCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
-      tmpCtx.drawImage(canvas, 0, 0);
-      const link = document.createElement("a");
-      link.download = `כתיבה-דור-${current.letter}-${Date.now()}.png`;
-      link.href = tmpCanvas.toDataURL("image/png");
-      link.click();
-      setSavedWriting(true);
-      setTimeout(() => setSavedWriting(false), 2500);
-      narrator.say("הכתיבה נשמרה! יופי!", {priority:true});
-    } catch(e) {
-      narrator.say("לא ניתן לשמור", {priority:true});
-    }
   };
 
   useEffect(() => { clearCanvas(); }, [idx, mode, showGuide]);
@@ -5880,42 +4996,17 @@ function WritingPad({narrator}) {
         onTouchStart={startStroke} onTouchMove={stroke} onTouchEnd={endStroke}/>
 
       {/* controls */}
-      <div className="flex gap-2 mt-2 flex-wrap justify-center items-center">
+      <div className="flex gap-3 mt-2">
         <button onClick={clearCanvas}
-          className="btn-3d rounded-full px-4 py-2 font-black text-sm border-2"
-          style={{background:"#FF444411",borderColor:"#FF444466",color:"#FF8080",
-            boxShadow:"0 3px 8px rgba(255,68,68,0.2), 0 2px 0 #880000",
-            fontFamily:"Heebo,sans-serif"}}>
+          className="rounded-full px-5 py-2 font-black text-sm border active:scale-90"
+          style={{background:"#FF444411",borderColor:"#FF444444",color:"#FF6B6B"}}>
           🗑️ נקה
         </button>
         <button onClick={()=>narrator.say(
           mode==="letters"?`האות ${current.letter}`:`המספר ${current.letter}`,{priority:true})}
-          className="btn-3d rounded-full px-4 py-2 font-black text-sm border-2"
-          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"66",color:ART_COLOR,
-            boxShadow:`0 3px 8px ${ART_COLOR}22, 0 2px 0 ${ART_COLOR}44`,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="rounded-full px-5 py-2 font-black text-sm border active:scale-90"
+          style={{background:ART_COLOR+"22",borderColor:ART_COLOR+"44",color:ART_COLOR}}>
           🔊 שמע
-        </button>
-        <button onClick={saveWriting}
-          className="btn-3d rounded-xl flex items-center gap-1.5 px-4 py-2 border-2"
-          style={{
-            background: savedWriting
-              ? "linear-gradient(135deg,#00AA44,#00FF66)"
-              : `linear-gradient(135deg,${ART_COLOR},#EC4899)`,
-            borderColor: savedWriting ? "#00FF88" : ART_COLOR,
-            boxShadow: savedWriting
-              ? "0 0 20px #00FF8888, 0 3px 0 #006633"
-              : `0 5px 14px ${ART_COLOR}44, 0 2px 0 #7C2D8E`,
-            transition:"all 0.35s ease",
-            animation: savedWriting ? "correctPop 0.4s ease" : "none",
-          }}>
-          <span style={{fontSize:18,display:"inline-block",
-            animation:savedWriting?"laughBounce 0.6s ease":"none"}}>
-            {savedWriting?"✅":"💾"}
-          </span>
-          <span style={{color:"white",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif",whiteSpace:"nowrap"}}>
-            {savedWriting?"נשמר! 🎉":"שמור כתיבה"}
-          </span>
         </button>
       </div>
     </div>
@@ -5955,10 +5046,8 @@ function ArtZone({hero, save, onSave, onBack}) {
       {/* header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
         <button onClick={handleBack}
-          className="btn-3d rounded-full px-4 py-2 font-black border"
-          style={{fontSize:13,background:"#ffffff08",borderColor:ART_COLOR+"55",color:ART_COLOR,
-            boxShadow:`0 4px 10px ${ART_COLOR}22, 0 2px 0 ${ART_COLOR}33`,
-            fontFamily:"Heebo,sans-serif"}}>
+          className="rounded-full px-4 py-2 text-sm font-black border active:scale-95"
+          style={{background:"#ffffff08",borderColor:ART_COLOR+"44",color:ART_COLOR}}>
           {tool?"◀ תפריט":"🏠 בית"}
         </button>
         <div className="text-center">
@@ -5978,43 +5067,19 @@ function ArtZone({hero, save, onSave, onBack}) {
             <div className="text-6xl" style={{animation:"heroFloat 3s ease-in-out infinite",
               filter:`drop-shadow(0 0 16px ${ART_COLOR})`}}>🎨</div>
             <div className="relative bg-white rounded-2xl px-4 py-3 border-4" style={{borderColor:ART_COLOR}}>
-              <p style={{color:"#1a1a1a",fontWeight:900,fontSize:18,fontFamily:"Heebo,sans-serif"}}>
-                דור! בחר כלי יצירה! 🎨
-              </p>
-              <p style={{color:"#6b7280",fontSize:12,marginTop:2,fontFamily:"Heebo,sans-serif"}}>
-                💾 כל יצירה ניתנת לשמירה
-              </p>
+              <p className="text-gray-900 font-black text-lg">דור! בחר כלי יצירה! 🎨</p>
             </div>
           </div>
           <div className="flex flex-col gap-3 w-full max-w-sm">
-            {TOOLS.map((t,i)=>(
+            {TOOLS.map(t=>(
               <button key={t.id} onClick={()=>selectTool(t)}
-                className="btn-3d tap-ring rounded-3xl p-5 flex items-center gap-4 slide-up relative overflow-hidden"
-                style={{
-                  background:`linear-gradient(145deg,${t.color}22,#06001e)`,
-                  border:`2.5px solid ${t.color}77`,
-                  boxShadow:`0 6px 22px ${t.color}28, 0 2px 0 ${t.color}55, inset 0 1px 0 rgba(255,255,255,0.06)`,
-                  animationDelay:`${0.2+i*0.1}s`,
-                }}>
-                {/* shimmer top */}
-                <div className="absolute top-0 left-0 right-0 h-px"
-                  style={{background:`linear-gradient(90deg,transparent,${t.color}cc,transparent)`}}/>
-                <div className="flex-shrink-0 rounded-2xl flex items-center justify-center"
-                  style={{width:60,height:60,fontSize:32,
-                    background:`linear-gradient(135deg,${t.color}44,${t.color}11)`,
-                    border:`2px solid ${t.color}55`,
-                    boxShadow:`0 4px 14px ${t.color}44, inset 0 1px 0 rgba(255,255,255,0.15)`,
-                  }}>
-                  {t.emoji}
-                </div>
-                <div className="text-right flex-1">
-                  <div style={{color:"white",fontWeight:900,fontSize:19,fontFamily:"Heebo,sans-serif"}}>{t.title}</div>
-                  <div style={{color:"#9ca3af",fontSize:13,marginTop:2,fontFamily:"Heebo,sans-serif"}}>{t.sub}</div>
-                  <div className="flex items-center gap-1 mt-1.5">
-                    <span style={{fontSize:11,color:t.color,fontWeight:700,fontFamily:"Heebo,sans-serif"}}>
-                      💾 כולל שמירת יצירה
-                    </span>
-                  </div>
+                className="rounded-3xl p-5 border-4 flex items-center gap-4 active:scale-95 transition-all"
+                style={{background:`linear-gradient(135deg,${t.color}22,#050015)`,
+                  borderColor:t.color,boxShadow:`0 0 20px ${t.color}33`}}>
+                <span className="text-5xl">{t.emoji}</span>
+                <div className="text-right">
+                  <div className="text-white font-black text-xl">{t.title}</div>
+                  <div className="text-gray-400 text-sm">{t.sub}</div>
                 </div>
               </button>
             ))}
@@ -6025,480 +5090,6 @@ function ArtZone({hero, save, onSave, onBack}) {
       {tool==="draw"  && <DrawingCanvas narrator={narrator}/>}
       {tool==="color" && <ColoringPage  narrator={narrator}/>}
       {tool==="write" && <WritingPad    narrator={narrator}/>}
-    </div>
-  );
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 🌍 VOCAB ZONE — עולם המילים (קטגוריות + יוצא דופן)
-// ═══════════════════════════════════════════════════════════════════════════
-
-const VOCAB_COLOR = "#34D399";
-
-const CATEGORIES = [
-  {
-    id:"animals", label:"חיות", emoji:"🐾", color:"#FB923C",
-    items:[
-      {emoji:"🐶",name:"כלב"},{emoji:"🐱",name:"חתול"},{emoji:"🐘",name:"פיל"},
-      {emoji:"🦁",name:"אריה"},{emoji:"🐸",name:"צפרדע"},{emoji:"🐧",name:"פינגווין"},
-      {emoji:"🦊",name:"שועל"},{emoji:"🐯",name:"נמר"},{emoji:"🦒",name:"ג'ירפה"},
-      {emoji:"🐬",name:"דולפין"},{emoji:"🦋",name:"פרפר"},{emoji:"🐢",name:"צב"},
-    ]
-  },
-  {
-    id:"transport", label:"כלי תחבורה", emoji:"🚗", color:"#60A5FA",
-    items:[
-      {emoji:"🚗",name:"מכונית"},{emoji:"🚌",name:"אוטובוס"},{emoji:"✈️",name:"מטוס"},
-      {emoji:"🚂",name:"רכבת"},{emoji:"🚀",name:"רקטה"},{emoji:"🚢",name:"ספינה"},
-      {emoji:"🚲",name:"אופניים"},{emoji:"🏍️",name:"אופנוע"},{emoji:"🚁",name:"מסוק"},
-      {emoji:"🛸",name:"צלחת מעופפת"},{emoji:"⛵",name:"סירה"},{emoji:"🚜",name:"טרקטור"},
-    ]
-  },
-  {
-    id:"fruits", label:"פירות", emoji:"🍎", color:"#F472B6",
-    items:[
-      {emoji:"🍎",name:"תפוח"},{emoji:"🍌",name:"בננה"},{emoji:"🍊",name:"תפוז"},
-      {emoji:"🍇",name:"ענבים"},{emoji:"🍓",name:"תות"},{emoji:"🍉",name:"אבטיח"},
-      {emoji:"🍋",name:"לימון"},{emoji:"🍑",name:"אפרסק"},{emoji:"🥭",name:"מנגו"},
-      {emoji:"🍍",name:"אננס"},{emoji:"🫐",name:"אוכמניות"},{emoji:"🍒",name:"דובדבן"},
-    ]
-  },
-  {
-    id:"colors", label:"צבעים", emoji:"🎨", color:"#A78BFA",
-    items:[
-      {emoji:"❤️",name:"אדום"},{emoji:"💛",name:"צהוב"},{emoji:"💚",name:"ירוק"},
-      {emoji:"💙",name:"כחול"},{emoji:"🟣",name:"סגול"},{emoji:"🟠",name:"כתום"},
-      {emoji:"🖤",name:"שחור"},{emoji:"🤍",name:"לבן"},{emoji:"🟤",name:"חום"},
-    ]
-  },
-  {
-    id:"food", label:"אוכל", emoji:"🍕", color:"#FFD700",
-    items:[
-      {emoji:"🍕",name:"פיצה"},{emoji:"🍔",name:"המבורגר"},{emoji:"🍰",name:"עוגה"},
-      {emoji:"🍦",name:"גלידה"},{emoji:"🥪",name:"כריך"},{emoji:"🍜",name:"אטריות"},
-      {emoji:"🥗",name:"סלט"},{emoji:"🍩",name:"דונאט"},{emoji:"🧆",name:"פלאפל"},
-      {emoji:"🥐",name:"קרואסון"},{emoji:"🍣",name:"סושי"},{emoji:"🫓",name:"פיתה"},
-    ]
-  },
-  {
-    id:"body", label:"גוף האדם", emoji:"👁️", color:"#FF6B6B",
-    items:[
-      {emoji:"👁️",name:"עין"},{emoji:"👂",name:"אוזן"},{emoji:"👃",name:"אף"},
-      {emoji:"👄",name:"פה"},{emoji:"✋",name:"יד"},{emoji:"🦶",name:"רגל"},
-      {emoji:"🦷",name:"שן"},{emoji:"💪",name:"זרוע"},{emoji:"🧠",name:"מוח"},
-    ]
-  },
-];
-
-// Odd-one-out sets
-const ODD_ONE_OUT = [
-  { items:[{e:"🐶",n:"כלב"},{e:"🐱",n:"חתול"},{e:"🚗",n:"מכונית"},{e:"🐘",n:"פיל"}], odd:2, hint:"כלי תחבורה בין חיות!" },
-  { items:[{e:"🍎",n:"תפוח"},{e:"🍌",n:"בננה"},{e:"✈️",n:"מטוס"},{e:"🍊",n:"תפוז"}], odd:2, hint:"מטוס אינו פרי!" },
-  { items:[{e:"🔴",n:"אדום"},{e:"🔵",n:"כחול"},{e:"🐯",n:"נמר"},{e:"🟡",n:"צהוב"}], odd:2, hint:"נמר אינו צבע!" },
-  { items:[{e:"🚌",n:"אוטובוס"},{e:"🚂",n:"רכבת"},{e:"🍕",n:"פיצה"},{e:"🚢",n:"ספינה"}], odd:2, hint:"פיצה אינה כלי רכב!" },
-  { items:[{e:"🍋",n:"לימון"},{e:"🍇",n:"ענבים"},{e:"🦁",n:"אריה"},{e:"🍓",n:"תות"}], odd:2, hint:"אריה אינו פרי!" },
-  { items:[{e:"🐸",n:"צפרדע"},{e:"🐬",n:"דולפין"},{e:"🐧",n:"פינגווין"},{e:"🍕",n:"פיצה"}], odd:3, hint:"פיצה היא אוכל, לא חיה!" },
-  { items:[{e:"✈️",n:"מטוס"},{e:"🚁",n:"מסוק"},{e:"🛸",n:"צלחת מעופפת"},{e:"🚗",n:"מכונית"}], odd:3, hint:"מכונית לא עפה!" },
-  { items:[{e:"🍰",n:"עוגה"},{e:"🍩",n:"דונאט"},{e:"🍦",n:"גלידה"},{e:"🥗",n:"סלט"}], odd:3, hint:"סלט אינו מתוק!" },
-];
-
-// ── Game 1: זיהוי קטגוריה ──
-function CategoryGame({ hero, narrator, onDone }) {
-  const ROUNDS = 10;
-  const [round, setRound]   = useState(0);
-  const [score, setScore]   = useState(0);
-  const [item,  setItem]    = useState(null);
-  const [options, setOptions] = useState([]);
-  const [chosen, setChosen] = useState(null);
-  const [showBoom, setShowBoom] = useState(false);
-  const [burstTrig, setBurstTrig] = useState(0);
-
-  const pickRound = () => {
-    // pick random item from random category
-    const cat = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
-    const itm = cat.items[Math.floor(Math.random()*cat.items.length)];
-    // wrong categories as distractors
-    const wrongCats = shuffleArr(CATEGORIES.filter(c=>c.id!==cat.id)).slice(0,3);
-    const opts = shuffleArr([cat, ...wrongCats]);
-    setItem({...itm, catId:cat.id, catLabel:cat.label, catEmoji:cat.emoji});
-    setOptions(opts); setChosen(null);
-    setTimeout(()=> narrator.say(`${itm.name} — לאיזה קבוצה שייך?`, {priority:true}), 200);
-  };
-
-  useEffect(()=>{ pickRound(); },[]); // eslint-disable-line
-
-  const choose = (cat) => {
-    if (chosen) return;
-    setChosen(cat.id);
-    narrator.say(cat.label, {priority:true});
-    const correct = cat.id===item.catId;
-    if (correct) {
-      setShowBoom(true); setBurstTrig(t=>t+1);
-      setTimeout(()=>setShowBoom(false),1400);
-      const ns=score+1; setScore(ns);
-      narrator.say(`נכון! ${item.name} שייך ל${item.catLabel}! מעולה!`, {priority:false});
-      setTimeout(()=>{
-        if(round+1>=ROUNDS) onDone(score+1);
-        else { setRound(r=>r+1); pickRound(); }
-      }, 1400);
-    } else {
-      narrator.say(`לא! ${item.name} שייך ל${item.catLabel}! נסה שוב!`, {priority:true});
-      setTimeout(()=>setChosen(null), 900);
-    }
-  };
-
-  if (!item) return null;
-
-  return (
-    <div className="flex-1 flex flex-col items-center px-4 pb-4">
-      {/* progress */}
-      <div className="flex gap-1.5 justify-center mb-3">
-        {Array.from({length:ROUNDS}).map((_,i)=>(
-          <div key={i} className="rounded-full transition-all" style={{
-            width:i===round?14:9, height:i===round?14:9,
-            background:i<round?"#FFD700":i===round?VOCAB_COLOR:"#333",
-            boxShadow:i===round?`0 0 8px ${VOCAB_COLOR}`:"none",
-          }}/>
-        ))}
-      </div>
-
-      {/* item card */}
-      <div className="w-full max-w-sm rounded-3xl p-5 mb-4 border-2 text-center relative overflow-hidden"
-        style={{background:`linear-gradient(145deg,${VOCAB_COLOR}22,#06001e)`,
-          border:`2px solid ${VOCAB_COLOR}66`,
-          boxShadow:`0 0 24px ${VOCAB_COLOR}33`}}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${VOCAB_COLOR}aa,transparent)`}}/>
-        {showBoom && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            {["⭐","🎉","✨","🌟"].map((e,i)=>(
-              <div key={i} className="absolute" style={{
-                fontSize:32+i*6, animation:`letterExplode 0.8s ease ${i*0.1}s forwards`,
-                left:`${15+i*20}%`, top:`${10+i*15}%`}}>{e}</div>
-            ))}
-          </div>
-        )}
-        <ParticleBurst color={VOCAB_COLOR} trigger={burstTrig}/>
-        <p style={{color:"#9ca3af",fontWeight:900,fontSize:13,marginBottom:10,fontFamily:"Heebo,sans-serif"}}>
-          לאיזה קבוצה שייך?
-        </p>
-        <div style={{fontSize:88,lineHeight:1,marginBottom:8,
-          animation:"floatBob 2s ease-in-out infinite",display:"inline-block"}}>
-          {item.emoji}
-        </div>
-        <div style={{color:"white",fontWeight:900,fontSize:24,fontFamily:"Heebo,sans-serif"}}>
-          {item.name}
-        </div>
-      </div>
-
-      {/* category options — 2x2 grid */}
-      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-        {options.map(cat => {
-          const isChosen  = chosen===cat.id;
-          const isCorrect = isChosen && cat.id===item.catId;
-          const isWrong   = isChosen && cat.id!==item.catId;
-          return (
-            <button key={cat.id} onClick={()=>choose(cat)}
-              className="btn-3d tap-ring rounded-3xl p-4 flex flex-col items-center border-2"
-              style={{
-                background: isCorrect ? "linear-gradient(145deg,#003d1a,#00CC44)"
-                          : isWrong   ? "linear-gradient(145deg,#3d0000,#CC2200)"
-                          : `linear-gradient(145deg,${cat.color}22,#06001e)`,
-                borderColor: isCorrect?"#00FF88":isWrong?"#FF4444":cat.color+"55",
-                boxShadow: isCorrect?`0 0 24px #00FF8877, 0 3px 0 #006633`
-                         : isWrong  ?`0 0 16px #FF444477, 0 2px 0 #880000`
-                         :`0 5px 14px ${cat.color}22, 0 2px 0 ${cat.color}44`,
-                animation: isWrong?"wrongShake 0.5s ease":isCorrect?"correctPop 0.4s ease":"none",
-                minHeight:80,
-              }}>
-              <span style={{fontSize:34,marginBottom:4}}>{cat.emoji}</span>
-              <span style={{color:"white",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif"}}>
-                {cat.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* score */}
-      <div className="mt-3" style={{color:VOCAB_COLOR,fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif"}}>
-        ⭐ {score}/{ROUNDS}
-      </div>
-    </div>
-  );
-}
-
-// ── Game 2: יוצא מן הכלל ──
-function OddOneOut({ hero, narrator, onDone }) {
-  const ROUNDS = ODD_ONE_OUT.length;
-  const [round, setRound]   = useState(0);
-  const [score, setScore]   = useState(0);
-  const [chosen, setChosen] = useState(null);
-  const [showBoom, setShowBoom] = useState(false);
-  const [shuffledSets] = useState(()=>shuffleArr(ODD_ONE_OUT));
-
-  const set = shuffledSets[round] || shuffledSets[0];
-
-  const pick = (idx) => {
-    if (chosen!==null) return;
-    setChosen(idx);
-    narrator.say(set.items[idx].n, {priority:true});
-    const correct = idx===set.odd;
-    if (correct) {
-      setShowBoom(true); setTimeout(()=>setShowBoom(false),1400);
-      const ns=score+1; setScore(ns);
-      narrator.say(`כן! ${set.items[idx].n} הוא היוצא מן הכלל! ${set.hint}`, {priority:false});
-      setTimeout(()=>{
-        if(round+1>=ROUNDS) onDone(score+1);
-        else { setRound(r=>r+1); setChosen(null); }
-      },1600);
-    } else {
-      narrator.say(`לא! נסה שוב! ${set.hint}`, {priority:true});
-      setTimeout(()=>setChosen(null), 1000);
-    }
-  };
-
-  useEffect(()=>{
-    narrator.say("מצא את מי שלא שייך לקבוצה!", {priority:true});
-  },[round]); // eslint-disable-line
-
-  return (
-    <div className="flex-1 flex flex-col items-center px-4 pb-4">
-      {/* progress */}
-      <div className="flex gap-1.5 justify-center mb-3">
-        {Array.from({length:ROUNDS}).map((_,i)=>(
-          <div key={i} className="rounded-full transition-all" style={{
-            width:i===round?14:9, height:i===round?14:9,
-            background:i<round?"#FFD700":i===round?"#FF6B35":"#333",
-          }}/>
-        ))}
-      </div>
-
-      {/* instruction */}
-      <div className="w-full max-w-sm rounded-2xl px-4 py-3 mb-4 text-center border"
-        style={{background:"#FF6B3522",border:"2px solid #FF6B3566"}}>
-        <p style={{color:"white",fontWeight:900,fontSize:16,fontFamily:"Heebo,sans-serif",margin:0}}>
-          🔍 מה לא שייך לקבוצה?
-        </p>
-        {showBoom && (
-          <div style={{fontSize:32,animation:"correctPop 0.5s ease",marginTop:4}}>🎉 נכון!</div>
-        )}
-      </div>
-
-      {/* 4 items grid */}
-      <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-        {set.items.map((itm,idx)=>{
-          const isChosen  = chosen===idx;
-          const isCorrect = isChosen && idx===set.odd;
-          const isWrong   = isChosen && idx!==set.odd;
-          return (
-            <button key={idx} onClick={()=>pick(idx)}
-              className="btn-3d tap-ring rounded-3xl p-4 flex flex-col items-center border-2"
-              style={{
-                background: isCorrect ? "linear-gradient(145deg,#003d1a,#00CC44)"
-                          : isWrong   ? "linear-gradient(145deg,#3d0000,#CC2200)"
-                          : "linear-gradient(145deg,#1a1a2e,#06001e)",
-                borderColor: isCorrect?"#00FF88":isWrong?"#FF4444":"#ffffff22",
-                boxShadow: isCorrect?"0 0 24px #00FF8877":isWrong?"0 0 16px #FF444477":
-                  "0 4px 12px rgba(0,0,0,0.3)",
-                animation: isWrong?"wrongShake 0.5s ease":isCorrect?"correctPop 0.4s ease":"none",
-                minHeight:90,
-              }}>
-              <span style={{fontSize:42,marginBottom:4}}>{itm.e}</span>
-              <span style={{color:"white",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif"}}>
-                {itm.n}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* hint strip */}
-      <div className="mt-3 text-center">
-        <span style={{color:"#6b7280",fontSize:12,fontFamily:"Heebo,sans-serif"}}>
-          💡 חשוב — מה שונה מהשאר?
-        </span>
-      </div>
-      <div style={{color:"#FF6B35",fontWeight:900,fontSize:13,fontFamily:"Heebo,sans-serif",marginTop:4}}>
-        ⭐ {score}/{ROUNDS}
-      </div>
-    </div>
-  );
-}
-
-// ── VocabSummary ──
-function VocabSummary({ score, total, gameTitle, onReplay, onBack, hero }) {
-  const pct   = Math.round((score/total)*100);
-  const stars = pct===100?5:pct>=80?4:pct>=60?3:pct>=40?2:1;
-  const msg   = pct===100?"מושלם! גאון קטגוריות! 👑"
-              : pct>=80?"מעולה מאוד! 🌟"
-              : pct>=60?"יפה מאוד! 💪"
-              : "כל הכבוד שניסית! 🤗";
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4">
-      <div style={{fontSize:70,animation:"heroFloat 2s ease-in-out infinite",
-        filter:`drop-shadow(0 0 20px ${VOCAB_COLOR})`}}>
-        {pct===100?"🏆":pct>=80?"🌟":"💪"}
-      </div>
-      <div className="w-full max-w-sm rounded-3xl p-5 border-2 text-center relative overflow-hidden pop-in"
-        style={{background:`linear-gradient(145deg,${VOCAB_COLOR}22,#06001e)`,
-          border:`2px solid ${VOCAB_COLOR}`,
-          boxShadow:`0 0 32px ${VOCAB_COLOR}44`}}>
-        <div className="absolute top-0 left-0 right-0 h-px"
-          style={{background:`linear-gradient(90deg,transparent,${VOCAB_COLOR}cc,transparent)`}}/>
-        <div style={{color:"white",fontWeight:900,fontSize:16,fontFamily:"Heebo,sans-serif",marginBottom:4}}>
-          {gameTitle}
-        </div>
-        <div style={{fontWeight:900,fontSize:52,fontFamily:"Heebo,sans-serif",
-          color:VOCAB_COLOR,textShadow:`0 0 24px ${VOCAB_COLOR}aa`,marginBottom:8}}>
-          {score}/{total}
-        </div>
-        <Stars n={stars} max={5} size={24}/>
-        <div style={{color:"white",fontWeight:700,fontSize:17,marginTop:10,fontFamily:"Heebo,sans-serif"}}>
-          {msg}
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <button onClick={onReplay}
-          className="btn-3d px-7 py-3 rounded-full font-black text-lg text-black"
-          style={{background:`linear-gradient(135deg,${VOCAB_COLOR},#059669)`,
-            boxShadow:`0 6px 16px ${VOCAB_COLOR}44, 0 2px 0 #047857`,
-            fontFamily:"Heebo,sans-serif"}}>
-          🔄 שוב!
-        </button>
-        <button onClick={onBack}
-          className="btn-3d px-7 py-3 rounded-full font-black text-lg"
-          style={{background:`linear-gradient(145deg,${VOCAB_COLOR}18,#06001e)`,
-            border:`2px solid ${VOCAB_COLOR}66`,color:VOCAB_COLOR,
-            fontFamily:"Heebo,sans-serif"}}>
-          🏠 תפריט
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Main VocabZone ──
-function VocabZone({ hero, save, onSave, onBack }) {
-  const narrator = useNarrator();
-  const [screen,    setScreen]    = useState("menu");
-  const [gameType,  setGameType]  = useState(null);
-  const [finalScore,setFinalScore]= useState(0);
-  const [totalRnds, setTotalRnds] = useState(10);
-
-  const GAMES = [
-    { id:"category", emoji:"📦", title:"זיהוי קטגוריה",
-      sub:"לאיזה קבוצה שייך?", color:"#34D399", rounds:10 },
-    { id:"oddone",   emoji:"🔍", title:"יוצא מן הכלל",
-      sub:"מצא מה לא שייך!", color:"#FF6B35", rounds:ODD_ONE_OUT.length },
-  ];
-
-  const startGame = (gid) => {
-    setGameType(gid);
-    setTotalRnds(GAMES.find(g=>g.id===gid)?.rounds||10);
-    setScreen("playing");
-    narrator.say(GAMES.find(g=>g.id===gid)?.title||"", {priority:true});
-  };
-
-  const handleDone = (score) => {
-    setFinalScore(score);
-    setScreen("summary");
-    const newStars = Math.min(5,(save.zone_stars?.vocab||0)+1);
-    const bonus = Math.round((score/totalRnds)*18);
-    onSave({...save, xp:(save.xp||0)+bonus,
-      zone_stars:{...save.zone_stars, vocab:newStars}});
-    const msg = score>=totalRnds?"מושלם! אלוף הקטגוריות!"
-              : score>=(totalRnds*0.7)?"מעולה דור! כל הכבוד!"
-              : "כל הכבוד שניסית!";
-    setTimeout(()=> narrator.say(msg,{priority:true}), 400);
-  };
-
-  const gameObj = GAMES.find(g=>g.id===gameType);
-
-  return (
-    <div className="min-h-screen flex flex-col" dir="rtl"
-      style={{background:"linear-gradient(180deg,#002820 0%,#050015 100%)"}}>
-
-      {/* header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2 flex-shrink-0">
-        <button onClick={()=>{narrator.stop(); screen==="menu"?onBack():setScreen("menu");}}
-          className="btn-3d rounded-full px-4 py-2 font-black border"
-          style={{fontSize:13,background:"#ffffff08",borderColor:VOCAB_COLOR+"44",color:VOCAB_COLOR,
-            boxShadow:`0 3px 8px ${VOCAB_COLOR}22, 0 1px 0 ${VOCAB_COLOR}33`,
-            fontFamily:"Heebo,sans-serif"}}>
-          {screen==="menu"?"🏠 בית":"◀ תפריט"}
-        </button>
-        <div className="text-center">
-          <div style={{color:"white",fontWeight:900,fontFamily:"Heebo,sans-serif",
-            textShadow:`0 0 10px ${VOCAB_COLOR}`}}>
-            🌍 עולם המילים
-          </div>
-          <Stars n={save.zone_stars?.vocab||0} max={5} size={12}/>
-        </div>
-        <SpeakerBtn narrator={narrator} accent={VOCAB_COLOR}
-          onRepeat={()=>narrator.say(screen==="menu"?"בחר משחק!":gameObj?.title||"",{priority:true})}/>
-      </div>
-
-      {/* ── MENU ── */}
-      {screen==="menu" && (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-5">
-          <div className="text-center flex flex-col items-center gap-3">
-            <div style={{fontSize:64,animation:"heroFloat 3s ease-in-out infinite",
-              filter:`drop-shadow(0 0 20px ${VOCAB_COLOR})`}}>🌍</div>
-            <HeroBubble hero={hero} text="דור! בוא נלמד על העולם! איפה כל דבר שייך? 🌍"/>
-          </div>
-          <div className="flex flex-col gap-4 w-full max-w-sm">
-            {GAMES.map((g,i)=>(
-              <button key={g.id} onClick={()=>startGame(g.id)}
-                className="btn-3d tap-ring rounded-3xl p-5 flex items-center gap-4 relative overflow-hidden slide-up"
-                style={{
-                  background:`linear-gradient(145deg,${g.color}22,#06001e)`,
-                  border:`2.5px solid ${g.color}66`,
-                  boxShadow:`0 6px 20px ${g.color}28, 0 2px 0 ${g.color}44, inset 0 1px 0 rgba(255,255,255,0.06)`,
-                  animationDelay:`${i*0.1}s`,
-                }}>
-                <div className="absolute top-0 left-0 right-0 h-px"
-                  style={{background:`linear-gradient(90deg,transparent,${g.color}88,transparent)`}}/>
-                <div className="rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{width:58,height:58,fontSize:30,
-                    background:`linear-gradient(135deg,${g.color}44,${g.color}11)`,
-                    border:`2px solid ${g.color}55`,
-                    boxShadow:`0 4px 12px ${g.color}33`}}>
-                  {g.emoji}
-                </div>
-                <div className="text-right">
-                  <div style={{color:"white",fontWeight:900,fontSize:18,fontFamily:"Heebo,sans-serif"}}>{g.title}</div>
-                  <div style={{color:"#9ca3af",fontSize:13,fontFamily:"Heebo,sans-serif",marginTop:2}}>{g.sub}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── PLAYING ── */}
-      {screen==="playing" && (
-        <>
-          <div className="px-4 py-1.5 flex-shrink-0 flex items-center justify-between">
-            <div className="rounded-full px-3 py-1 font-black inline-flex items-center gap-1"
-              style={{fontSize:12,background:VOCAB_COLOR+"22",color:VOCAB_COLOR,
-                border:`1px solid ${VOCAB_COLOR}44`,fontFamily:"Heebo,sans-serif"}}>
-              {gameObj?.emoji} {gameObj?.title}
-            </div>
-          </div>
-          {gameType==="category" && <CategoryGame hero={hero} narrator={narrator} onDone={handleDone}/>}
-          {gameType==="oddone"   && <OddOneOut    hero={hero} narrator={narrator} onDone={handleDone}/>}
-        </>
-      )}
-
-      {/* ── SUMMARY ── */}
-      {screen==="summary" && (
-        <VocabSummary score={finalScore} total={totalRnds}
-          gameTitle={`${gameObj?.emoji} ${gameObj?.title}`}
-          onReplay={()=>startGame(gameType)}
-          onBack={()=>setScreen("menu")} hero={hero}/>
-      )}
     </div>
   );
 }
@@ -6535,19 +5126,15 @@ function App() {
   const [showParent, setShowParent] = useState(false);
 
   const [showBoom, setShowBoom] = useState(false);
-  const [boomText, setBoomText] = useState("💥 בום!");
-
+  const [boomText, setBoomText] = useState("🌟 עלית רמה!");
   const persist = (data) => {
-    // detect level-up
-    const oldLevel = getLevel(save.xp||0);
-    const newLevel = getLevel(data.xp||0);
-    if (newLevel > oldLevel) {
-      setBoomText(`🌟 עלית רמה ${newLevel}!`);
+    const oldLv = getLevel(save.xp||0), newLv = getLevel(data.xp||0);
+    if (newLv > oldLv) {
+      setBoomText(`🌟 רמה ${newLv}! ${getHeroRank(newLv).emoji}`);
       setShowBoom(true);
       setTimeout(()=>setShowBoom(false), 900);
     }
-    setSave(data);
-    writeSave(data);
+    setSave(data); writeSave(data);
   };
   const goHome = () => setScreen("home");
   const activeZone = ZONES.find(z => z.id === screen);
@@ -6557,7 +5144,7 @@ function App() {
   }
   if (!hero) return null;
 
-  const builtZones = ["wheel","kingdom","letters","vocab","puzzle","hero","art"];
+  const builtZones = ["wheel","kingdom","letters","puzzle","hero","art"];
 
   return (
     <>
@@ -6572,7 +5159,6 @@ function App() {
       {screen==="wheel"   && <WheelZone   hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="kingdom" && <KingdomZone hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="letters" && <LettersZone hero={hero} save={save} onSave={persist} onBack={goHome}/>}
-      {screen==="vocab"   && <VocabZone   hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="puzzle"  && <PuzzleZone  hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="hero"    && <HeroZone    hero={hero} save={save} onSave={persist} onBack={goHome}/>}
       {screen==="art"     && <ArtZone     hero={hero} save={save} onSave={persist} onBack={goHome}/>}
