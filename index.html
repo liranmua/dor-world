@@ -66,7 +66,7 @@
             transition: transform 0.2s ease;
         }
 
-        /* אנימציות CSS מובנות (ללא ספריות חיצוניות) */
+        /* אנימציות CSS */
         @keyframes floating {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -78,6 +78,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        @keyframes correct-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background-color: var(--hero-green); }
+            100% { transform: scale(1); }
+        }
+        .correct-anim { animation: correct-pop 0.5s ease-out; }
 
         .progress-container {
             height: 28px;
@@ -96,10 +103,6 @@
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .shimmer {
-            position: relative;
-            overflow: hidden;
-        }
         .shimmer::after {
             content: "";
             position: absolute;
@@ -110,11 +113,6 @@
         @keyframes shimmer-effect {
             0% { left: -150%; }
             100% { left: 150%; }
-        }
-        
-        /* גלגל הפתרונות - סיבוב ב-CSS */
-        .wheel-container {
-            transition: transform 3s cubic-bezier(0.15, 0, 0.15, 1);
         }
     </style>
 </head>
@@ -134,104 +132,174 @@
 
         const SOLUTIONS = [
             { id: 1, label: 'לִנְשׁוֹם עָמוֹק', emoji: '🫁' },
-            { id: 2, label: 'לִסְפּוֹר עַד 10', emoji: '🔢' },
+            { id: 2, label: 'לִסְפֹּר עַד 10', emoji: '🔢' },
             { id: 3, label: 'לְבַקֵּשׁ עֶזְרָה', emoji: '🗣️' },
             { id: 4, label: 'לִשְׁתּוֹת מַיִם', emoji: '🚰' },
             { id: 5, label: 'לָלֶכֶת הַצִּידָה', emoji: '🚶' },
             { id: 6, label: 'לְדַבֵּר עִם חָבֵר', emoji: '💬' },
         ];
 
+        const LETTERS_GAME_DATA = [
+            { id: 1, letter: 'א', image: '🦁', name: 'אַרְיֵה' },
+            { id: 2, letter: 'ב', image: '🏠', name: 'בַּיִת' },
+            { id: 3, letter: 'ג', image: '🐪', name: 'גָּמָל' },
+            { id: 4, letter: 'ד', image: '🐟', name: 'דָּג' },
+            { id: 5, letter: 'ג', image: '🍦', name: 'גְּלִידָה' },
+            { id: 6, letter: 'א', image: '🎈', name: 'אַוְורוֹר' }, 
+            { id: 7, letter: 'ד', image: '🚪', name: 'דֶּלֶת' },
+        ];
+
+        // --- רכיבי עזר ---
+        const Header = ({ save, hero }) => (
+            <header className="flex items-center justify-between p-4 md:p-6 bg-black/30 border-b-4 border-[#2f3542] w-full">
+                <div className="flex items-center gap-4 text-right">
+                    <div className="w-16 h-16 bg-[#ffa502] border-4 border-[#2f3542] rounded-full flex items-center justify-center text-4xl shadow-md animate-float">
+                        {hero?.emoji || '🦸'}
+                    </div>
+                    <div>
+                        <h2 className="text-white font-black text-xl leading-none">דּוֹר הַגִּבּוֹר</h2>
+                        <p className="text-[#ffa502] font-black text-lg">שָׁלָב {save.level}</p>
+                    </div>
+                </div>
+                <div className="bg-[#2f3542] px-4 py-2 rounded-full border-2 border-[#ffa502] flex items-center gap-2">
+                    <span className="text-[#ffa502] font-black">⭐</span>
+                    <span className="text-white font-black">{save.xp}</span>
+                </div>
+            </header>
+        );
+
         // --- מסך בחירת גיבור ---
         const HeroSelection = ({ onSelect }) => (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 fade-in text-center">
-                <div className="text-8xl mb-4 animate-float">🌍</div>
+                <div className="text-7xl mb-4 animate-float">🌍</div>
                 <h1 className="text-5xl font-black text-white mb-2" style={{ textShadow: '4px 4px 0px var(--comic-black)' }}>עוֹלָם דּוֹר</h1>
                 <p className="text-[#ffa502] font-black text-xl mb-10">בְּחַר אֶת הַגִּבּוֹר שֶׁלְּךָ!</p>
-                
                 <div className="grid grid-cols-2 gap-5 w-full max-w-md">
                     {HEROES.map(h => (
                         <div key={h.id} onClick={() => onSelect(h.id)} className="btn-geometric p-8 rounded-[32px] flex flex-col items-center gap-3 active:scale-95" style={{ backgroundColor: h.color }}>
                             <span className="text-6xl animate-float">{h.emoji}</span>
-                            <span className="text-white text-xl">{h.name}</span>
+                            <span className="text-white text-xl font-bold">{h.name}</span>
                         </div>
                     ))}
                 </div>
             </div>
         );
 
-        // --- מסך בית (Home) ---
+        // --- משחק מגדל האותיות ---
+        const LettersTower = ({ onBack, onComplete }) => {
+            const [round, setRound] = useState(0);
+            const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong'
+            const [options, setOptions] = useState([]);
+
+            const currentTask = LETTERS_GAME_DATA[round % LETTERS_GAME_DATA.length];
+
+            const generateOptions = () => {
+                const incorrect = ['מ', 'ל', 'ש', 'ח', 'כ', 'ת'].filter(l => l !== currentTask.letter);
+                const shuffled = [currentTask.letter, ...incorrect.sort(() => 0.5 - Math.random()).slice(0, 2)];
+                setOptions(shuffled.sort(() => 0.5 - Math.random()));
+            };
+
+            useEffect(() => { generateOptions(); }, [round]);
+
+            const handleChoice = (letter) => {
+                if (feedback) return;
+                if (letter === currentTask.letter) {
+                    setFeedback('correct');
+                    setTimeout(() => {
+                        setFeedback(null);
+                        if (round === 4) onComplete(40);
+                        else setRound(round + 1);
+                    }, 1200);
+                } else {
+                    setFeedback('wrong');
+                    setTimeout(() => setFeedback(null), 800);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 fade-in text-center">
+                    <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black text-black">◀</div>
+                    
+                    <div className="flex flex-col items-center gap-8 w-full max-w-md">
+                        <div className="text-white font-black text-3xl mb-2">בְּאֵיזוֹ אוֹת מַתְחִיל...</div>
+                        
+                        <div className="card-geometric w-full p-10 flex flex-col items-center shadow-xl">
+                            <div className="text-9xl mb-4 animate-float">{currentTask.image}</div>
+                            <div className="text-4xl font-black text-[#2f3542]">{currentTask.name}</div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 w-full">
+                            {options.map((opt, i) => (
+                                <div 
+                                    key={i} 
+                                    onClick={() => handleChoice(opt)}
+                                    className={`btn-geometric p-6 rounded-2xl bg-white text-[#2f3542] text-5xl font-black transition-all
+                                        ${feedback === 'correct' && opt === currentTask.letter ? 'correct-anim !bg-green-400 !text-white' : ''}
+                                        ${feedback === 'wrong' && opt !== currentTask.letter ? 'opacity-50 grayscale' : ''}
+                                    `}
+                                >
+                                    {opt}
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="flex gap-2 mt-4">
+                            {[0, 1, 2, 3, 4].map(i => (
+                                <div key={i} className={`w-4 h-4 rounded-full border-2 border-white ${round >= i ? 'bg-[#ffa502]' : 'bg-transparent'}`} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- מסך בית ---
         const Home = ({ save, onNavigate }) => {
             const hero = HEROES.find(h => h.id === save.hero) || HEROES[0];
-            
             return (
                 <div className="min-h-screen flex flex-col fade-in">
-                    {/* Header HUD */}
-                    <header className="flex items-center justify-between p-4 md:p-6 bg-black/30 border-b-4 border-[#2f3542] w-full">
-                        <div className="flex items-center gap-4 text-right">
-                            <div className="w-16 h-16 bg-[#ffa502] border-4 border-[#2f3542] rounded-full flex items-center justify-center text-4xl shadow-lg animate-float">
-                                {hero.emoji}
-                            </div>
-                            <div>
-                                <h2 className="text-white font-black text-xl leading-none">דּוֹר הַגִּבּוֹר</h2>
-                                <p className="text-[#ffa502] font-black text-lg">שָׁלָב {save.level}</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="bg-[#2f3542] px-4 py-2 rounded-full border-2 border-[#ffa502] flex items-center gap-2">
-                                <span className="text-[#ffa502] font-black">⭐</span>
-                                <span className="text-white font-black">{save.xp}</span>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Mission Map */}
+                    <Header save={save} hero={hero} />
                     <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 p-8 items-center max-w-6xl mx-auto w-full">
                         {/* Wheel Card */}
-                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105 active:scale-95">
+                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105">
                             <div className="text-8xl animate-float">🎡</div>
-                            <div className="text-center">
+                            <div className="text-center px-4">
                                 <h2 className="font-black text-3xl mb-1">גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
                                 <p className="text-gray-500 font-bold">מָה עֹוֹשִׂים כְּשֶׁיֵּשׁ רֶגֶשׁ חָזָק?</p>
                             </div>
                             <div className="btn-geometric w-full py-4 bg-[#2e5bff] text-white text-xl rounded-2xl">בּוֹא נְשַׂחֵק!</div>
                         </div>
 
-                        {/* Soon Cards */}
-                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4] relative">
-                            <div className="absolute top-4 bg-[#ffa502] px-4 py-1 border-2 border-black rounded-lg font-black text-xs">בְּקָרוֹב!</div>
-                            <div className="text-8xl">📚</div>
-                            <h2 className="font-black text-3xl text-gray-400">מִגְדַּל הָאוֹתִיּוֹת</h2>
-                            <div className="w-full py-4 bg-gray-200 text-gray-500 font-black text-xl rounded-2xl text-center">נָעוּל</div>
+                        {/* Letters Tower */}
+                        <div onClick={() => onNavigate('letters')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer border-[#ffa502] hover:scale-105 scale-105 shadow-[0_15px_30px_rgba(255,165,2,0.3)]">
+                            <div className="text-8xl animate-float">📚</div>
+                            <div className="text-center px-4">
+                                <h2 className="font-black text-3xl mb-1">מִגְדַּל הָאוֹתִיּוֹת</h2>
+                                <p className="text-gray-500 font-bold">מְגַלִּים אֶת כֹּחַ הַמִּלִּים</p>
+                            </div>
+                            <div className="btn-geometric w-full py-4 bg-[#ff4757] text-white text-xl rounded-2xl">לַמְּשִׂימָה!</div>
                         </div>
 
-                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4]">
+                        {/* Logic Soon */}
+                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4] relative">
+                            <div className="absolute top-4 bg-[#ffa502] px-4 py-1 border-2 border-black rounded-lg font-black text-xs">בְּקָרוֹב!</div>
                             <div className="text-8xl">🧩</div>
                             <h2 className="font-black text-3xl text-gray-400">מַעְבָּדַת הַהִגָּיוֹן</h2>
                             <div className="w-full py-4 bg-gray-200 text-gray-500 font-black text-xl rounded-2xl text-center">נָעוּל</div>
                         </div>
                     </main>
 
-                    {/* Footer HUD */}
                     <footer className="bg-[#2f3542] p-6 flex flex-col md:flex-row items-center justify-between gap-6 w-full mt-auto">
-                        <div className="flex gap-10 text-4xl">
-                            <span className="cursor-pointer">🏠</span>
-                            <span className="opacity-40 cursor-not-allowed">🏆</span>
-                            <span className="opacity-40 cursor-not-allowed">⚙️</span>
-                        </div>
-                        
+                        <div className="flex gap-10 text-4xl"><span>🏠</span><span className="opacity-40">🏆</span><span className="opacity-40">⚙️</span></div>
                         <div className="w-full max-w-xl text-center">
-                            <div className="progress-container shimmer">
+                            <div className="progress-container shimmer overflow-hidden">
                                 <div className="progress-fill" style={{ width: `${save.xp % 100}%` }}></div>
                                 <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white" style={{ textShadow: '1px 1px 2px black' }}>
                                     הִתְקַדְּמוּת לַמַּתָּנָה: {save.xp % 100}%
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex items-center gap-3 font-black text-xl">
-                            <span>🎒</span>
-                            <span>הַתִּיק שֶׁלִּי</span>
-                        </div>
+                        <div className="flex items-center gap-3 font-black text-xl text-white"><span>🎒</span><span>הַתִּיק שֶׁלִּי</span></div>
                     </footer>
                 </div>
             );
@@ -245,40 +313,26 @@
 
             const startSpin = () => {
                 if (isSpinning) return;
-                setWinner(null);
-                setIsSpinning(true);
-                const randomExtra = 1440 + Math.floor(Math.random() * 360);
-                const newDeg = deg + randomExtra;
+                setWinner(null); setIsSpinning(true);
+                const newDeg = deg + (1440 + Math.floor(Math.random() * 360));
                 setDeg(newDeg);
-
                 setTimeout(() => {
                     setIsSpinning(false);
-                    const finalRotation = newDeg % 360;
-                    const index = Math.floor(finalRotation / (360 / SOLUTIONS.length));
+                    const index = Math.floor((newDeg % 360) / (360 / SOLUTIONS.length));
                     setWinner(SOLUTIONS[index]);
                 }, 3100);
             };
 
             return (
                 <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center fade-in">
-                    <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black">◀</div>
-                    
+                    <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black text-black">◀</div>
                     {!winner ? (
                         <div className="flex flex-col items-center gap-10">
                             <h2 className="text-4xl font-black text-white" style={{ textShadow: '3px 3px 0px black' }}>גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
-                            
                             <div className="relative">
-                                {/* חץ סימון */}
                                 <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 z-20 text-6xl drop-shadow-lg">🔻</div>
-                                
-                                {/* גוף הגלגל */}
-                                <div 
-                                    className="wheel-container w-72 h-72 md:w-96 md:h-96 rounded-full border-8 border-[#2f3542] shadow-2xl overflow-hidden relative"
-                                    style={{ 
-                                        transform: `rotate(${deg}deg)`,
-                                        background: 'conic-gradient(#ff4757 0% 16.6%, #2e5bff 16.6% 33.3%, #2ed573 33.3% 50%, #22d3ee 50% 66.6%, #a78bfa 66.6% 83.3%, #ffa502 83.3% 100%)' 
-                                    }}
-                                >
+                                <div className="w-72 h-72 md:w-96 md:h-96 rounded-full border-8 border-[#2f3542] shadow-2xl overflow-hidden relative"
+                                    style={{ transform: `rotate(${deg}deg)`, transition: 'transform 3s cubic-bezier(0.15, 0, 0.15, 1)', background: 'conic-gradient(#ff4757 0% 16.6%, #2e5bff 16.6% 33.3%, #2ed573 33.3% 50%, #22d3ee 50% 66.6%, #a78bfa 66.6% 83.3%, #ffa502 83.3% 100%)' }}>
                                     {SOLUTIONS.map((s, i) => (
                                         <div key={i} className="absolute w-full h-full flex justify-center pt-8" style={{ transform: `rotate(${i * 60 + 30}deg)` }}>
                                             <span className="text-5xl drop-shadow-md">{s.emoji}</span>
@@ -287,8 +341,7 @@
                                     <div className="absolute inset-0 m-auto w-20 h-20 bg-white border-8 border-[#2f3542] rounded-full flex items-center justify-center font-black text-[#2f3542] text-lg">דּוֹר</div>
                                 </div>
                             </div>
-
-                            <div onClick={startSpin} className={`btn-geometric px-20 py-8 bg-[#ffa502] text-white text-3xl rounded-[32px] ${isSpinning ? 'opacity-50 pointer-events-none' : 'hover:scale-105'}`}>
+                            <div onClick={startSpin} className={`btn-geometric px-20 py-8 bg-[#ffa502] text-white text-3xl rounded-[32px] ${isSpinning ? 'opacity-50 pointer-events-none' : ''}`}>
                                 {isSpinning ? 'מִסְתּוֹבֵב...' : 'סוֹבֵב אֶת הַגַּלְגַּל!'}
                             </div>
                         </div>
@@ -304,53 +357,42 @@
             );
         };
 
-        // --- ניהול אפליקציה ראשי ---
+        // --- ניהול אפליקציה ---
         const App = () => {
             const [screen, setScreen] = useState('hero-select');
             const [save, setSave] = useState({ xp: 0, level: 1, hero: null, history: [] });
 
-            // טעינת מידע בטוחה
             useEffect(() => {
-                try {
-                    const local = localStorage.getItem('dor_world_v4');
-                    if (local) {
-                        const parsed = JSON.parse(local);
-                        setSave(parsed);
-                        if (parsed.hero) setScreen('home');
-                    }
-                } catch (e) { console.error("Save error", e); }
+                const local = localStorage.getItem('dor_world_v5');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    setSave(parsed);
+                    if (parsed.hero) setScreen('home');
+                }
             }, []);
 
             const updateSave = (newData) => {
                 setSave(newData);
-                localStorage.setItem('dor_world_v4', JSON.stringify(newData));
+                localStorage.setItem('dor_world_v5', JSON.stringify(newData));
             };
 
-            const handleHeroSelect = (id) => {
-                const newData = { ...save, hero: id };
-                updateSave(newData);
-                setScreen('home');
-            };
-
-            const handleCompleteActivity = (xpGain) => {
+            const handleComplete = (xpGain) => {
                 const newXP = save.xp + xpGain;
-                const newLevel = Math.floor(newXP / 100) + 1;
-                updateSave({ ...save, xp: newXP, level: newLevel, history: [...save.history, { t: Date.now() }] });
+                updateSave({ ...save, xp: newXP, level: Math.floor(newXP / 100) + 1, history: [...save.history, {t:Date.now()}] });
                 setScreen('home');
             };
 
             return (
                 <div className="w-full min-h-screen">
-                    {screen === 'hero-select' && <HeroSelection onSelect={handleHeroSelect} />}
+                    {screen === 'hero-select' && <HeroSelection onSelect={(id) => { updateSave({...save, hero: id}); setScreen('home'); }} />}
                     {screen === 'home' && <Home save={save} onNavigate={setScreen} />}
-                    {screen === 'wheel' && <Wheel onBack={() => setScreen('home')} onComplete={handleCompleteActivity} />}
+                    {screen === 'wheel' && <Wheel onBack={() => setScreen('home')} onComplete={handleComplete} />}
+                    {screen === 'letters' && <LettersTower onBack={() => setScreen('home')} onComplete={handleComplete} />}
                 </div>
             );
         };
 
-        // הרצת האפליקציה
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
