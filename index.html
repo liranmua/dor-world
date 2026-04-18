@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>עולם דור - הכנה לכיתה א׳</title>
     
-    <!-- ייבוא פונטים וספריות חיצוניות -->
+    <!-- ספריות בסיס בלבד להבטחת יציבות -->
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     
     <style>
         :root {
@@ -38,17 +37,19 @@
             background-color: #0c2461;
             color: var(--comic-white);
             min-height: 100vh;
+            margin: 0;
             overflow-x: hidden;
         }
 
-        /* סגנון קומיקס ייחודי לכפתורים */
+        /* עיצוב כפתורים וכרטיסים בסגנון קומיקס */
         .btn-geometric {
-            position: relative;
-            transform: translateZ(0);
             transition: all 0.1s ease;
             cursor: pointer;
             border: 4px solid var(--comic-black);
             box-shadow: 0 6px 0 0 var(--comic-black);
+            position: relative;
+            font-weight: 900;
+            text-align: center;
         }
 
         .btn-geometric:active {
@@ -56,34 +57,64 @@
             box-shadow: 0 2px 0 0 var(--comic-black);
         }
 
-        /* סגנון כרטיסי משימה */
         .card-geometric {
             background: var(--comic-white);
             border: 6px solid var(--comic-black);
             border-radius: 32px;
             color: var(--comic-black);
             box-shadow: 0 12px 0 var(--comic-black);
+            transition: transform 0.2s ease;
         }
 
-        /* אפקט נצנוץ לפסי התקדמות */
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            background-size: 200% 100%;
-            animation: shimmer-anim 2s infinite;
-        }
-
-        @keyframes shimmer-anim {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        @keyframes float {
+        /* אנימציות CSS מובנות (ללא ספריות חיצוניות) */
+        @keyframes floating {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+        .animate-float { animation: floating 3s ease-in-out infinite; }
 
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        .progress-container {
+            height: 28px;
+            background: #4b5563;
+            border-radius: 14px;
+            border: 3px solid white;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--hero-green), #55efc4);
+            border-right: 3px solid white;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer-effect 2s infinite;
+        }
+        @keyframes shimmer-effect {
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+        
+        /* גלגל הפתרונות - סיבוב ב-CSS */
+        .wheel-container {
+            transition: transform 3s cubic-bezier(0.15, 0, 0.15, 1);
         }
     </style>
 </head>
@@ -92,7 +123,6 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { motion, AnimatePresence } = FramerMotion;
 
         // --- נתונים קבועים ---
         const HEROES = [
@@ -103,121 +133,101 @@
         ];
 
         const SOLUTIONS = [
-            { id: 1, label: 'לִנְשֹׁום עָמֹוק', emoji: '🫁', color: '#ff4757' },
-            { id: 2, label: 'לִסְפֹּר עַד 10', emoji: '🔢', color: '#2e5bff' },
-            { id: 3, label: 'לְבַקֵּשׁ עֶזְרָה', emoji: '🗣️', color: '#2ed573' },
-            { id: 4, label: 'לִשְׁתּוֹת מַיִם', emoji: '🚰', color: '#22d3ee' },
-            { id: 5, label: 'לָלֶכֶת הַצִּידָה', emoji: '🚶', color: '#a78bfa' },
-            { id: 6, label: 'לְדַבֵּר עִם חָבֵר', emoji: '💬', color: '#ffa502' },
+            { id: 1, label: 'לִנְשׁוֹם עָמוֹק', emoji: '🫁' },
+            { id: 2, label: 'לִסְפּוֹר עַד 10', emoji: '🔢' },
+            { id: 3, label: 'לְבַקֵּשׁ עֶזְרָה', emoji: '🗣️' },
+            { id: 4, label: 'לִשְׁתּוֹת מַיִם', emoji: '🚰' },
+            { id: 5, label: 'לָלֶכֶת הַצִּידָה', emoji: '🚶' },
+            { id: 6, label: 'לְדַבֵּר עִם חָבֵר', emoji: '💬' },
         ];
 
-        // --- רכיבים משותפים ---
-        const StatBadge = ({ icon, value }) => (
-            <div className="bg-[#2f3542] px-4 py-2 rounded-full border-2 border-[#ffa502] flex items-center gap-2 shadow-md">
-                <span className="text-[#ffa502] font-black">{icon}</span>
-                <span className="text-white font-black text-sm">{value}</span>
-            </div>
-        );
-
-        const ProgressBar = ({ progress, text }) => (
-            <div className="w-full max-w-md h-8 bg-[#57606f] rounded-full border-4 border-white overflow-hidden relative">
-                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white z-10">
-                    {text}: {progress}%
-                </div>
-                <div 
-                    className="h-full bg-gradient-to-r from-[#2ed573] to-[#55efc4] border-r-4 border-white transition-all duration-700 shimmer"
-                    style={{ width: `${progress}%` }}
-                />
-            </div>
-        );
-
-        // --- מסכים ---
+        // --- מסך בחירת גיבור ---
         const HeroSelection = ({ onSelect }) => (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6">
-                <div className="text-center mb-12">
-                    <div className="text-7xl mb-4 animate-float">🌍</div>
-                    <h1 className="text-5xl font-black mb-2 text-white" style={{ textShadow: '4px 4px 0 var(--comic-black)' }}>עוֹלָם דּוֹר</h1>
-                    <p className="text-[#ffa502] font-black text-xl">בְּחַר אֶת הַגִּבּוֹר שֶׁלְּךָ!</p>
-                </div>
-                <div className="grid grid-cols-2 gap-6 w-full max-w-md">
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 fade-in text-center">
+                <div className="text-8xl mb-4 animate-float">🌍</div>
+                <h1 className="text-5xl font-black text-white mb-2" style={{ textShadow: '4px 4px 0px var(--comic-black)' }}>עוֹלָם דּוֹר</h1>
+                <p className="text-[#ffa502] font-black text-xl mb-10">בְּחַר אֶת הַגִּבּוֹר שֶׁלְּךָ!</p>
+                
+                <div className="grid grid-cols-2 gap-5 w-full max-w-md">
                     {HEROES.map(h => (
-                        <button 
-                            key={h.id} 
-                            onClick={() => onSelect(h.id)}
-                            className="btn-geometric p-8 rounded-[32px] flex flex-col items-center gap-3"
-                            style={{ backgroundColor: h.color }}
-                        >
+                        <div key={h.id} onClick={() => onSelect(h.id)} className="btn-geometric p-8 rounded-[32px] flex flex-col items-center gap-3 active:scale-95" style={{ backgroundColor: h.color }}>
                             <span className="text-6xl animate-float">{h.emoji}</span>
-                            <span className="text-white font-black text-xl">{h.name}</span>
-                        </button>
+                            <span className="text-white text-xl">{h.name}</span>
+                        </div>
                     ))}
                 </div>
             </div>
         );
 
-        const HomeScreen = ({ save, onNavigate }) => {
+        // --- מסך בית (Home) ---
+        const Home = ({ save, onNavigate }) => {
             const hero = HEROES.find(h => h.id === save.hero) || HEROES[0];
+            
             return (
-                <div className="flex flex-col min-h-screen">
-                    <header className="h-[120px] flex items-center justify-between px-8 bg-black/20 border-b-4 border-[#2f3542]">
+                <div className="min-h-screen flex flex-col fade-in">
+                    {/* Header HUD */}
+                    <header className="flex items-center justify-between p-4 md:p-6 bg-black/30 border-b-4 border-[#2f3542] w-full">
                         <div className="flex items-center gap-4 text-right">
-                            <div className="w-[80px] h-[80px] bg-[#ffa502] border-4 border-[#2f3542] rounded-full flex items-center justify-center text-4xl animate-float shadow-lg">
+                            <div className="w-16 h-16 bg-[#ffa502] border-4 border-[#2f3542] rounded-full flex items-center justify-center text-4xl shadow-lg animate-float">
                                 {hero.emoji}
                             </div>
                             <div>
-                                <h2 className="text-white font-black text-2xl leading-none">דּוֹר הַגִּבּוֹר</h2>
+                                <h2 className="text-white font-black text-xl leading-none">דּוֹר הַגִּבּוֹר</h2>
                                 <p className="text-[#ffa502] font-black text-lg">שָׁלָב {save.level}</p>
                             </div>
                         </div>
-                        <div className="flex gap-3">
-                            <StatBadge icon="⭐" value={save.xp} />
-                            <StatBadge icon="⚡" value={save.history.length} />
+                        <div className="flex gap-2">
+                            <div className="bg-[#2f3542] px-4 py-2 rounded-full border-2 border-[#ffa502] flex items-center gap-2">
+                                <span className="text-[#ffa502] font-black">⭐</span>
+                                <span className="text-white font-black">{save.xp}</span>
+                            </div>
                         </div>
                     </header>
 
-                    <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 p-10 items-center">
-                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[420px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105 transition-transform">
+                    {/* Mission Map */}
+                    <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 p-8 items-center max-w-6xl mx-auto w-full">
+                        {/* Wheel Card */}
+                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105 active:scale-95">
                             <div className="text-8xl animate-float">🎡</div>
                             <div className="text-center">
                                 <h2 className="font-black text-3xl mb-1">גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
-                                <p className="text-[#747d8c] font-bold">אֵיךְ לְנַצֵּחַ כְּשֶׁיֵּשׁ רֶגֶשׁ חָזָק?</p>
+                                <p className="text-gray-500 font-bold">מָה עֹוֹשִׂים כְּשֶׁיֵּשׁ רֶגֶשׁ חָזָק?</p>
                             </div>
-                            <button className="btn-geometric w-full py-4 bg-[#2e5bff] text-white font-black text-xl rounded-2xl">
-                                בּוֹא נְשַׂחֵק!
-                            </button>
+                            <div className="btn-geometric w-full py-4 bg-[#2e5bff] text-white text-xl rounded-2xl">בּוֹא נְשַׂחֵק!</div>
                         </div>
 
-                        <div className="card-geometric h-[420px] p-8 flex flex-col items-center justify-between opacity-70 grayscale-[0.5] relative">
-                            <div className="absolute top-4 bg-[#ffa502] px-4 py-1 border-4 border-black rounded-xl font-black text-sm -rotate-6">בְּקָרוֹב!</div>
+                        {/* Soon Cards */}
+                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4] relative">
+                            <div className="absolute top-4 bg-[#ffa502] px-4 py-1 border-2 border-black rounded-lg font-black text-xs">בְּקָרוֹב!</div>
                             <div className="text-8xl">📚</div>
-                            <div className="text-center">
-                                <h2 className="font-black text-3xl mb-1">מִגְדַּל הָאוֹתִיּוֹת</h2>
-                                <p className="text-[#747d8c] font-bold">זִיהוּי אוֹתִיּוֹת וּצְלִילִים</p>
-                            </div>
-                            <button className="w-full py-4 bg-[#dfe4ea] text-[#2f3542] font-black text-xl rounded-2xl cursor-not-allowed border-4 border-black/10">
-                                נָעוּל
-                            </button>
+                            <h2 className="font-black text-3xl text-gray-400">מִגְדַּל הָאוֹתִיּוֹת</h2>
+                            <div className="w-full py-4 bg-gray-200 text-gray-500 font-black text-xl rounded-2xl text-center">נָעוּל</div>
                         </div>
 
-                        <div className="card-geometric h-[420px] p-8 flex flex-col items-center justify-between opacity-70 grayscale-[0.5] relative">
+                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4]">
                             <div className="text-8xl">🧩</div>
-                            <div className="text-center">
-                                <h2 className="font-black text-3xl mb-1">מַעְבָּדַת הַהִגָּיוֹן</h2>
-                                <p className="text-[#747d8c] font-bold">פְּתִירַת חִידוֹת וְצִלּוּמִים</p>
-                            </div>
-                            <button className="w-full py-4 bg-[#dfe4ea] text-[#2f3542] font-black text-xl rounded-2xl cursor-not-allowed border-4 border-black/10">
-                                נָעוּל
-                            </button>
+                            <h2 className="font-black text-3xl text-gray-400">מַעְבָּדַת הַהִגָּיוֹן</h2>
+                            <div className="w-full py-4 bg-gray-200 text-gray-500 font-black text-xl rounded-2xl text-center">נָעוּל</div>
                         </div>
                     </main>
 
-                    <footer className="h-[120px] bg-[#2f3542] flex items-center justify-between px-10">
-                        <div className="flex gap-8 text-4xl">
-                            <span>🏠</span>
-                            <span className="opacity-50">🏆</span>
-                            <span className="opacity-50">⚙️</span>
+                    {/* Footer HUD */}
+                    <footer className="bg-[#2f3542] p-6 flex flex-col md:flex-row items-center justify-between gap-6 w-full mt-auto">
+                        <div className="flex gap-10 text-4xl">
+                            <span className="cursor-pointer">🏠</span>
+                            <span className="opacity-40 cursor-not-allowed">🏆</span>
+                            <span className="opacity-40 cursor-not-allowed">⚙️</span>
                         </div>
-                        <ProgressBar progress={save.xp % 100} text="הִתְקַדְּמוּת לַמַּתָּנָה" />
+                        
+                        <div className="w-full max-w-xl text-center">
+                            <div className="progress-container shimmer">
+                                <div className="progress-fill" style={{ width: `${save.xp % 100}%` }}></div>
+                                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white" style={{ textShadow: '1px 1px 2px black' }}>
+                                    הִתְקַדְּמוּת לַמַּתָּנָה: {save.xp % 100}%
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex items-center gap-3 font-black text-xl">
                             <span>🎒</span>
                             <span>הַתִּיק שֶׁלִּי</span>
@@ -227,70 +237,69 @@
             );
         };
 
-        const WheelZone = ({ onBack, onComplete }) => {
-            const [spinning, setSpinning] = useState(false);
-            const [rotation, setRotation] = useState(0);
-            const [result, setResult] = useState(null);
+        // --- גלגל הפתרונות ---
+        const Wheel = ({ onBack, onComplete }) => {
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [deg, setDeg] = useState(0);
+            const [winner, setWinner] = useState(null);
 
-            const spin = () => {
-                if (spinning) return;
-                setSpinning(true);
-                setResult(null);
-                const newRotation = rotation + 1440 + Math.floor(Math.random() * 360);
-                setRotation(newRotation);
+            const startSpin = () => {
+                if (isSpinning) return;
+                setWinner(null);
+                setIsSpinning(true);
+                const randomExtra = 1440 + Math.floor(Math.random() * 360);
+                const newDeg = deg + randomExtra;
+                setDeg(newDeg);
+
                 setTimeout(() => {
-                    setSpinning(false);
-                    const index = Math.floor((newRotation % 360) / (360 / SOLUTIONS.length));
-                    setResult(SOLUTIONS[index]);
-                }, 4000);
+                    setIsSpinning(false);
+                    const finalRotation = newDeg % 360;
+                    const index = Math.floor(finalRotation / (360 / SOLUTIONS.length));
+                    setWinner(SOLUTIONS[index]);
+                }, 3100);
             };
 
             return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-                    <header className="absolute top-0 w-full p-8 flex justify-between items-center">
-                        <button onClick={onBack} className="btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl">◀</button>
-                        <h2 className="text-4xl font-black text-white drop-shadow-md">גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
-                        <div className="w-14" />
-                    </header>
-
-                    <div className="relative my-20 scale-110">
-                        <div className="absolute top-[-40px] left-1/2 -translate-x-1/2 z-20 text-6xl">🔻</div>
-                        <motion.div 
-                            animate={{ rotate: rotation }}
-                            transition={{ duration: 4, ease: [0.15, 0, 0.15, 1] }}
-                            className="w-80 h-80 rounded-full border-[8px] border-[#2f3542] relative shadow-2xl overflow-hidden"
-                            style={{ 
-                                background: 'conic-gradient(from 0deg, #ff4757 0% 16.6%, #2e5bff 16.6% 33.3%, #2ed573 33.3% 50%, #22d3ee 50% 66.6%, #a78bfa 66.6% 83.3%, #ffa502 83.3% 100%)' 
-                            }}
-                        >
-                            {SOLUTIONS.map((s, i) => (
-                                <div key={s.id} className="absolute w-full h-full flex justify-center pt-8" style={{ transform: `rotate(${i * 60 + 30}deg)` }}>
-                                    <span className="text-4xl drop-shadow-md">{s.emoji}</span>
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center fade-in">
+                    <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black">◀</div>
+                    
+                    {!winner ? (
+                        <div className="flex flex-col items-center gap-10">
+                            <h2 className="text-4xl font-black text-white" style={{ textShadow: '3px 3px 0px black' }}>גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
+                            
+                            <div className="relative">
+                                {/* חץ סימון */}
+                                <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 z-20 text-6xl drop-shadow-lg">🔻</div>
+                                
+                                {/* גוף הגלגל */}
+                                <div 
+                                    className="wheel-container w-72 h-72 md:w-96 md:h-96 rounded-full border-8 border-[#2f3542] shadow-2xl overflow-hidden relative"
+                                    style={{ 
+                                        transform: `rotate(${deg}deg)`,
+                                        background: 'conic-gradient(#ff4757 0% 16.6%, #2e5bff 16.6% 33.3%, #2ed573 33.3% 50%, #22d3ee 50% 66.6%, #a78bfa 66.6% 83.3%, #ffa502 83.3% 100%)' 
+                                    }}
+                                >
+                                    {SOLUTIONS.map((s, i) => (
+                                        <div key={i} className="absolute w-full h-full flex justify-center pt-8" style={{ transform: `rotate(${i * 60 + 30}deg)` }}>
+                                            <span className="text-5xl drop-shadow-md">{s.emoji}</span>
+                                        </div>
+                                    ))}
+                                    <div className="absolute inset-0 m-auto w-20 h-20 bg-white border-8 border-[#2f3542] rounded-full flex items-center justify-center font-black text-[#2f3542] text-lg">דּוֹר</div>
                                 </div>
-                            ))}
-                            <div className="absolute inset-0 m-auto w-20 h-20 bg-white border-8 border-[#2f3542] rounded-full flex items-center justify-center font-black text-[#2f3542]">דּוֹר</div>
-                        </motion.div>
-                    </div>
-
-                    <AnimatePresence>
-                        {result ? (
-                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-geometric w-full max-w-sm p-10 flex flex-col items-center gap-6">
-                                <div className="text-8xl animate-float">{result.emoji}</div>
-                                <h3 className="text-4xl font-black">{result.label}</h3>
-                                <p className="text-gray-500 font-bold text-lg">יוֹפִי דּוֹר! זֶה פִּתְרוֹן מְעוּלֶה.</p>
-                                <button onClick={() => onComplete(25)} className="btn-geometric w-full py-5 bg-[#2ed573] text-white font-black text-2xl rounded-2xl">
-                                    הִצְלַחְתִּי! +25 ⚡
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <div className="flex flex-col items-center gap-6">
-                                <button onClick={spin} disabled={spinning} className="btn-geometric px-20 py-8 bg-[#ffa502] text-white font-black text-3xl rounded-[32px]">
-                                    {spinning ? 'מִסְתּוֹבֵב...' : 'סוֹבֵב אֶת הַגַּלְגַּל!'}
-                                </button>
-                                {!spinning && <p className="text-white/60 font-black text-lg animate-pulse">מָה הַגִּבּוֹר יַעֲשֶׂה עַכְשָׁיו?</p>}
                             </div>
-                        )}
-                    </AnimatePresence>
+
+                            <div onClick={startSpin} className={`btn-geometric px-20 py-8 bg-[#ffa502] text-white text-3xl rounded-[32px] ${isSpinning ? 'opacity-50 pointer-events-none' : 'hover:scale-105'}`}>
+                                {isSpinning ? 'מִסְתּוֹבֵב...' : 'סוֹבֵב אֶת הַגַּלְגַּל!'}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="card-geometric p-10 max-w-sm w-full fade-in flex flex-col items-center gap-8">
+                            <div className="text-9xl animate-float">{winner.emoji}</div>
+                            <h3 className="text-4xl font-black">{winner.label}</h3>
+                            <p className="text-gray-500 font-bold text-xl">כָּל הַכָּבוֹד דּוֹר! זֶה פִּתְרוֹן מְעוּלֶה!</p>
+                            <div onClick={() => onComplete(25)} className="btn-geometric w-full py-5 bg-[#2ed573] text-white text-2xl rounded-[24px]">הִצְלַחְתִּי! +25 ⚡</div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -298,42 +307,48 @@
         // --- ניהול אפליקציה ראשי ---
         const App = () => {
             const [screen, setScreen] = useState('hero-select');
-            const [save, setSave] = useState(() => {
-                const local = localStorage.getItem('dor_world_save');
-                return local ? JSON.parse(local) : { xp: 0, level: 1, hero: null, history: [] };
-            });
+            const [save, setSave] = useState({ xp: 0, level: 1, hero: null, history: [] });
+
+            // טעינת מידע בטוחה
+            useEffect(() => {
+                try {
+                    const local = localStorage.getItem('dor_world_v4');
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        setSave(parsed);
+                        if (parsed.hero) setScreen('home');
+                    }
+                } catch (e) { console.error("Save error", e); }
+            }, []);
 
             const updateSave = (newData) => {
-                localStorage.setItem('dor_world_save', JSON.stringify(newData));
                 setSave(newData);
+                localStorage.setItem('dor_world_v4', JSON.stringify(newData));
             };
 
-            const addXP = (amount) => {
-                const newXP = save.xp + amount;
-                const newLevel = Math.floor(newXP / 100) + 1;
-                updateSave({ ...save, xp: newXP, level: newLevel, history: [...save.history, { date: Date.now() }] });
-            };
-
-            const onHeroSelect = (id) => {
-                updateSave({ ...save, hero: id });
+            const handleHeroSelect = (id) => {
+                const newData = { ...save, hero: id };
+                updateSave(newData);
                 setScreen('home');
             };
 
-            useEffect(() => {
-                if (save.hero && screen === 'hero-select') setScreen('home');
-            }, []);
+            const handleCompleteActivity = (xpGain) => {
+                const newXP = save.xp + xpGain;
+                const newLevel = Math.floor(newXP / 100) + 1;
+                updateSave({ ...save, xp: newXP, level: newLevel, history: [...save.history, { t: Date.now() }] });
+                setScreen('home');
+            };
 
             return (
-                <div dir="rtl">
-                    <AnimatePresence mode="wait">
-                        {screen === 'hero-select' && <motion.div key="1" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><HeroSelection onSelect={onHeroSelect} /></motion.div>}
-                        {screen === 'home' && <motion.div key="2" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><HomeScreen save={save} onNavigate={setScreen} /></motion.div>}
-                        {screen === 'wheel' && <motion.div key="3" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><WheelZone onBack={() => setScreen('home')} onComplete={(xp) => { addXP(xp); setScreen('home'); }} /></motion.div>}
-                    </AnimatePresence>
+                <div className="w-full min-h-screen">
+                    {screen === 'hero-select' && <HeroSelection onSelect={handleHeroSelect} />}
+                    {screen === 'home' && <Home save={save} onNavigate={setScreen} />}
+                    {screen === 'wheel' && <Wheel onBack={() => setScreen('home')} onComplete={handleCompleteActivity} />}
                 </div>
             );
         };
 
+        // הרצת האפליקציה
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
