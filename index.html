@@ -145,14 +145,22 @@
             { id: 3, letter: 'ג', image: '🐪', name: 'גָּמָל' },
             { id: 4, letter: 'ד', image: '🐟', name: 'דָּג' },
             { id: 5, letter: 'ג', image: '🍦', name: 'גְּלִידָה' },
-            { id: 6, letter: 'א', image: '🎈', name: 'אַוְורוֹר' }, 
+            { id: 6, letter: 'א', image: '🎈', name: 'בַּלּוֹן' }, 
             { id: 7, letter: 'ד', image: '🚪', name: 'דֶּלֶת' },
+        ];
+
+        const LOGIC_GAME_DATA = [
+            { id: 1, sequence: ['🔴', '🔵', '🔴', '🔵'], answer: '🔴', options: ['🔴', '🔵', '🟢'] },
+            { id: 2, sequence: ['🔺', '⬛', '🔺', '⬛'], answer: '🔺', options: ['🔺', '⬛', '🟡'] },
+            { id: 3, sequence: ['⭐', '⚡', '⭐', '⚡'], answer: '⭐', options: ['⭐', '⚡', '🔥'] },
+            { id: 4, sequence: ['🍎', '🍎', '🍌', '🍎', '🍎'], answer: '🍌', options: ['🍎', '🍌', '🍇'] },
+            { id: 5, sequence: ['🚀', '🌍', '🚀', '🌍'], answer: '🚀', options: ['🌍', '🚀', '👽'] },
         ];
 
         // --- רכיבי עזר ---
         const Header = ({ save, hero }) => (
             <header className="flex items-center justify-between p-4 md:p-6 bg-black/30 border-b-4 border-[#2f3542] w-full">
-                <div className="flex items-center gap-4 text-right">
+                <div className="flex items-center gap-3 text-right">
                     <div className="w-16 h-16 bg-[#ffa502] border-4 border-[#2f3542] rounded-full flex items-center justify-center text-4xl shadow-md animate-float">
                         {hero?.emoji || '🦸'}
                     </div>
@@ -188,18 +196,15 @@
         // --- משחק מגדל האותיות ---
         const LettersTower = ({ onBack, onComplete }) => {
             const [round, setRound] = useState(0);
-            const [feedback, setFeedback] = useState(null); // 'correct' | 'wrong'
+            const [feedback, setFeedback] = useState(null);
             const [options, setOptions] = useState([]);
-
             const currentTask = LETTERS_GAME_DATA[round % LETTERS_GAME_DATA.length];
 
-            const generateOptions = () => {
+            useEffect(() => {
                 const incorrect = ['מ', 'ל', 'ש', 'ח', 'כ', 'ת'].filter(l => l !== currentTask.letter);
                 const shuffled = [currentTask.letter, ...incorrect.sort(() => 0.5 - Math.random()).slice(0, 2)];
                 setOptions(shuffled.sort(() => 0.5 - Math.random()));
-            };
-
-            useEffect(() => { generateOptions(); }, [round]);
+            }, [round]);
 
             const handleChoice = (letter) => {
                 if (feedback) return;
@@ -219,34 +224,68 @@
             return (
                 <div className="min-h-screen flex flex-col items-center justify-center p-6 fade-in text-center">
                     <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black text-black">◀</div>
-                    
                     <div className="flex flex-col items-center gap-8 w-full max-w-md">
                         <div className="text-white font-black text-3xl mb-2">בְּאֵיזוֹ אוֹת מַתְחִיל...</div>
-                        
                         <div className="card-geometric w-full p-10 flex flex-col items-center shadow-xl">
                             <div className="text-9xl mb-4 animate-float">{currentTask.image}</div>
                             <div className="text-4xl font-black text-[#2f3542]">{currentTask.name}</div>
                         </div>
-
                         <div className="grid grid-cols-3 gap-4 w-full">
                             {options.map((opt, i) => (
-                                <div 
-                                    key={i} 
-                                    onClick={() => handleChoice(opt)}
-                                    className={`btn-geometric p-6 rounded-2xl bg-white text-[#2f3542] text-5xl font-black transition-all
-                                        ${feedback === 'correct' && opt === currentTask.letter ? 'correct-anim !bg-green-400 !text-white' : ''}
-                                        ${feedback === 'wrong' && opt !== currentTask.letter ? 'opacity-50 grayscale' : ''}
-                                    `}
-                                >
+                                <div key={i} onClick={() => handleChoice(opt)} className={`btn-geometric p-6 rounded-2xl bg-white text-[#2f3542] text-5xl font-black transition-all ${feedback === 'correct' && opt === currentTask.letter ? 'correct-anim !bg-green-400 !text-white' : ''} ${feedback === 'wrong' && opt !== currentTask.letter ? 'opacity-50 grayscale' : ''}`}>
                                     {opt}
                                 </div>
                             ))}
                         </div>
-                        
-                        <div className="flex gap-2 mt-4">
-                            {[0, 1, 2, 3, 4].map(i => (
-                                <div key={i} className={`w-4 h-4 rounded-full border-2 border-white ${round >= i ? 'bg-[#ffa502]' : 'bg-transparent'}`} />
+                        <div className="flex gap-2">
+                            {[0, 1, 2, 3, 4].map(i => <div key={i} className={`w-4 h-4 rounded-full border-2 border-white ${round >= i ? 'bg-[#ffa502]' : 'bg-transparent'}`} />)}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- משחק מעבדת ההיגיון ---
+        const LogicLab = ({ onBack, onComplete }) => {
+            const [round, setRound] = useState(0);
+            const [feedback, setFeedback] = useState(null);
+            const currentTask = LOGIC_GAME_DATA[round % LOGIC_GAME_DATA.length];
+
+            const handleChoice = (ans) => {
+                if (feedback) return;
+                if (ans === currentTask.answer) {
+                    setFeedback('correct');
+                    setTimeout(() => {
+                        setFeedback(null);
+                        if (round === 4) onComplete(40);
+                        else setRound(round + 1);
+                    }, 1200);
+                } else {
+                    setFeedback('wrong');
+                    setTimeout(() => setFeedback(null), 800);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 fade-in text-center">
+                    <div onClick={onBack} className="absolute top-6 right-6 btn-geometric w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl font-black text-black">◀</div>
+                    <div className="flex flex-col items-center gap-8 w-full max-w-md">
+                        <div className="text-white font-black text-3xl mb-2">מָה הַבָּא בַּתּוֹר?</div>
+                        <div className="card-geometric w-full p-8 flex flex-wrap justify-center gap-4 items-center">
+                            {currentTask.sequence.map((item, i) => (
+                                <div key={i} className="text-6xl">{item}</div>
                             ))}
+                            <div className="text-6xl border-4 border-dashed border-[#2f3542] rounded-xl w-24 h-24 flex items-center justify-center bg-gray-100 font-black animate-pulse">?</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 w-full">
+                            {currentTask.options.map((opt, i) => (
+                                <div key={i} onClick={() => handleChoice(opt)} className={`btn-geometric p-6 rounded-2xl bg-white text-6xl transition-all ${feedback === 'correct' && opt === currentTask.answer ? 'correct-anim !bg-green-400' : ''} ${feedback === 'wrong' && opt !== currentTask.answer ? 'opacity-50 grayscale' : ''}`}>
+                                    {opt}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                            {[0, 1, 2, 3, 4].map(i => <div key={i} className={`w-4 h-4 rounded-full border-2 border-white ${round >= i ? 'bg-[#ffa502]' : 'bg-transparent'}`} />)}
                         </div>
                     </div>
                 </div>
@@ -260,43 +299,28 @@
                 <div className="min-h-screen flex flex-col fade-in">
                     <Header save={save} hero={hero} />
                     <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 p-8 items-center max-w-6xl mx-auto w-full">
-                        {/* Wheel Card */}
-                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105">
+                        <div onClick={() => onNavigate('wheel')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer hover:scale-105 active:scale-95">
                             <div className="text-8xl animate-float">🎡</div>
-                            <div className="text-center px-4">
-                                <h2 className="font-black text-3xl mb-1">גַּלְגַּל הַפִּתְרוֹנוֹת</h2>
-                                <p className="text-gray-500 font-bold">מָה עֹוֹשִׂים כְּשֶׁיֵּשׁ רֶגֶשׁ חָזָק?</p>
-                            </div>
+                            <div className="text-center px-4"><h2 className="font-black text-3xl mb-1">גַּלְגַּל הַפִּתְרוֹנוֹת</h2><p className="text-gray-500 font-bold">מָה עֹוֹשִׂים כְּשֶׁיֵּשׁ רֶגֶשׁ חָזָק?</p></div>
                             <div className="btn-geometric w-full py-4 bg-[#2e5bff] text-white text-xl rounded-2xl">בּוֹא נְשַׂחֵק!</div>
                         </div>
-
-                        {/* Letters Tower */}
-                        <div onClick={() => onNavigate('letters')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer border-[#ffa502] hover:scale-105 scale-105 shadow-[0_15px_30px_rgba(255,165,2,0.3)]">
+                        <div onClick={() => onNavigate('letters')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer border-[#ffa502] hover:scale-105 active:scale-95 shadow-[0_15px_30px_rgba(255,165,2,0.3)]">
                             <div className="text-8xl animate-float">📚</div>
-                            <div className="text-center px-4">
-                                <h2 className="font-black text-3xl mb-1">מִגְדַּל הָאוֹתִיּוֹת</h2>
-                                <p className="text-gray-500 font-bold">מְגַלִּים אֶת כֹּחַ הַמִּלִּים</p>
-                            </div>
+                            <div className="text-center px-4"><h2 className="font-black text-3xl mb-1">מִגְדַּל הָאוֹתִיּוֹת</h2><p className="text-gray-500 font-bold">מְגַלִּים אֶת כֹּחַ הַמִּלִּים</p></div>
                             <div className="btn-geometric w-full py-4 bg-[#ff4757] text-white text-xl rounded-2xl">לַמְּשִׂימָה!</div>
                         </div>
-
-                        {/* Logic Soon */}
-                        <div className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between opacity-60 grayscale-[0.4] relative">
-                            <div className="absolute top-4 bg-[#ffa502] px-4 py-1 border-2 border-black rounded-lg font-black text-xs">בְּקָרוֹב!</div>
-                            <div className="text-8xl">🧩</div>
-                            <h2 className="font-black text-3xl text-gray-400">מַעְבָּדַת הַהִגָּיוֹן</h2>
-                            <div className="w-full py-4 bg-gray-200 text-gray-500 font-black text-xl rounded-2xl text-center">נָעוּל</div>
+                        <div onClick={() => onNavigate('logic')} className="card-geometric h-[400px] p-8 flex flex-col items-center justify-between cursor-pointer border-[#2ed573] hover:scale-105 active:scale-95 shadow-[0_15px_30px_rgba(46,213,115,0.2)]">
+                            <div className="text-8xl animate-float">🧩</div>
+                            <div className="text-center px-4"><h2 className="font-black text-3xl mb-1">מַעְבָּדַת הַהִגָּיוֹן</h2><p className="text-gray-500 font-bold">פְּתִירַת חִידוֹת וּסְדָרוֹת</p></div>
+                            <div className="btn-geometric w-full py-4 bg-[#2ed573] text-white text-xl rounded-2xl text-center">מַתְחִילִים</div>
                         </div>
                     </main>
-
                     <footer className="bg-[#2f3542] p-6 flex flex-col md:flex-row items-center justify-between gap-6 w-full mt-auto">
                         <div className="flex gap-10 text-4xl"><span>🏠</span><span className="opacity-40">🏆</span><span className="opacity-40">⚙️</span></div>
                         <div className="w-full max-w-xl text-center">
                             <div className="progress-container shimmer overflow-hidden">
                                 <div className="progress-fill" style={{ width: `${save.xp % 100}%` }}></div>
-                                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white" style={{ textShadow: '1px 1px 2px black' }}>
-                                    הִתְקַדְּמוּת לַמַּתָּנָה: {save.xp % 100}%
-                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white" style={{ textShadow: '1px 1px 2px black' }}>הִתְקַדְּמוּת לַמַּתָּנָה: {save.xp % 100}%</div>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 font-black text-xl text-white"><span>🎒</span><span>הַתִּיק שֶׁלִּי</span></div>
@@ -363,7 +387,7 @@
             const [save, setSave] = useState({ xp: 0, level: 1, hero: null, history: [] });
 
             useEffect(() => {
-                const local = localStorage.getItem('dor_world_v5');
+                const local = localStorage.getItem('dor_world_v6');
                 if (local) {
                     const parsed = JSON.parse(local);
                     setSave(parsed);
@@ -373,7 +397,7 @@
 
             const updateSave = (newData) => {
                 setSave(newData);
-                localStorage.setItem('dor_world_v5', JSON.stringify(newData));
+                localStorage.setItem('dor_world_v6', JSON.stringify(newData));
             };
 
             const handleComplete = (xpGain) => {
@@ -388,6 +412,7 @@
                     {screen === 'home' && <Home save={save} onNavigate={setScreen} />}
                     {screen === 'wheel' && <Wheel onBack={() => setScreen('home')} onComplete={handleComplete} />}
                     {screen === 'letters' && <LettersTower onBack={() => setScreen('home')} onComplete={handleComplete} />}
+                    {screen === 'logic' && <LogicLab onBack={() => setScreen('home')} onComplete={handleComplete} />}
                 </div>
             );
         };
